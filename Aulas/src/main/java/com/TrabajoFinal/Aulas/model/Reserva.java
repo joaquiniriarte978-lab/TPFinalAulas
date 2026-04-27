@@ -1,6 +1,7 @@
 package com.TrabajoFinal.Aulas.model;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Objects;
 
 public class Reserva {
@@ -10,18 +11,22 @@ public class Reserva {
     private Integer id_turno;
     private Integer id_materia;
     private LocalDate fecha;
+    private LocalTime hora_inicio;
+    private LocalTime hora_fin;
 
 
     public Reserva() {
     }
 
-    public Reserva(Integer id_reserva, Integer id_usuario, Integer id_aula, Integer id_turno, Integer id_materia, LocalDate fecha) {
-        this.id_reserva = id_reserva;
-        this.id_usuario = id_usuario;
-        this.id_aula = id_aula;
-        this.id_turno = id_turno;
-        this.id_materia = id_materia;
+    public Reserva(LocalDate fecha, LocalTime hora_fin, LocalTime hora_inicio, Integer id_aula, Integer id_materia, Integer id_reserva, Integer id_turno, Integer id_usuario) {
         this.fecha = fecha;
+        this.hora_fin = hora_fin;
+        this.hora_inicio = hora_inicio;
+        this.id_aula = id_aula;
+        this.id_materia = id_materia;
+        this.id_reserva = id_reserva;
+        this.id_turno = id_turno;
+        this.id_usuario = id_usuario;
     }
 
     @Override
@@ -82,6 +87,22 @@ public class Reserva {
 
     public void setFecha(LocalDate fecha) {
         this.fecha = fecha;
+    }
+
+    public LocalTime getHora_fin() {
+        return hora_fin;
+    }
+
+    public void setHora_fin(LocalTime hora_fin) {
+        this.hora_fin = hora_fin;
+    }
+
+    public LocalTime getHora_inicio() {
+        return hora_inicio;
+    }
+
+    public void setHora_inicio(LocalTime hora_inicio) {
+        this.hora_inicio = hora_inicio;
     }
 
     @Override
