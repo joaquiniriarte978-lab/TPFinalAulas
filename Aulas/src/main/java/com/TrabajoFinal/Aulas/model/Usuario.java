@@ -7,12 +7,12 @@ public class Usuario {
     private String nombre;
     private String email;
     private String password;
-    private String rol;
+    private Rol rol;
 
     public Usuario() {
     }
 
-    public Usuario(Integer id_usuario, String nombre, String email, String password, String rol) {
+    public Usuario(Integer id_usuario, String nombre, String email, String password, Rol rol) {
         this.id_usuario = id_usuario;
         this.nombre = nombre;
         this.email = email;
@@ -74,12 +74,12 @@ public class Usuario {
     public void setPassword(String password) {
         this.password = password;
     }
-
-    public String getRol() {
+    
+    public Rol getRol() {
         return rol;
     }
 
-    public void setRol(String rol) {
+    public void setRol(Rol rol) {
         this.rol = rol;
     }
 }

@@ -8,13 +8,13 @@ public class Aviso {
     private Integer id_aula;
     private Integer id_usuario;
     private String mensaje;
-    private String estado;
+    private Estado estado;
     private LocalDate fecha;
 
     public Aviso() {
     }
 
-    public Aviso(Integer id_aviso, Integer id_aula, Integer id_usuario, String mensaje, String estado, LocalDate fecha) {
+    public Aviso(Integer id_aviso, Integer id_aula, Integer id_usuario, String mensaje, Estado estado, LocalDate fecha) {
         this.id_aviso = id_aviso;
         this.id_aula = id_aula;
         this.id_usuario = id_usuario;
@@ -67,11 +67,11 @@ public class Aviso {
         this.mensaje = mensaje;
     }
 
-    public String getEstado() {
+    public Estado getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(Estado estado) {
         this.estado = estado;
     }
 

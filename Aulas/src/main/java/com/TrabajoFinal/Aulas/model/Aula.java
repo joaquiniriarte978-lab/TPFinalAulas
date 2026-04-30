@@ -6,13 +6,13 @@ public class Aula {
 private Integer id_aula;
 private String nombre;
 private int capacidad;
-private String tipo;
+private Tipo tipo;
 private String equipamiento;
 
     public Aula() {
     }
 
-    public Aula(Integer id_aula, String nombre, int capacidad, String tipo, String equipamiento) {
+    public Aula(Integer id_aula, String nombre, int capacidad, Tipo tipo, String equipamiento) {
         this.id_aula = id_aula;
         this.nombre = nombre;
         this.capacidad = capacidad;
@@ -67,11 +67,11 @@ private String equipamiento;
         this.capacidad = capacidad;
     }
 
-    public String getTipo() {
+    public Tipo getTipo() { 
         return tipo;
     }
 
-    public void setTipo(String tipo) {
+    public void setTipo(Tipo tipo) {
         this.tipo = tipo;
     }
 
