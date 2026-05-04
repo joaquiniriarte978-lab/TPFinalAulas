@@ -1,4 +1,7 @@
 package com.TrabajoFinal.Aulas.Repository;
 
-public interface ReservaRepository {
+import com.TrabajoFinal.Aulas.model.Reserva;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
 }

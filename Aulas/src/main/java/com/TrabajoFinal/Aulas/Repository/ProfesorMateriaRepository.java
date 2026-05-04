@@ -1,4 +1,7 @@
 package com.TrabajoFinal.Aulas.Repository;
 
-public interface ProfesorMateriaRepository {
+import com.TrabajoFinal.Aulas.model.ProfesorMateria;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ProfesorMateriaRepository extends JpaRepository<ProfesorMateria,Integer> {
 }
