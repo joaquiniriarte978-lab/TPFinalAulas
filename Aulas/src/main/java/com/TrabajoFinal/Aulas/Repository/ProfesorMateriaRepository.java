@@ -1,4 +1,4 @@
 package com.TrabajoFinal.Aulas.Repository;
 
-public class ProfesorMateriaRepository {
+public interface ProfesorMateriaRepository {
 }
