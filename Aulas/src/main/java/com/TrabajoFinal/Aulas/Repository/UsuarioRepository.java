@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UsuarioRepository extends JpaRepository<Usuario,Integer> {
-    // Buscar por email
     Optional<Usuario> findByEmail(String email);
 
 
