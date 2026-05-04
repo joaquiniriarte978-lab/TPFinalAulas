@@ -1,11 +1,19 @@
 package com.TrabajoFinal.Aulas.model;
 
-import java.util.Objects;
+import jakarta.persistence.*;
 
+import java.util.Objects;
+@Entity
+@Table(name="aula")
 public class Aula {
+    @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
 private Integer id_aula;
+    @Column(nullable=false)
 private String nombre;
+    @Column(nullable=false)
 private int capacidad;
+
 private Tipo tipo;
 private String equipamiento;
 

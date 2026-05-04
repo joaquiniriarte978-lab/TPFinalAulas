@@ -1,15 +1,26 @@
 package com.TrabajoFinal.Aulas.model;
 
+import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Objects;
-
+@Entity
+@Table(name = "reserva")
 public class Reserva {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id_reserva;
-    private Integer id_usuario;
-    private Integer id_aula;
-    private Integer id_turno;
-    private Integer id_materia;
+    @ManyToOne
+    @JoinColumn(name = "id_profesor")
+    private Usuario id_profesor;
+    @ManyToOne
+    @JoinColumn(name = "id_aula")
+    private Aula id_aula;
+    @ManyToOne
+    @JoinColumn(name = "id_materia")
+    private Materia id_materia;
     private LocalDate fecha;
     private LocalTime hora_inicio;
     private LocalTime hora_fin;
@@ -18,27 +29,26 @@ public class Reserva {
     public Reserva() {
     }
 
-    public Reserva(LocalDate fecha, LocalTime hora_fin, LocalTime hora_inicio, Integer id_aula, Integer id_materia, Integer id_reserva, Integer id_turno, Integer id_usuario) {
+    public Reserva(LocalDate fecha, LocalTime hora_fin, LocalTime hora_inicio, Aula id_aula, Materia id_materia, Integer id_reserva,Usuario id_usuario) {
         this.fecha = fecha;
         this.hora_fin = hora_fin;
         this.hora_inicio = hora_inicio;
         this.id_aula = id_aula;
         this.id_materia = id_materia;
         this.id_reserva = id_reserva;
-        this.id_turno = id_turno;
-        this.id_usuario = id_usuario;
+        this.id_profesor = id_usuario;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Reserva reserva = (Reserva) o;
-        return Objects.equals(id_reserva, reserva.id_reserva) && Objects.equals(id_usuario, reserva.id_usuario) && Objects.equals(id_aula, reserva.id_aula) && Objects.equals(id_turno, reserva.id_turno) && Objects.equals(id_materia, reserva.id_materia) && Objects.equals(fecha, reserva.fecha);
+        return Objects.equals(id_reserva, reserva.id_reserva) && Objects.equals(id_profesor, reserva.id_profesor) && Objects.equals(id_aula, reserva.id_aula) && Objects.equals(id_materia, reserva.id_materia) && Objects.equals(fecha, reserva.fecha);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id_reserva, id_usuario, id_aula, id_turno, id_materia, fecha);
+        return Objects.hash(id_reserva, id_profesor, id_aula, id_materia, fecha);
     }
 
     public Integer getId_reserva() {
@@ -49,35 +59,27 @@ public class Reserva {
         this.id_reserva = id_reserva;
     }
 
-    public Integer getId_usuario() {
-        return id_usuario;
+    public Usuario getId_usuario() {
+        return id_profesor;
     }
 
-    public void setId_usuario(Integer id_usuario) {
-        this.id_usuario = id_usuario;
+    public void setId_usuario(Usuario id_usuario) {
+        this.id_profesor = id_usuario;
     }
 
-    public Integer getId_aula() {
+    public Aula getId_aula() {
         return id_aula;
     }
 
-    public void setId_aula(Integer id_aula) {
+    public void setId_aula(Aula id_aula) {
         this.id_aula = id_aula;
     }
 
-    public Integer getId_turno() {
-        return id_turno;
-    }
-
-    public void setId_turno(Integer id_turno) {
-        this.id_turno = id_turno;
-    }
-
-    public Integer getId_materia() {
+    public Materia getId_materia() {
         return id_materia;
     }
 
-    public void setId_materia(Integer id_materia) {
+    public void setId_materia(Materia id_materia) {
         this.id_materia = id_materia;
     }
 
@@ -109,9 +111,8 @@ public class Reserva {
     public String toString() {
         return "Reserva{" +
                 "id_reserva=" + id_reserva +
-                ", id_usuario=" + id_usuario +
+                ", id_profesor=" + id_profesor +
                 ", id_aula=" + id_aula +
-                ", id_turno=" + id_turno +
                 ", id_materia=" + id_materia +
                 ", fecha=" + fecha +
                 '}';

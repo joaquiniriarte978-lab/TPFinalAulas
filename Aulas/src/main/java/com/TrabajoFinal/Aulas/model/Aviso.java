@@ -1,20 +1,32 @@
 package com.TrabajoFinal.Aulas.model;
 
+import jakarta.persistence.*;
+import jdk.jfr.Enabled;
+import org.springframework.data.annotation.Id;
+
 import java.time.LocalDate;
 import java.util.Objects;
-
+@Entity
+@Table(name = "aviso")
 public class Aviso {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id_aviso;
-    private Integer id_aula;
-    private Integer id_usuario;
+@ManyToOne
+@JoinColumn(name = "id_aula")
+    private Aula id_aula;
+    @ManyToOne
+    @JoinColumn(name = "id_usuario")
+    private Usuario id_usuario;
     private String mensaje;
+    @Enumerated(EnumType.STRING)
     private Estado estado;
     private LocalDate fecha;
 
     public Aviso() {
     }
 
-    public Aviso(Integer id_aviso, Integer id_aula, Integer id_usuario, String mensaje, Estado estado, LocalDate fecha) {
+    public Aviso(Integer id_aviso, Aula id_aula, Usuario id_usuario, String mensaje, Estado estado, LocalDate fecha) {
         this.id_aviso = id_aviso;
         this.id_aula = id_aula;
         this.id_usuario = id_usuario;
@@ -43,19 +55,19 @@ public class Aviso {
         this.id_aviso = id_aviso;
     }
 
-    public Integer getId_aula() {
+    public Aula getId_aula() {
         return id_aula;
     }
 
-    public void setId_aula(Integer id_aula) {
+    public void setId_aula(Aula id_aula) {
         this.id_aula = id_aula;
     }
 
-    public Integer getId_usuario() {
+    public Usuario getId_usuario() {
         return id_usuario;
     }
 
-    public void setId_usuario(Integer id_usuario) {
+    public void setId_usuario(Usuario id_usuario) {
         this.id_usuario = id_usuario;
     }
 

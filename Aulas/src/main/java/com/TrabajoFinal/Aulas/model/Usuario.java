@@ -1,12 +1,21 @@
 package com.TrabajoFinal.Aulas.model;
 
-import java.util.Objects;
+import jakarta.persistence.*;
 
+import java.util.Objects;
+@Entity
+@Table(name = "usuario")
 public class Usuario {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id_usuario;
+    @Column(nullable=false)
     private String nombre;
+    @Column(unique = true, nullable=false)
     private String email;
+    @Column(nullable=false)
     private String password;
+    @Enumerated(EnumType.STRING)
     private Rol rol;
 
     public Usuario() {

@@ -1,11 +1,18 @@
 package com.TrabajoFinal.Aulas.model;
 
-import java.util.Objects;
+import jakarta.persistence.*;
 
+import java.util.Objects;
+@Entity
+@Table(name="materia")
 public class Materia {
+    @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Integer id_materia;
+    @Column(nullable=false)
     private String nombre;
-    private boolean requiere_laboratorio;
+    
+    private boolean requiere_laboratorio=false;
 
     public Materia(Integer id_materia, String nombre, boolean requiere_laboratorio) {
         this.id_materia = id_materia;
