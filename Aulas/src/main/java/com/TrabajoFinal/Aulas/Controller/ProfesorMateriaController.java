@@ -2,7 +2,6 @@ package com.TrabajoFinal.Aulas.Controller;
 
 import com.TrabajoFinal.Aulas.Repository.ProfesorMateriaRepository;
 import com.TrabajoFinal.Aulas.model.ProfesorMateria;
-import org.apache.catalina.LifecycleState;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,7 +19,7 @@ public class ProfesorMateriaController {
 
     @PostMapping
     public ProfesorMateria crearProfesorMateria(ProfesorMateria profesorMateria) {
-        return repository.save(profesorMateria);
+        return (ProfesorMateria) repository.save(profesorMateria);
     }
 
     @GetMapping
@@ -31,7 +30,7 @@ public class ProfesorMateriaController {
     @GetMapping("{id_profesor_materia}")
     public ProfesorMateria findById(@PathVariable Integer id_profesor_materia){
         if(repository.existsById(id_profesor_materia)){
-            return repository.findById(id_profesor_materia).get();
+            return (ProfesorMateria) repository.findById(id_profesor_materia).get();
         }
         else throw new RuntimeException("Id no encontrado");
     }
@@ -48,11 +47,12 @@ public class ProfesorMateriaController {
     @PutMapping("{id_profesor_materia}")
     public ProfesorMateria profesorMateria (@PathVariable Integer id_profesor_materia, @RequestBody ProfesorMateria actualizado) {
         if (repository.existsById(id_profesor_materia)) {
-            ProfesorMateria pm = repository.findById(id_profesor_materia).get();
+            ProfesorMateria pm = (ProfesorMateria) repository.findById(id_profesor_materia).get();
             pm.setId_materia(actualizado.getId_materia());
-            pm.setId_usuario(actualizado.getId_profesor());
+            pm.setId_profesor(actualizado.getId_profesor());
+            return (ProfesorMateria) repository.save(pm);
+        } else {
+            throw new RuntimeException("Id no encontrado");
         }
-        else throw new RuntimeException("Id no encontrado");
     }
-
 }
