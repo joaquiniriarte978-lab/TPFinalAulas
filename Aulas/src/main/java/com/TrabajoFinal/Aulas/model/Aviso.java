@@ -2,7 +2,6 @@ package com.TrabajoFinal.Aulas.model;
 
 import jakarta.persistence.*;
 import jdk.jfr.Enabled;
-import org.springframework.data.annotation.Id;
 
 import java.time.LocalDate;
 import java.util.Objects;

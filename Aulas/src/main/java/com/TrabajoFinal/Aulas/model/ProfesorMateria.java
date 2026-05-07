@@ -21,6 +21,9 @@ public class ProfesorMateria {
         this.id_materia = id_materia;
     }
 
+    public ProfesorMateria() {
+    }
+
     @Override
     public String toString() {
         return "ProfesorMateria{" +

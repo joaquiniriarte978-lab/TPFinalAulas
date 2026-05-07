@@ -1,7 +1,6 @@
 package com.TrabajoFinal.Aulas.model;
 
 import jakarta.persistence.*;
-import org.springframework.data.annotation.Id;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
