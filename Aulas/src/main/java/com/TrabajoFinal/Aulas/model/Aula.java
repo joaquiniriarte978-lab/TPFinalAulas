@@ -7,15 +7,15 @@ import java.util.Objects;
 @Table(name="aula")
 public class Aula {
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
-private Integer id_aula;
-    @Column(nullable=false)
-private String nombre;
-    @Column(nullable=false)
-private int capacidad;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id_aula;
+    @Column(nullable = false)
+    private String nombre;
+    @Column(nullable = false)
+    private int capacidad;
 
-private Tipo tipo;
-private String equipamiento;
+    private Tipo tipo;
+    private String equipamiento;
 
     public Aula() {
     }
@@ -51,6 +51,22 @@ private String equipamiento;
                 '}';
     }
 
+    public int getCapacidad() {
+        return capacidad;
+    }
+
+    public void setCapacidad(int capacidad) {
+        this.capacidad = capacidad;
+    }
+
+    public String getEquipamiento() {
+        return equipamiento;
+    }
+
+    public void setEquipamiento(String equipamiento) {
+        this.equipamiento = equipamiento;
+    }
+
     public Integer getId_aula() {
         return id_aula;
     }
@@ -67,27 +83,11 @@ private String equipamiento;
         this.nombre = nombre;
     }
 
-    public int getCapacidad() {
-        return capacidad;
-    }
-
-    public void setCapacidad(int capacidad) {
-        this.capacidad = capacidad;
-    }
-
-    public Tipo getTipo() { 
+    public Tipo getTipo() {
         return tipo;
     }
 
     public void setTipo(Tipo tipo) {
         this.tipo = tipo;
-    }
-
-    public String getEquipamiento() {
-        return equipamiento;
-    }
-
-    public void setEquipamiento(String equipamiento) {
-        this.equipamiento = equipamiento;
     }
 }
