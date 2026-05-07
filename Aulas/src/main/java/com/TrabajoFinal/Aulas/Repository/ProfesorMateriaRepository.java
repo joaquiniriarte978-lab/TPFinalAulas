@@ -1,7 +1,21 @@
 package com.TrabajoFinal.Aulas.Repository;
 
+import com.TrabajoFinal.Aulas.model.Materia;
 import com.TrabajoFinal.Aulas.model.ProfesorMateria;
+import com.TrabajoFinal.Aulas.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface ProfesorMateriaRepository extends JpaRepository<ProfesorMateria,Integer> {
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface ProfesorMateriaRepository extends JpaRepository {
+
+    public Optional findProfesorMateriaById_materia(Materia idmateria);
+
+    public Optional findProfesorMateriaById_profesor(Usuario idprofesor);
+
+
+
 }
