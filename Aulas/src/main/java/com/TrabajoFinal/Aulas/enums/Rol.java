@@ -1,4 +1,4 @@
-package com.TrabajoFinal.Aulas.model;
+package com.TrabajoFinal.Aulas.enums;
 
 public enum Rol {
     PROFESOR,

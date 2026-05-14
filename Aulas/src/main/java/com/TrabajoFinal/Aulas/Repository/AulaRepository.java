@@ -1,7 +1,6 @@
 package com.TrabajoFinal.Aulas.Repository;
 
-import com.TrabajoFinal.Aulas.model.Aula;
-import com.TrabajoFinal.Aulas.model.Tipo;
+import com.TrabajoFinal.Aulas.enums.Tipo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
