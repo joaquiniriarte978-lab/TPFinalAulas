@@ -1,6 +1,6 @@
 package com.TrabajoFinal.Aulas.model;
 
-import com.TrabajoFinal.Aulas.enums.Tipo;
+import com.TrabajoFinal.Aulas.model.enums.Tipo;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

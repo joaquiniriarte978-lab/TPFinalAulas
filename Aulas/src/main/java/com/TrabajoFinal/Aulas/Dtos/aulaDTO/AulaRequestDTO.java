@@ -1,4 +1,4 @@
-package com.TrabajoFinal.Aulas.Dtos.RequestDtos;
+package com.TrabajoFinal.Aulas.Dtos.aulaDTO;
 
 
 import jakarta.validation.constraints.Min;

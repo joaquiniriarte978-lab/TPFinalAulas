@@ -1,4 +1,4 @@
-package com.TrabajoFinal.Aulas.Dtos.ResponseDto;
+package com.TrabajoFinal.Aulas.Dtos.usuarioDTO;
 
 import lombok.Data;
 
