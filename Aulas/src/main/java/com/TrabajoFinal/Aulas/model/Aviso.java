@@ -1,13 +1,13 @@
 package com.TrabajoFinal.Aulas.model;
 
+import com.TrabajoFinal.Aulas.enums.Estado;
 import jakarta.persistence.*;
-import jdk.jfr.Enabled;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.Objects;
+
 @Entity
 @Data
 @AllArgsConstructor

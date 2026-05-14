@@ -1,11 +1,11 @@
 package com.TrabajoFinal.Aulas.model;
 
+import com.TrabajoFinal.Aulas.enums.Rol;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Objects;
 @Entity
 @Data
 @AllArgsConstructor
