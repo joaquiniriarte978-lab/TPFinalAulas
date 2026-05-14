@@ -1,4 +1,4 @@
-package com.TrabajoFinal.Aulas.enums;
+package com.TrabajoFinal.Aulas.model.enums;
 
 public enum Estado {
     PENDIENTE,
