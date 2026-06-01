@@ -9,12 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface MateriaRepository extends JpaRepository {
-
-
-    public Optional findMateriaById_materia(Integer idmateria);
-
-    public Optional findMateriaByNombre(String nombre);
+public interface MateriaRepository extends JpaRepository<Materia,Integer> {
 
     public List findMateriaByrequiere_laboratorio(boolean requiere_laboratorio);
 }
