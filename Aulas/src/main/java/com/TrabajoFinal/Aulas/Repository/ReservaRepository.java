@@ -12,17 +12,4 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
-    public Optional<Reserva>  findById(Integer idreserva);
-
-    public List<Reserva> findByReservaByProfesor(Usuario id_profesor);
-
-    public List<Reserva> findReservaByAula(Aula id_aula);
-
-    public List<Reserva> findReservaByMateria(Materia id_materia);
-
-    public List<Reserva> findReservaByFecha(LocalDate fecha);
-
-    public List<Reserva> findReservaByHoraInicio(LocalTime hora_inicio);
-
-    public List<Reserva> findReservaByHoraFin(LocalTime hora_fin);
 }
