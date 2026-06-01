@@ -33,7 +33,7 @@ public class AvisoController {
     }
     @DeleteMapping
     public void eliminar(@PathVariable Integer id_aviso)  {
-        avisoService.borrarAula(id_aviso);
+        avisoService.borrarAviso(id_aviso);
     }
 
     @PutMapping("/{id_aviso}")
