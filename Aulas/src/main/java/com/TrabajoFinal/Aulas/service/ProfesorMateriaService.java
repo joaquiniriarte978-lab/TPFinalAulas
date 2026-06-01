@@ -28,7 +28,7 @@ public class ProfesorMateriaService {
     }
 
     public void borrar(Integer id){
-        return profesorMateriaRepository.delete(id);
+        profesorMateriaRepository.deleteById(id);
     }
 
     public ProfesorMateria actualizar(Integer id, ProfesorMateria profesorMateria){

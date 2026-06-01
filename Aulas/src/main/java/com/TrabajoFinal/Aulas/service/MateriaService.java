@@ -41,7 +41,5 @@ public class MateriaService {
         return materiaRepository.findMateriaByrequiere_laboratorio(true);
     }
 
-    public List<Materia> listarMateriasNoLaboratorios(){
-        return materiaRepository.findMateriaByrequiere_laboratorio(false);
-    }
+
 }

@@ -2,59 +2,54 @@ package com.TrabajoFinal.Aulas.Controller;
 
 import com.TrabajoFinal.Aulas.Repository.MateriaRepository;
 import com.TrabajoFinal.Aulas.model.Materia;
+import com.TrabajoFinal.Aulas.service.MateriaService;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/materias")
+@RequiredArgsConstructor
 public class MateriaController {
-    private final MateriaRepository materiaRepository;
+    private final MateriaService materiaService;
 
-    public MateriaController(MateriaRepository materiaRepository) {
-        this.materiaRepository = materiaRepository;
-    }
 
     @GetMapping
-    public Iterable<Materia> Materias() {
-        return materiaRepository.findAll();
+    public List<Materia> Materias() {
+        return materiaService.listar();
     }
+
     @PostMapping
     public Materia crear(@RequestBody Materia materia) {
-        return (Materia) materiaRepository.save(materia);
+        return materiaService.guardar(materia);
     }
 
     @GetMapping("{/id_materia}")
     public Materia buscar(@PathVariable Integer id_materia) {
-        if (materiaRepository.existsById(id_materia)) {
-            return  (Materia) materiaRepository.findMateriaById_materia(id_materia).get();
-        }else  {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Aula no encontrada");
-        }
+        return materiaService.listarPorId(id_materia);
     }
+
     @DeleteMapping
     public void eliminar(@PathVariable Integer id_materia) {
-        if(materiaRepository.existsById(id_materia)) {
-            materiaRepository.deleteById(id_materia);
-        }else{
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El registro no existe");
-        }
+        materiaService.borrar(id_materia);
     }
+
+
     @PutMapping("/{id_materia}")
     public Materia actualizarAula(@PathVariable Integer id_materia, @RequestBody Materia materiaDetalles) {
-        Optional<Materia> materiaOptional = materiaRepository.findById(id_materia);
+        return materiaService.actualizar(id_materia, materiaDetalles);
+    }
 
-        if (materiaOptional.isPresent()) {
-            Materia materiaExistente = materiaOptional.get();
-
-            materiaExistente.setNombre(materiaDetalles.getNombre());
-            materiaExistente.setRequiere_laboratorio(materiaDetalles.isRequiere_laboratorio());
-            materiaRepository.save(materiaExistente);
-            return (Materia) materiaRepository.save(materiaExistente);
-        } else {
-            throw new RuntimeException("Aviso no encontrada con id: " + id_materia);
-        }
+    @GetMapping("/{materias_laboratorio}")
+    public List<Materia> listarMateriasLaboratorio() {
+        return materiaService.listarMateriasLaboratorios();
     }
 }
+
+
+
