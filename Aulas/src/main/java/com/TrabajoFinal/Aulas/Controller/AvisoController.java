@@ -1,5 +1,6 @@
 package com.TrabajoFinal.Aulas.Controller;
 
+import com.TrabajoFinal.Aulas.Dtos.avisoDTO.AvisoResponseDTO;
 import com.TrabajoFinal.Aulas.Repository.AvisoRepository;
 import com.TrabajoFinal.Aulas.model.Aula;
 import com.TrabajoFinal.Aulas.model.Aviso;
@@ -37,7 +38,7 @@ public class AvisoController {
     }
 
     @PutMapping("/{id_aviso}")
-    public Aviso modificar(@PathVariable Integer id_aviso, @RequestBody Aviso avisoNuevo) {
+    public Aviso modificar(@PathVariable Integer id_aviso, @RequestBody AvisoResponseDTO avisoNuevo) {
         return avisoService.modificarAviso(id_aviso, avisoNuevo);
     }
 }
