@@ -16,7 +16,7 @@ public class AulaService {
         return aulaRepository.findAll();
     }
 
-    public Aula aulaXid(Integer id) throws Throwable {
+    public Aula aulaXid(Integer id) {
         return aulaRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException());
     }
@@ -25,12 +25,12 @@ public class AulaService {
         return aulaRepository.save(aula);
     }
 
-    public void borrarAula(Integer id) throws Throwable {
+    public void borrarAula(Integer id) {
         Aula borrada = aulaXid(id);
          aulaRepository.delete(borrada);
     }
 
-    public Aula modificarAula(Integer id, Aula nueva) throws Throwable {
+    public Aula modificarAula(Integer id, Aula nueva)  {
         Aula modificada = aulaXid(id);
         modificada.setCapacidad(nueva.getCapacidad());
         modificada.setTipo(nueva.getTipo());

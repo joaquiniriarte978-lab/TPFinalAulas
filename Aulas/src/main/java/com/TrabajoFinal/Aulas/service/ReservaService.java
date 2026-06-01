@@ -13,7 +13,7 @@ import java.util.List;
 public class ReservaService {
     private final ReservaRepository reservaRepository;
 
-    public Reserva subirMateria(Reserva reserva){
+    public Reserva subirReserva(Reserva reserva){
         return reservaRepository.save(reserva);
     }
 

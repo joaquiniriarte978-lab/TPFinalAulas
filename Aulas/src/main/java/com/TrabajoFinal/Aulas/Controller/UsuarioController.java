@@ -1,63 +1,42 @@
 package com.TrabajoFinal.Aulas.Controller;
 
 import com.TrabajoFinal.Aulas.Repository.UsuarioRepository;
+import com.TrabajoFinal.Aulas.model.Reserva;
 import com.TrabajoFinal.Aulas.model.Usuario;
+import com.TrabajoFinal.Aulas.service.ReservaService;
+import com.TrabajoFinal.Aulas.service.UsuarioService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/usuarios")
 public class UsuarioController {
 
-    private final UsuarioRepository controller;
-
-    public UsuarioController(@RequestBody UsuarioRepository controller) {
-        this.controller = controller;
-    }
-
-
-    @PostMapping
-    public Usuario crearUsuario(Usuario usuario) {
-        return controller.save(usuario);
-    }
+    private final UsuarioService usuarioService;
 
     @GetMapping
-    public List<Usuario> findAll() {
-        return controller.findAll();
+    public List<Usuario> Usuarios() {
+        return usuarioService.listarTodos();
     }
-
-    @GetMapping("{id_usuario}")
-    public Optional<Usuario> findUsuario(@PathVariable Integer id_usuario) {
-        if (controller.existsById(id_usuario)) {
-            return  controller.findById(id_usuario);
-        } else throw new RuntimeException("Usuario no encontrado");
+    @PostMapping
+    public Usuario crear(@RequestBody Usuario usuario){
+        return usuarioService.subirUsuario(usuario);
     }
-
-
-    @PutMapping("/{id}")
-    public Usuario actualizarUsuario( @PathVariable Integer id_usuario , @RequestBody Usuario usuarioActualizado) {
-     if (controller.existsById(id_usuario)) {
-         Usuario usuario = controller.findById(id_usuario).get();
-         usuario.setNombre(usuarioActualizado.getNombre());
-         usuario.setEmail(usuarioActualizado.getEmail());
-         usuario.setPassword(usuarioActualizado.getPassword());
-         usuario.setRol(usuarioActualizado.getRol());
-
-
-         return controller.save(usuario);
-     }
-     else throw new RuntimeException("Usuario no encontrado");
+    @GetMapping("{/id_usuario}")
+    public Usuario buscar(@PathVariable Integer id_usuario)  {
+        return usuarioService.buscarPorId(id_usuario);
     }
-
-
     @DeleteMapping
-    public void eliminarUsuario(@PathVariable Integer id_usuario) {
-        if (controller.existsById(id_usuario)) {
-            controller.deleteById(id_usuario);
-        }
-        else throw new RuntimeException("Usuario no encontrado ");
+    public void eliminar(@PathVariable Integer id_usuario)  {
+        usuarioService.eliminarUsuario(id_usuario);
+    }
+    @PutMapping("/{id_usuario}")
+    public Usuario modificar(@PathVariable Integer id_usuario, @RequestBody Usuario usuarioNuevo) {
+        return usuarioService.modificar(id_usuario, usuarioNuevo);
     }
 
 
