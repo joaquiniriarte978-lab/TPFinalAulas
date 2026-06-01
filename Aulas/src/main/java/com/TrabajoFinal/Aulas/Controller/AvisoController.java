@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/avisos")
+@RequestMapping("/api/avisos")
 public class AvisoController {
     private final AvisoService avisoService;
     @GetMapping
