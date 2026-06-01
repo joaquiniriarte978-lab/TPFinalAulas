@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/materias")
+@RequestMapping("/api/materias")
 @RequiredArgsConstructor
 public class MateriaController {
     private final MateriaService materiaService;

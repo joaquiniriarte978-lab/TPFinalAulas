@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("reservas")
+@RequestMapping("/api/reservas")
 public class ReservaController {
 
     private final ReservaService reservaService;
