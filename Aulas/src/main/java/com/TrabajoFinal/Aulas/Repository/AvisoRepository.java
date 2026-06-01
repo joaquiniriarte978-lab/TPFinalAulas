@@ -10,15 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface AvisoRepository extends JpaRepository {
-
-    public Optional findAvisoById_aviso(Integer idaviso);
-
-    public List findAvisoById_aula(Aula idaula);
-
-    public List findAvisoById_usuario(Usuario idusuario);
-
-    public List findAvisosByFecha(LocalDate fecha);
+public interface AvisoRepository extends JpaRepository<Aviso,Integer> {
 
 
 }

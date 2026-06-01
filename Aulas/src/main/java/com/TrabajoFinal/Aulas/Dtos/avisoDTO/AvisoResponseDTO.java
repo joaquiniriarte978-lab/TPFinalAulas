@@ -2,6 +2,7 @@ package com.TrabajoFinal.Aulas.Dtos.avisoDTO;
 
 
 
+import com.TrabajoFinal.Aulas.model.enums.Estado;
 import lombok.Data;
 import java.time.LocalDate;
 
@@ -9,8 +10,8 @@ import java.time.LocalDate;
 public class AvisoResponseDTO {
     private Integer id_avso;
     private Integer id_aula;
-    private String nombreAula;
+    private Integer id_usuario;
     private String mensaje;
-    private String estado;
+    private Estado estado;
     private LocalDate fecha;
 }
