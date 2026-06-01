@@ -25,12 +25,12 @@ public class AulaService {
         return aulaRepository.save(aula);
     }
 
-    public void borrarAula(Integer id) {
+    public void borrarAula(Integer id)  {
         Aula borrada = aulaXid(id);
          aulaRepository.delete(borrada);
     }
 
-    public Aula modificarAula(Integer id, Aula nueva)  {
+    public Aula modificarAula(Integer id, Aula nueva) {
         Aula modificada = aulaXid(id);
         modificada.setCapacidad(nueva.getCapacidad());
         modificada.setTipo(nueva.getTipo());
