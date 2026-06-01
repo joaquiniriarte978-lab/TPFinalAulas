@@ -10,12 +10,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ProfesorMateriaRepository extends JpaRepository {
-
-    public Optional findProfesorMateriaById_materia(Materia idmateria);
-
-    public Optional findProfesorMateriaById_profesor(Usuario idprofesor);
-
-
+public interface ProfesorMateriaRepository extends JpaRepository<ProfesorMateria, Integer> {
 
 }
