@@ -2,46 +2,42 @@ package com.TrabajoFinal.Aulas.Controller;
 
 
 import com.TrabajoFinal.Aulas.Repository.ReservaRepository;
+import com.TrabajoFinal.Aulas.model.Aula;
+import com.TrabajoFinal.Aulas.model.Aviso;
 import com.TrabajoFinal.Aulas.model.Reserva;
+import com.TrabajoFinal.Aulas.service.ReservaService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("reservas")
 public class ReservaController {
 
-    private final  ReservaRepository repository;
-    public ReservaController(ReservaRepository repository) {
-        this.repository = repository;
-    }
-
-    @PostMapping
-    public Reserva reserva(@RequestBody Reserva reserva) {
-      return  repository.save(reserva);
-    }
+    private final ReservaService reservaService;
 
     @GetMapping
-    public List<Reserva> findAll() {
-        return repository.findAll();
+    public List<Reserva> Reservas() {
+        return reservaService.listarReservas();
     }
-
-    @GetMapping ("{id_reserva}")
-    public Reserva findById(@PathVariable Integer id_reserva) {
-        if (repository.existsById(id_reserva)) {
-            return repository.findById(id_reserva).get();
-        }
-        else throw new RuntimeException("Reserva no encontrada");
+    @PostMapping
+    public Reserva crear(@RequestBody Reserva reserva){
+        return reservaService.subirReserva(reserva);
     }
-
+    @GetMapping("{/id_reserva}")
+    public Reserva buscar(@PathVariable Integer id_reserva)  {
+        return reservaService.listarXId(id_reserva);
+    }
     @DeleteMapping
-    public void borrarReserva(@PathVariable Integer id_reserva) {
-        if (repository.existsById(id_reserva)) {
-            repository.deleteById(id_reserva);
-        }
-        else throw new RuntimeException("Reserva no encontrada");
+    public void eliminar(@PathVariable Integer id_reserva)  {
+        reservaService.eliminarReserva(id_reserva);
     }
-
+    @PutMapping("/{id_reserva}")
+    public Reserva modificar(@PathVariable Integer id_reserva, @RequestBody Reserva reservaNueva) {
+        return reservaService.modificarReserva(id_reserva, reservaNueva);
+    }
 
 
 }
