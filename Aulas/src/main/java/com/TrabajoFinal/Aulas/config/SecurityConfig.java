@@ -21,6 +21,7 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/index.html", "/css/**", "/js/**").permitAll()
                         .requestMatchers("/publico").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/recursos").hasAnyRole("ADMIN","USER")
                         .requestMatchers(HttpMethod.DELETE, "/api/recursos/{id}").hasRole("ADMIN")

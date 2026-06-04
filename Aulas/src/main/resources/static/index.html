@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Aulas</title>
+
+    <!-- Aquí conectamos el CSS que te dio Claude -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- Menú de navegación básico para tus entidades -->
+<nav>
+    <h2>Sistema de Gestión</h2>
+    <ul>
+        <li><button id="btn-aulas">Ver Aulas</button></li>
+        <li><button id="btn-materias">Ver Materias</button></li>
+        <li><button id="btn-reservas">Ver Reservas</button></li>
+        <li><button id="btn-avisos">Ver Avisos</button></li>
+    </ul>
+</nav>
+
+<!-- Contenedor principal donde ui.js inyectará las tablas o modales -->
+<main id="app-container">
+    <h1>Bienvenido</h1>
+    <p>Selecciona una opción en el menú para comenzar.</p>
+
+    <!-- Contenedor dinámico para los datos de la API -->
+    <div id="contenido-dinamico"></div>
+</main>
+
+<!--
+  Aquí conectamos los JS. El orden es fundamental:
+  1. La configuración (URLs de tu backend)
+  2. Los servicios (Los fetch a tus controllers)
+  3. La UI (Manejo de botones y vistas)
+-->
+<script src="js/config.js"></script>
+<script src="js/services.js"></script>
+<script src="js/ui.js"></script>
+
+</body>
+</html>
