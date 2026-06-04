@@ -26,7 +26,7 @@ public class ReservaController {
     public Reserva crear(@RequestBody Reserva reserva){
         return reservaService.subirReserva(reserva);
     }
-    @GetMapping("{/id_reserva}")
+    @GetMapping("/{id_reserva}")
     public Reserva buscar(@PathVariable Integer id_reserva)  {
         return reservaService.listarXId(id_reserva);
     }

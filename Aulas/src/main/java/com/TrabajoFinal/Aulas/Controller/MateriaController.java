@@ -29,7 +29,7 @@ public class MateriaController {
         return materiaService.guardar(materia);
     }
 
-    @GetMapping("{/id_materia}")
+    @GetMapping("/{id_materia}")
     public Materia buscar(@PathVariable Integer id_materia) {
         return materiaService.listarPorId(id_materia);
     }
@@ -45,7 +45,7 @@ public class MateriaController {
         return materiaService.actualizar(id_materia, materiaDetalles);
     }
 
-    @GetMapping("/{materias_laboratorio}")
+    @GetMapping("/{materiasLaboratorio}")
     public List<Materia> listarMateriasLaboratorio() {
         return materiaService.listarMateriasLaboratorios();
     }

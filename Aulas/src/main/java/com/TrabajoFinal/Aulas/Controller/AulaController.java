@@ -25,17 +25,13 @@ public class AulaController {
         return aulaService.guardarAula(aula);
     }
 
-    @GetMapping("{/id_aula}")
+    @GetMapping("/{id_aula}")
     public Aula buscar(@PathVariable Integer id_aula)  {
         return aulaService.aulaXid(id_aula);
     }
     @DeleteMapping
     public void eliminar(@PathVariable Integer id_aula)  {
         aulaService.borrarAula(id_aula);
-    }
-    @PostMapping
-    public Aula saveAula(@RequestBody Aula aulaDetalles) {
-        return aulaService.guardarAula( aulaDetalles);
     }
 
     @PutMapping("/{id_aula}")

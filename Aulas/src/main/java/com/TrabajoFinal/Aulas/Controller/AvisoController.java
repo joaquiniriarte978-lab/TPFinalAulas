@@ -28,7 +28,7 @@ public class AvisoController {
         return avisoService.guardarAviso(aviso);
     }
 
-    @GetMapping("{/id_aviso}")
+    @GetMapping("/{id_aviso}")
     public Aviso buscar(@PathVariable Integer id_aviso)  {
         return avisoService.avisoXid(id_aviso);
     }

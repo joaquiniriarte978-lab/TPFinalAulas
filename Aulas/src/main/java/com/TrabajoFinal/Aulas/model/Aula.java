@@ -14,12 +14,11 @@ import lombok.NoArgsConstructor;
 public class Aula {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id_aula;
+    private Integer id;
     @Column(nullable = false)
     private String nombre;
     @Column(nullable = false)
     private int capacidad;
-
     private Tipo tipo;
     private String equipamiento;
 

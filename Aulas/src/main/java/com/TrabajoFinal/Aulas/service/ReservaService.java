@@ -27,11 +27,11 @@ public class ReservaService {
     public Reserva modificarReserva(Integer id, Reserva reservaNueva){
         Reserva reservaVieja=listarXId(id);
         reservaVieja.setFecha(reservaNueva.getFecha());
-        reservaVieja.setHora_fin(reservaNueva.getHora_fin());
-        reservaVieja.setHora_inicio(reservaNueva.getHora_inicio());
-        reservaVieja.setId_aula(reservaNueva.getId_aula());
-        reservaVieja.setId_profesor(reservaNueva.getId_profesor());
-        reservaVieja.setId_materia(reservaNueva.getId_materia());
+        reservaVieja.setHoraFin(reservaNueva.getHoraFin());
+        reservaVieja.setHoraInicio(reservaNueva.getHoraInicio());
+        reservaVieja.setAula(reservaNueva.getAula());
+        reservaVieja.setProfesor(reservaNueva.getProfesor());
+        reservaVieja.setMateria(reservaNueva.getMateria());
         return reservaRepository.save(reservaVieja);
     }
     public void eliminarReserva(Integer id){

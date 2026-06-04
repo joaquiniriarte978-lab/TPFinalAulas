@@ -16,13 +16,13 @@ import java.time.LocalDate;
 public class Aviso {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id_aviso;
+    private Integer id;
 @ManyToOne
 @JoinColumn(name = "id_aula")
-    private Aula id_aula;
+    private Aula aula;
     @ManyToOne
     @JoinColumn(name = "id_usuario")
-    private Usuario id_usuario;
+    private Usuario usuario;
     private String mensaje;
     @Enumerated(EnumType.STRING)
     private Estado estado;

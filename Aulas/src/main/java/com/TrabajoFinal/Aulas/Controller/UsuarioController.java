@@ -26,7 +26,7 @@ public class UsuarioController {
     public Usuario crear(@RequestBody Usuario usuario){
         return usuarioService.subirUsuario(usuario);
     }
-    @GetMapping("{/id_usuario}")
+    @GetMapping("/{id_usuario}")
     public Usuario buscar(@PathVariable Integer id_usuario)  {
         return usuarioService.buscarPorId(id_usuario);
     }

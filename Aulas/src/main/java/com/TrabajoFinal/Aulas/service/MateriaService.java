@@ -10,7 +10,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class MateriaService {
+public class MateriaService{
 
     private final MateriaRepository materiaRepository;
 
@@ -33,12 +33,12 @@ public class MateriaService {
     public Materia actualizar(Integer id, Materia materia) {
         Materia m = materiaRepository.findById(id).orElseThrow(() -> new RuntimeException("Materia no encontrada"));
         m.setNombre(materia.getNombre());
-        m.setRequiere_laboratorio(materia.isRequiere_laboratorio());
+        m.setRequiereLaboratorio(materia.isRequiereLaboratorio());
         return materiaRepository.save(m);
     }
 
     public List<Materia> listarMateriasLaboratorios (){
-        return materiaRepository.findMateriaByrequiere_laboratorio(true);
+        return materiaRepository.findMateriaByrequiereLaboratorio(true);
     }
 
 

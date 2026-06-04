@@ -33,8 +33,8 @@ public class ProfesorMateriaService {
 
     public ProfesorMateria actualizar(Integer id, ProfesorMateria profesorMateria){
         ProfesorMateria pm = profesorMateriaRepository.findById(id).orElseThrow(() -> new RuntimeException("Profesor-Materia no encontrado"));
-        pm.setId_materia(profesorMateria.getId_materia());
-        pm.setId_profesor(profesorMateria.getId_profesor());
+        pm.setMateria(profesorMateria.getMateria());
+        pm.setProfesor(profesorMateria.getProfesor());
         return profesorMateriaRepository.save(pm);
     }
 }
