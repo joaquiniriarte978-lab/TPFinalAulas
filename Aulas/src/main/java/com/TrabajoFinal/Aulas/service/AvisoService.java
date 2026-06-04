@@ -1,5 +1,6 @@
 package com.TrabajoFinal.Aulas.service;
 
+import com.TrabajoFinal.Aulas.Dtos.avisoDTO.AvisoRequestDTO;
 import com.TrabajoFinal.Aulas.Dtos.avisoDTO.AvisoResponseDTO;
 import com.TrabajoFinal.Aulas.Repository.AulaRepository;
 import com.TrabajoFinal.Aulas.Repository.AvisoRepository;
@@ -28,7 +29,15 @@ public class AvisoService {
                 .orElseThrow(()-> new RuntimeException());
     }
 
-    public Aviso guardarAviso(Aviso aviso){
+    public Aviso guardarAviso(AvisoResponseDTO avisoDto) {
+        Aviso aviso = new Aviso();
+        Aula aula=aulaRepository.findById(avisoDto.getIdAula()).orElseThrow(()-> new RuntimeException());
+        Usuario profesor=usuarioRepository.findById(avisoDto.getIdUsuario()).orElseThrow(()-> new RuntimeException());
+        aviso.setUsuario(profesor);
+        aviso.setFecha(avisoDto.getFecha());
+        aviso.setEstado(avisoDto.getEstado());
+        aviso.setMensaje(avisoDto.getMensaje());
+        aviso.setAula(aula);
         return avisoRepository.save(aviso);
     }
 
@@ -39,7 +48,7 @@ public class AvisoService {
 
     public Aviso modificarAviso(Integer id, AvisoResponseDTO nuevo){
         Aviso modificado= avisoXid(id);
-        Aula aula= aulaRepository.findById(nuevo.getId_aula())
+        Aula aula= aulaRepository.findById(nuevo.getIdAula())
                 .orElseThrow(()-> new RuntimeException());
 
         Usuario usuario = usuarioRepository.findById(id)

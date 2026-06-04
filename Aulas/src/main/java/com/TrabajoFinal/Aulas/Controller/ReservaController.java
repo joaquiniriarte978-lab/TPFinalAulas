@@ -1,6 +1,7 @@
 package com.TrabajoFinal.Aulas.Controller;
 
 
+import com.TrabajoFinal.Aulas.Dtos.reservaDTO.ReservaResponseDTO;
 import com.TrabajoFinal.Aulas.Repository.ReservaRepository;
 import com.TrabajoFinal.Aulas.model.Aula;
 import com.TrabajoFinal.Aulas.model.Aviso;
@@ -23,7 +24,7 @@ public class ReservaController {
         return reservaService.listarReservas();
     }
     @PostMapping
-    public Reserva crear(@RequestBody Reserva reserva){
+    public Reserva crear(@RequestBody ReservaResponseDTO reserva){
         return reservaService.subirReserva(reserva);
     }
     @GetMapping("/{id_reserva}")
@@ -35,7 +36,7 @@ public class ReservaController {
         reservaService.eliminarReserva(id_reserva);
     }
     @PutMapping("/{id_reserva}")
-    public Reserva modificar(@PathVariable Integer id_reserva, @RequestBody Reserva reservaNueva) {
+    public Reserva modificar(@PathVariable Integer id_reserva, @RequestBody ReservaResponseDTO reservaNueva) {
         return reservaService.modificarReserva(id_reserva, reservaNueva);
     }
 
