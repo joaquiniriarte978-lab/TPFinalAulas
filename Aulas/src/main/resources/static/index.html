@@ -4,37 +4,145 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Aulas</title>
-
-    <!-- Aquí conectamos el CSS que te dio Claude -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-<!-- Menú de navegación básico para tus entidades -->
-<nav>
-    <h2>Sistema de Gestión</h2>
-    <ul>
-        <li><button id="btn-aulas">Ver Aulas</button></li>
-        <li><button id="btn-materias">Ver Materias</button></li>
-        <li><button id="btn-reservas">Ver Reservas</button></li>
-        <li><button id="btn-avisos">Ver Avisos</button></li>
-    </ul>
-</nav>
+<!-- ═══ TOAST CONTAINER (siempre presente) ═══ -->
+<div id="toast-container"></div>
 
-<!-- Contenedor principal donde ui.js inyectará las tablas o modales -->
-<main id="app-container">
-    <h1>Bienvenido</h1>
-    <p>Selecciona una opción en el menú para comenzar.</p>
+<!-- ═══ PÁGINA DE LOGIN ═══ -->
+<div id="page-login" class="login-page">
+    <div class="login-bg"></div>
 
-    <!-- Contenedor dinámico para los datos de la API -->
-    <div id="contenido-dinamico"></div>
-</main>
+    <div class="login-card">
+        <div class="login-brand">
+            <div class="brand-icon">🏫</div>
+            <h1>Gestión de Aulas</h1>
+            <p>Ingresá tus credenciales para continuar</p>
+        </div>
+
+        <!-- Chips de acceso rápido (demo) -->
+        <div class="login-demo-chips">
+            <button class="demo-chip" onclick="App.fillLogin('alumno','1234')">
+                <div class="chip-role">Alumno</div>
+                <div class="chip-user">alumno</div>
+                <div class="chip-pass">1234</div>
+            </button>
+            <button class="demo-chip admin" onclick="App.fillLogin('profe','admin123')">
+                <div class="chip-role">Admin</div>
+                <div class="chip-user">profe</div>
+                <div class="chip-pass">admin123</div>
+            </button>
+        </div>
+
+        <!-- Formulario -->
+        <div class="form-group">
+            <label class="form-label" for="login-user">Usuario</label>
+            <input
+                    class="form-input" type="text" id="login-user"
+                    placeholder="alumno / profe" autocomplete="username"
+            >
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="login-pass">Contraseña</label>
+            <input
+                    class="form-input" type="password" id="login-pass"
+                    placeholder="••••••••" autocomplete="current-password"
+            >
+        </div>
+
+        <!-- Mensaje de error -->
+        <p id="login-error" style="
+      color:var(--clr-danger);font-size:.83rem;
+      margin-bottom:12px;display:none;
+    "></p>
+
+        <button class="btn btn-primary btn-full" id="btn-login">
+            Iniciar sesión
+        </button>
+    </div>
+</div>
+
+<!-- ═══ APP PRINCIPAL (oculta hasta hacer login) ═══ -->
+<div id="page-app" style="display:none">
+    <div id="app">
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-mark">
+                    <div class="logo-icon">🏫</div>
+                    <div>
+                        <h1>AulasSys</h1>
+                        <span>v1.0.0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-user">
+                <div class="user-chip">
+                    <div class="user-avatar" id="user-avatar">?</div>
+                    <div class="user-info">
+                        <div class="user-name" id="user-name">—</div>
+                        <div class="user-role" id="user-role">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Principal</div>
+                <button class="nav-item active" data-section="aulas">
+                    <span class="nav-icon">🏫</span> Aulas
+                </button>
+                <button class="nav-item" data-section="materias">
+                    <span class="nav-icon">📚</span> Materias
+                </button>
+                <button class="nav-item" data-section="reservas">
+                    <span class="nav-icon">📅</span> Reservas
+                </button>
+                <button class="nav-item" data-section="avisos">
+                    <span class="nav-icon">🔔</span> Avisos
+                </button>
+                <div class="nav-section-label">Gestión</div>
+                <button class="nav-item" data-section="usuarios">
+                    <span class="nav-icon">👤</span> Usuarios
+                </button>
+                <button class="nav-item" data-section="profesorMateria">
+                    <span class="nav-icon">🔗</span> Profesor–Materia
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="btn-logout" id="btn-logout">
+                    <span>⎋</span> Cerrar sesión
+                </button>
+            </div>
+        </aside>
+
+        <!-- Overlay mobile -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- Contenido principal -->
+        <div class="main-content">
+            <header class="topbar">
+                <button class="hamburger" id="hamburger">☰</button>
+                <span class="topbar-title" id="topbar-title">Aulas</span>
+            </header>
+
+            <main class="page-body" id="page-body">
+                <!-- Las vistas se inyectan acá -->
+            </main>
+        </div>
+
+    </div>
+</div>
 
 <!--
-  Aquí conectamos los JS. El orden es fundamental:
-  1. La configuración (URLs de tu backend)
-  2. Los servicios (Los fetch a tus controllers)
-  3. La UI (Manejo de botones y vistas)
+  IMPORTANTE: Los tres scripts se cargan SIN type="module"
+  para compartir el objeto global `App`.
+  El orden es obligatorio: config → services → ui
 -->
 <script src="js/config.js"></script>
 <script src="js/services.js"></script>

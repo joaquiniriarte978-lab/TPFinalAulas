@@ -1,16 +1,20 @@
 // ============================================================
-//  utils/ui.js  –  Utilitarios de UI reutilizables
+//  ui.js  –  Lógica de UI + punto de entrada
+//  Depende de: config.js, services.js
 // ============================================================
 
 // ── TOAST ─────────────────────────────────────────────────────
-export const Toast = {
+const Toast = {
   _icons: { success: '✓', error: '✕', info: 'ℹ', warning: '⚠' },
 
   show(message, type = 'info', duration = 3500) {
     const container = document.getElementById('toast-container');
+    if (!container) return;
     const el = document.createElement('div');
     el.className = `toast ${type}`;
-    el.innerHTML = `<span style="font-size:1rem">${this._icons[type]}</span><span>${message}</span>`;
+    el.innerHTML = `
+      <span style="font-size:1rem">${this._icons[type]}</span>
+      <span>${message}</span>`;
     container.appendChild(el);
     setTimeout(() => {
       el.style.animation = 'slideOut .3s forwards';
@@ -18,150 +22,228 @@ export const Toast = {
     }, duration);
   },
 
-  success: (msg) => Toast.show(msg, 'success'),
-  error:   (msg) => Toast.show(msg, 'error'),
-  info:    (msg) => Toast.show(msg, 'info'),
-  warning: (msg) => Toast.show(msg, 'warning'),
+  success: (m) => Toast.show(m, 'success'),
+  error:   (m) => Toast.show(m, 'error'),
+  info:    (m) => Toast.show(m, 'info'),
+  warning: (m) => Toast.show(m, 'warning'),
 };
 
-// ── MODAL ─────────────────────────────────────────────────────
-export const Modal = {
-  _el: null,
+// ── HELPERS ───────────────────────────────────────────────────
+function setLoading(container) {
+  container.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
+}
 
-  create({ title, bodyHTML, onConfirm, confirmText = 'Guardar', confirmClass = 'btn-primary' }) {
-    const existing = document.getElementById('global-modal');
-    if (existing) existing.remove();
+function emptyState(icon, title, sub = '') {
+  return `<div class="empty-state">
+    <div class="empty-icon">${icon}</div>
+    <h3>${title}</h3>
+    ${sub ? `<p>${sub}</p>` : ''}
+  </div>`;
+}
 
-    const overlay = document.createElement('div');
-    overlay.id = 'global-modal';
-    overlay.className = 'modal-overlay';
-    overlay.innerHTML = `
-      <div class="modal" role="dialog" aria-modal="true">
-        <div class="modal-header">
-          <h3 class="modal-title">${title}</h3>
-          <button class="btn-close" id="modal-close" aria-label="Cerrar">✕</button>
-        </div>
-        <div class="modal-body" id="modal-body">${bodyHTML}</div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" id="modal-cancel">Cancelar</button>
-          <button class="btn ${confirmClass}" id="modal-confirm">${confirmText}</button>
-        </div>
-      </div>`;
+// ── APP (objeto global accesible desde el HTML) ───────────────
+const App = {
 
-    document.body.appendChild(overlay);
-    this._el = overlay;
-
-    const close = () => this.close();
-    overlay.querySelector('#modal-close').onclick = close;
-    overlay.querySelector('#modal-cancel').onclick = close;
-    overlay.onclick = (e) => { if (e.target === overlay) close(); };
-
-    if (onConfirm) {
-      overlay.querySelector('#modal-confirm').onclick = async () => {
-        const btn = overlay.querySelector('#modal-confirm');
-        btn.disabled = true;
-        btn.textContent = 'Procesando…';
-        try { await onConfirm(); } catch(e) { Toast.error(e.message); }
-        btn.disabled = false;
-        btn.textContent = confirmText;
-      };
-    }
-
-    requestAnimationFrame(() => overlay.classList.remove('hidden'));
-    return overlay;
+  // Muestra el formulario de login y oculta la app
+  showLogin() {
+    document.getElementById('page-login').style.display = 'flex';
+    document.getElementById('page-app').style.display   = 'none';
   },
 
-  confirm({ title, message, onConfirm }) {
-    return this.create({
-      title,
-      bodyHTML: `<p style="font-size:.95rem;color:var(--clr-text)">${message}</p>`,
-      onConfirm,
-      confirmText: 'Confirmar',
-      confirmClass: 'btn-danger',
+  // Muestra la app y oculta el login
+  showApp() {
+    document.getElementById('page-login').style.display = 'none';
+    document.getElementById('page-app').style.display   = 'block';
+
+    const session = AuthService.getSession();
+    if (session) {
+      document.getElementById('user-name').textContent   = session.username;
+      document.getElementById('user-role').textContent   = session.role;
+      document.getElementById('user-avatar').textContent = session.username[0].toUpperCase();
+    }
+
+    // Cargar la primera sección
+    this.navigate('aulas');
+  },
+
+  // Rellena el formulario con las credenciales demo al hacer clic en un chip
+  fillLogin(user, pass) {
+    document.getElementById('login-user').value = user;
+    document.getElementById('login-pass').value = pass;
+  },
+
+  // Navega entre secciones
+  navigate(section) {
+    // Marcar nav item activo
+    document.querySelectorAll('.nav-item').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.section === section);
+    });
+
+    const titles = {
+      aulas:          'Aulas',
+      materias:       'Materias',
+      reservas:       'Reservas',
+      avisos:         'Avisos',
+      usuarios:       'Usuarios',
+      profesorMateria:'Profesor–Materia',
+    };
+    document.getElementById('topbar-title').textContent = titles[section] || section;
+
+    // Renderizar la vista correspondiente
+    const body = document.getElementById('page-body');
+    switch(section) {
+      case 'aulas':          Views.aulas(body);          break;
+      case 'materias':       Views.materias(body);       break;
+      case 'reservas':       Views.reservas(body);       break;
+      case 'avisos':         Views.avisos(body);         break;
+      case 'usuarios':       Views.usuarios(body);       break;
+      case 'profesorMateria':Views.profesorMateria(body);break;
+      default:               body.innerHTML = '<p>Sección no encontrada.</p>';
+    }
+  },
+
+  // ── Inicialización ─────────────────────────────────────────
+  init() {
+    // ¿Hay sesión activa?
+    if (AuthService.isAuthenticated()) {
+      this.showApp();
+    } else {
+      this.showLogin();
+    }
+
+
+
+    // Botón logout
+    document.getElementById('btn-logout').addEventListener('click', () => {
+      AuthService.logout();
+      this.showLogin();
+      Toast.info('Sesión cerrada.');
+    });
+
+    // Navegación sidebar
+    document.querySelectorAll('.nav-item[data-section]').forEach(btn => {
+      btn.addEventListener('click', () => this.navigate(btn.dataset.section));
+    });
+
+    // Hamburger (mobile)
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    document.getElementById('hamburger').addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('visible');
+    });
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('visible');
     });
   },
 
-  close() {
-    if (this._el) { this._el.remove(); this._el = null; }
+  // ── Lógica de login ────────────────────────────────────────
+  async _handleLogin() {
+    const username = document.getElementById('login-user').value.trim();
+    const password = document.getElementById('login-pass').value;
+    const errorEl  = document.getElementById('login-error');
+    const btnLogin = document.getElementById('btn-login');
+
+    errorEl.style.display = 'none';
+
+    if (!username || !password) {
+      errorEl.textContent   = 'Completá usuario y contraseña.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    // Deshabilitar botón mientras espera
+    btnLogin.disabled     = true;
+    btnLogin.textContent  = 'Verificando…';
+
+    try {
+      await AuthService.login(username, password);
+      this.showApp();
+      Toast.success(`¡Bienvenido, ${username}!`);
+    } catch (err) {
+      errorEl.textContent   = err.message;
+      errorEl.style.display = 'block';
+    } finally {
+      btnLogin.disabled    = false;
+      btnLogin.textContent = 'Iniciar sesión';
+    }
   },
 };
 
-// ── LOADING STATE ─────────────────────────────────────────────
-export function setLoading(container, isLoading) {
-  if (isLoading) {
-    container.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
-  }
-}
+// ── VISTAS (stubs para la Fase 2) ─────────────────────────────
+const Views = {
+  async aulas(container) {
+    setLoading(container);
+    try {
+      const data = await AulaService.listar();
+      container.innerHTML = `<p style="color:var(--clr-subtle)">
+        ✅ ${data.length} aulas cargadas. (Vista completa en Fase 2)</p>`;
+    } catch(e) {
+      container.innerHTML = `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
+    }
+  },
 
-// ── EMPTY STATE ───────────────────────────────────────────────
-export function emptyState(icon, title, subtitle = '') {
-  return `
-    <div class="empty-state">
-      <div class="empty-icon">${icon}</div>
-      <h3>${title}</h3>
-      ${subtitle ? `<p>${subtitle}</p>` : ''}
-    </div>`;
-}
+  async materias(container) {
+    setLoading(container);
+    try {
+      const data = await MateriaService.listar();
+      container.innerHTML = `<p style="color:var(--clr-subtle)">
+        ✅ ${data.length} materias cargadas. (Vista completa en Fase 2)</p>`;
+    } catch(e) {
+      container.innerHTML = `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
+    }
+  },
 
-// ── BADGES ────────────────────────────────────────────────────
-export function estadoBadge(estado) {
-  const map = {
-    PENDIENTE:   ['badge-pendiente', '⏳ Pendiente'],
-    RESUELTO:    ['badge-resuelto',  '✓ Resuelto'],
-    EN_REVISION: ['badge-revision',  '🔍 En revisión'],
-  };
-  const [cls, label] = map[estado] || ['', estado];
-  return `<span class="badge ${cls}">${label}</span>`;
-}
+  async reservas(container) {
+    setLoading(container);
+    try {
+      const data = await ReservaService.listar();
+      container.innerHTML = `<p style="color:var(--clr-subtle)">
+        ✅ ${data.length} reservas cargadas. (Vista completa en Fase 2)</p>`;
+    } catch(e) {
+      container.innerHTML = `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
+    }
+  },
 
-export function tipoBadge(tipo) {
-  const map = {
-    AULA:               ['badge-aula',        '🏫 Aula'],
-    LABORATORIO:        ['badge-laboratorio',  '🔬 Laboratorio'],
-    SUM:                ['badge-sum',          '🎭 SUM'],
-    LABORATORIO_TEXTIL: ['badge-laboratorio',  '🧵 Lab. Textil'],
-    LABORATORIO_IDIOMAS:['badge-laboratorio',  '🌐 Lab. Idiomas'],
-  };
-  const [cls, label] = map[tipo] || ['', tipo];
-  return `<span class="badge ${cls}">${label}</span>`;
-}
+  async avisos(container) {
+    setLoading(container);
+    try {
+      const data = await AvisoService.listar();
+      container.innerHTML = `<p style="color:var(--clr-subtle)">
+        ✅ ${data.length} avisos cargados. (Vista completa en Fase 2)</p>`;
+    } catch(e) {
+      container.innerHTML = `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
+    }
+  },
 
-export function rolBadge(rol) {
-  const map = {
-    ADMIN:    ['badge-admin',    '⚙ Admin'],
-    PROFESOR: ['badge-profesor', '👨‍🏫 Profesor'],
-    ALUMNO:   ['badge-user',     '🎓 Alumno'],
-  };
-  const [cls, label] = map[rol] || ['', rol];
-  return `<span class="badge ${cls}">${label}</span>`;
-}
+  async usuarios(container) {
+    setLoading(container);
+    try {
+      const data = await UsuarioService.listar();
+      container.innerHTML = `<p style="color:var(--clr-subtle)">
+        ✅ ${data.length} usuarios cargados. (Vista completa en Fase 2)</p>`;
+    } catch(e) {
+      container.innerHTML = `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
+    }
+  },
 
-// ── HASH ROUTER ───────────────────────────────────────────────
-export const Router = {
-  _routes: {},
-
-  register(routes) { this._routes = routes; },
-
-  navigate(path) { window.location.hash = path; },
-
-  getPath() { return window.location.hash.replace('#', '') || 'dashboard'; },
-
-  init(renderFn) {
-    window.addEventListener('hashchange', renderFn);
-    renderFn();
+  async profesorMateria(container) {
+    setLoading(container);
+    try {
+      const data = await ProfesorMateriaService.listar();
+      container.innerHTML = `<p style="color:var(--clr-subtle)">
+        ✅ ${data.length} registros cargados. (Vista completa en Fase 2)</p>`;
+    } catch(e) {
+      container.innerHTML = `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
+    }
   },
 };
 
-// ── DEBOUNCE ──────────────────────────────────────────────────
-export function debounce(fn, delay = 300) {
-  let t;
-  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
-}
-
-// ── FORMAT DATE ───────────────────────────────────────────────
-export function formatDate(dateStr) {
-  if (!dateStr) return '—';
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('es-AR', {
-    day: '2-digit', month: 'short', year: 'numeric'
-  });
+// ── ARRANQUE ──────────────────────────────────────────────────
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => App.init());
+} else {
+  // El DOM ya estaba listo cuando cargó el script
+  App.init();
 }
