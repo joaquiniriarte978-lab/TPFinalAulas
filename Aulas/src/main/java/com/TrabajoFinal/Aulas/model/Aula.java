@@ -19,6 +19,7 @@ public class Aula {
     private String nombre;
     @Column(nullable = false)
     private int capacidad;
+    @Enumerated(EnumType.STRING)
     private Tipo tipo;
     private String equipamiento;
 

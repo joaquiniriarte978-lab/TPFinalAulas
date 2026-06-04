@@ -1,5 +1,6 @@
 package com.TrabajoFinal.Aulas.Controller;
 
+import com.TrabajoFinal.Aulas.Dtos.profesorMateriaDTO.ProfesorMateriaResponseDTO;
 import com.TrabajoFinal.Aulas.Repository.ProfesorMateriaRepository;
 import com.TrabajoFinal.Aulas.model.ProfesorMateria;
 import com.TrabajoFinal.Aulas.service.ProfesorMateriaService;
@@ -22,11 +23,11 @@ public class ProfesorMateriaController {
         return service.listarPorId(id);
     }
     @PostMapping
-    public ProfesorMateria guardar(@RequestBody ProfesorMateria profesorMateria) {
+    public ProfesorMateria guardar(@RequestBody ProfesorMateriaResponseDTO profesorMateria) {
         return service.guardar(profesorMateria);
     }
     @PutMapping("/{id}")
-    public ProfesorMateria modificar(@PathVariable Integer id, @RequestBody ProfesorMateria profesorMateria) {
+    public ProfesorMateria modificar(@PathVariable Integer id, @RequestBody ProfesorMateriaResponseDTO profesorMateria) {
         return service.actualizar(id, profesorMateria);
     }
     @DeleteMapping("/{id}")

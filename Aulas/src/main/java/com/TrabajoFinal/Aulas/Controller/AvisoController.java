@@ -1,5 +1,6 @@
 package com.TrabajoFinal.Aulas.Controller;
 
+import com.TrabajoFinal.Aulas.Dtos.avisoDTO.AvisoRequestDTO;
 import com.TrabajoFinal.Aulas.Dtos.avisoDTO.AvisoResponseDTO;
 import com.TrabajoFinal.Aulas.Repository.AvisoRepository;
 import com.TrabajoFinal.Aulas.model.Aula;
@@ -24,8 +25,8 @@ public class AvisoController {
         return avisoService.listarAvisos();
     }
     @PostMapping
-    public Aviso crear(@RequestBody Aviso aviso) {
-        return avisoService.guardarAviso(aviso);
+    public Aviso crear(@RequestBody AvisoResponseDTO avisoDto) {
+        return avisoService.guardarAviso(avisoDto);
     }
 
     @GetMapping("/{id_aviso}")

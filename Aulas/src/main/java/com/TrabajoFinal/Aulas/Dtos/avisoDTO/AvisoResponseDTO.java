@@ -8,10 +8,9 @@ import java.time.LocalDate;
 
 @Data
 public class AvisoResponseDTO {
-    private Integer id_avso;
-    private Integer id_aula;
-    private Integer id_usuario;
+    private Integer idAula;
+    private Integer idUsuario;
     private String mensaje;
-    private Estado estado;
     private LocalDate fecha;
+    private Estado estado;
 }
