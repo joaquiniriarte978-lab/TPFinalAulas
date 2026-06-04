@@ -11,5 +11,5 @@ import java.util.Optional;
 @Repository
 public interface MateriaRepository extends JpaRepository<Materia,Integer> {
 
-    public List findMateriaByrequiere_laboratorio(boolean requiere_laboratorio);
+    public List findMateriaByrequiereLaboratorio(boolean requiere_laboratorio);
 }

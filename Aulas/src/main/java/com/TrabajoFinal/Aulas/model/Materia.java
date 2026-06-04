@@ -14,11 +14,11 @@ import java.util.Objects;
 public class Materia {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private Integer id_materia;
+    private Integer id;
     @Column(nullable=false)
     private String nombre;
-    
-    private boolean requiere_laboratorio=false;
+    @Column(name = "requiere_laboratorio")
+    private boolean requiereLaboratorio=false;
 
 
 }

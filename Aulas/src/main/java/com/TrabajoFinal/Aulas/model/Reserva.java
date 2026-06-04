@@ -16,19 +16,21 @@ import java.util.Objects;
 public class Reserva {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id_reserva;
+    private Integer id;
     @ManyToOne
     @JoinColumn(name = "id_profesor")
-    private Usuario id_profesor;
+    private Usuario profesor;
     @ManyToOne
     @JoinColumn(name = "id_aula")
-    private Aula id_aula;
+    private Aula aula;
     @ManyToOne
     @JoinColumn(name = "id_materia")
-    private Materia id_materia;
+    private Materia materia;
     private LocalDate fecha;
-    private LocalTime hora_inicio;
-    private LocalTime hora_fin;
+    @Column(name = "hora_inicio")
+    private LocalTime horaInicio;
+    @Column(name = "hora_fin")
+    private LocalTime horaFin;
 
 
 

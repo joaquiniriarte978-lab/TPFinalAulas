@@ -45,8 +45,8 @@ public class AvisoService {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException());
 
-        modificado.setId_aula(aula);
-        modificado.setId_usuario(usuario);
+        modificado.setAula(aula);
+        modificado.setUsuario(usuario);
         modificado.setFecha(nuevo.getFecha());
         modificado.setMensaje(nuevo.getMensaje());
         modificado.setEstado(nuevo.getEstado());

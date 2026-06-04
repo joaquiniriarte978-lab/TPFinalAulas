@@ -10,17 +10,18 @@ import java.util.Objects;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name="profesorMateria")
+@Table(name="profesor_materia")
 public class ProfesorMateria {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private Integer id_profesor_materia;
+    @Column(name = "id_profesor_materia")
+    private Integer id;
     @ManyToOne
     @JoinColumn(name = "id_profesor")
-    private Usuario id_profesor;
+    private Usuario profesor;
     @ManyToOne
     @JoinColumn(name = "id_materia")
-    private Materia id_materia;
+    private Materia materia;
 
 
 }
