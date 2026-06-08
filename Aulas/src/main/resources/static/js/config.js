@@ -19,34 +19,49 @@ const AuthService = {
   SESSION_KEY: 'aulas_session',
 
   /**
-   * Intenta login contra el backend real.
-   * Usa GET /api/aulas como "ping" autenticado para validar credenciales.
-   * Si el servidor responde 401 → credenciales inválidas.
+   * Valida las credenciales contra el backend usando HTTP Basic.
+   * Llama a GET /api/aulas como ping autenticado.
+   * - 200 OK  → credenciales correctas
+   * - 401/403 → credenciales incorrectas o sin permisos
    */
   async login(username, password) {
-    // 1. Armar el token Basic
+    // 1. Codificar las credenciales en Base64
     const token = btoa(`${username}:${password}`);
 
-    // 2. Validar contra el backend (cualquier endpoint protegido sirve)
+    // 2. Hacer una petición de prueba al backend con el header Authorization
+    //    Usamos /api/aulas porque es accesible por todos los roles autenticados
     const response = await fetch(`${API_BASE_URL}/api/aulas`, {
+      method: 'GET',
       headers: {
         'Authorization': `Basic ${token}`,
         'Content-Type':  'application/json',
-      }
+      },
     });
 
-    if (response.status === 401 || response.status === 403) {
+    if (response.status === 401) {
       throw new Error('Usuario o contraseña incorrectos.');
+    }
+    if (response.status === 403) {
+      throw new Error('No tenés permisos para acceder.');
     }
     if (!response.ok) {
       throw new Error(`Error del servidor (${response.status}). Intentá de nuevo.`);
     }
 
-    // 3. Determinar rol según el usuario (alineado con SecurityConfig.java)
-    const roleMap = { profe: 'ADMIN', alumno: 'USER' };
-    const role = roleMap[username] || 'USER';
+    // 3. Determinar el rol a partir del username
+    //    DEBE coincidir exactamente con los usuarios de SecurityConfig.java:
+    //      "alumno"  → ROLE_ALUMNO
+    //      "profesor"→ ROLE_PROFESOR
+    //      "admin"   → ROLE_ADMIN
+    const roleMap = {
+      alumno:   'ALUMNO',
+      profesor: 'PROFESOR',
+      admin:    'ADMIN',
+    };
+    const role = roleMap[username] || 'ALUMNO';
 
-    // 4. Persistir sesión en sessionStorage
+    // 4. Guardar la sesión en sessionStorage
+    //    (se borra automáticamente al cerrar la pestaña)
     const session = { username, role, token };
     sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
     return session;
@@ -72,7 +87,13 @@ const AuthService = {
     return this.getSession()?.role === 'ADMIN';
   },
 
-  /** Devuelve el objeto de headers con Authorization listo para fetch */
+  isProfesor() {
+    // ADMIN hereda PROFESOR y ALUMNO según la jerarquía de roles configurada
+    const role = this.getSession()?.role;
+    return role === 'PROFESOR' || role === 'ADMIN';
+  },
+
+  /** Headers con Authorization listos para adjuntar a cada fetch */
   getAuthHeader() {
     const session = this.getSession();
     if (!session) return {};
@@ -82,16 +103,17 @@ const AuthService = {
 
 // ── HTTP Client ───────────────────────────────────────────────
 const http = {
+
   async _request(url, options = {}) {
     const headers = {
       'Content-Type': 'application/json',
-      ...AuthService.getAuthHeader(),   // ← se adjunta en CADA petición
+      ...AuthService.getAuthHeader(),        // ← se adjunta en CADA petición
       ...(options.headers || {}),
     };
 
     const response = await fetch(url, { ...options, headers });
 
-    // Sesión expirada o credenciales revocadas
+    // Sesión expirada o revocada
     if (response.status === 401) {
       AuthService.logout();
       App.showLogin();
@@ -107,4 +129,16 @@ const http = {
       throw new Error(msg || `Error HTTP ${response.status}`);
     }
 
-    const text = await response.
+    // 204 No Content (respuestas de DELETE) → no hay body que parsear
+    if (response.status === 204) return null;
+
+    // Intentar parsear como JSON; si el body está vacío devolver null
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+  },
+
+  get(url)           { return this._request(url, { method: 'GET' }); },
+  post(url, body)    { return this._request(url, { method: 'POST',   body: JSON.stringify(body) }); },
+  put(url, body)     { return this._request(url, { method: 'PUT',    body: JSON.stringify(body) }); },
+  delete(url)        { return this._request(url, { method: 'DELETE' }); },
+};
