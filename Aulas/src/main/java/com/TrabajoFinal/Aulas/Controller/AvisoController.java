@@ -20,6 +20,7 @@ import java.util.Optional;
 @RequestMapping("/api/avisos")
 public class AvisoController {
     private final AvisoService avisoService;
+
     @GetMapping
     public List<Aviso> Avisos() {
         return avisoService.listarAvisos();
