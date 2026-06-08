@@ -2,6 +2,7 @@ package com.TrabajoFinal.Aulas.service;
 
 import com.TrabajoFinal.Aulas.Dtos.reservaDTO.ReservaResponseDTO;
 import com.TrabajoFinal.Aulas.Repository.*;
+import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.*;
 import com.TrabajoFinal.Aulas.model.enums.EstadoReserva;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +20,9 @@ public class ReservaService {
     public Reserva hacerReserva(ReservaResponseDTO dto){
         Reserva reserva=new Reserva();
         Comision comision=comisionRepository.findById(dto.getId_comision())
-                .orElseThrow(()-> new RuntimeException("Comision no encontrado"));
+                .orElseThrow(()-> new ResourceNotFoundException("Comision", dto.getId_comision()));
         Aula aula=aulaRepository.findById(dto.getId_aula())
-                .orElseThrow(()-> new RuntimeException("Aula no encontrada"));
+                .orElseThrow(()-> new ResourceNotFoundException("Aula", dto.getId_aula()));
        reserva.setComision(comision);
         reserva.setAula(aula);
         reserva.setFecha(dto.getFecha());
@@ -36,12 +37,12 @@ public class ReservaService {
     }
     public Reserva listarXId(Integer id){
         return reservaRepository.findById(id)
-                .orElseThrow(()->new RuntimeException("Reserva no encontrada"));
+                .orElseThrow(()->new ResourceNotFoundException("Reserva", id));
     }
     public Reserva modificarReserva(Integer id, ReservaResponseDTO reservaNueva){
         Comision comision=comisionRepository.findById(reservaNueva.getId_comision())
-                .orElseThrow(()-> new RuntimeException("Comision no encontrado"));
-        Aula aula=aulaRepository.findById(reservaNueva.getId_aula()).orElseThrow(()-> new RuntimeException("Aula no encontrada"));
+                .orElseThrow(()-> new ResourceNotFoundException("Comision", reservaNueva.getId_comision()));
+        Aula aula=aulaRepository.findById(reservaNueva.getId_aula()).orElseThrow(()-> new ResourceNotFoundException("Aula", reservaNueva.getId_aula()));
         Reserva reservaVieja=listarXId(id);
         reservaVieja.setFecha(reservaNueva.getFecha());
         reservaVieja.setHoraFin(reservaNueva.getHoraFin());

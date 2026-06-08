@@ -45,7 +45,7 @@ public class MateriaController {
         return materiaService.actualizar(id_materia, materiaDetalles);
     }
 
-    @GetMapping("/{materiasLaboratorio}")
+    @GetMapping("/Laboratorio")
     public List<Materia> listarMateriasLaboratorio() {
         return materiaService.listarMateriasLaboratorios();
     }

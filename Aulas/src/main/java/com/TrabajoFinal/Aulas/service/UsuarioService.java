@@ -1,6 +1,8 @@
 package com.TrabajoFinal.Aulas.service;
 
+import com.TrabajoFinal.Aulas.Dtos.usuarioDTO.UsuarioResponseDTO;
 import com.TrabajoFinal.Aulas.Repository.UsuarioRepository;
+import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.Usuario;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,7 +20,7 @@ public class UsuarioService {
         return usuarioRepository.findAll();
     }
     public Usuario buscarPorId(Integer id){
-        return usuarioRepository.findById(id).orElseThrow(()->new RuntimeException("Usuario no encontrado"));
+        return usuarioRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Usuario", id));
     }
     public Usuario modificar(Integer id, Usuario modificar){
         Usuario viejo=buscarPorId(id);
