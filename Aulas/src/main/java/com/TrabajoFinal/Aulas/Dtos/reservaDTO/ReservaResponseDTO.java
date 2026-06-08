@@ -7,9 +7,8 @@ import java.time.LocalTime;
 
 @Data
 public class ReservaResponseDTO {
-    private Integer id_profesor;
+    private Integer id_comision;
     private Integer id_aula;
-    private Integer id_materia;
     private LocalDate fecha;
     private LocalTime horaInicio;
     private LocalTime horaFin;
