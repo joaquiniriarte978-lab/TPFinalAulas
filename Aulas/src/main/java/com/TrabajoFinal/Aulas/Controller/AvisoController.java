@@ -33,7 +33,7 @@ public class AvisoController {
     public Aviso buscar(@PathVariable Integer id_aviso)  {
         return avisoService.avisoXid(id_aviso);
     }
-    @DeleteMapping
+    @DeleteMapping("/{id_aviso}")
     public void eliminar(@PathVariable Integer id_aviso)  {
         avisoService.borrarAviso(id_aviso);
     }

@@ -25,13 +25,13 @@ public class ReservaController {
     }
     @PostMapping
     public Reserva crear(@RequestBody ReservaResponseDTO reserva){
-        return reservaService.subirReserva(reserva);
+        return reservaService.hacerReserva(reserva);
     }
     @GetMapping("/{id_reserva}")
     public Reserva buscar(@PathVariable Integer id_reserva)  {
         return reservaService.listarXId(id_reserva);
     }
-    @DeleteMapping
+    @DeleteMapping("/{id_reserva}")
     public void eliminar(@PathVariable Integer id_reserva)  {
         reservaService.eliminarReserva(id_reserva);
     }
@@ -39,6 +39,8 @@ public class ReservaController {
     public Reserva modificar(@PathVariable Integer id_reserva, @RequestBody ReservaResponseDTO reservaNueva) {
         return reservaService.modificarReserva(id_reserva, reservaNueva);
     }
-
-
+    @PutMapping("/cancelar/{id_reserva}")
+    public void cancelar(@PathVariable Integer id_reserva)  {
+        reservaService.cancelarReserva(id_reserva);
+    }
 }

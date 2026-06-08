@@ -34,7 +34,7 @@ public class MateriaController {
         return materiaService.listarPorId(id_materia);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id_materia}")
     public void eliminar(@PathVariable Integer id_materia) {
         materiaService.borrar(id_materia);
     }

@@ -30,7 +30,7 @@ public class UsuarioController {
     public Usuario buscar(@PathVariable Integer id_usuario)  {
         return usuarioService.buscarPorId(id_usuario);
     }
-    @DeleteMapping
+    @DeleteMapping("{id_usuario}")
     public void eliminar(@PathVariable Integer id_usuario)  {
         usuarioService.eliminarUsuario(id_usuario);
     }

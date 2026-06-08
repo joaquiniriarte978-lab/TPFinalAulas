@@ -1,5 +1,6 @@
 package com.TrabajoFinal.Aulas.model;
 
+import com.TrabajoFinal.Aulas.model.enums.EstadoReserva;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,7 +32,8 @@ public class Reserva {
     private LocalTime horaInicio;
     @Column(name = "hora_fin")
     private LocalTime horaFin;
-
-
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_reserva")
+    private EstadoReserva estadoReserva;
 
 }
