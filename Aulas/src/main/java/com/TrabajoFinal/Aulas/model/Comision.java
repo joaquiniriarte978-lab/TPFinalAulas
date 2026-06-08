@@ -5,13 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Objects;
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name="profesor_materia")
-public class ProfesorMateria {
+@Table(name="comision")
+public class Comision {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     @Column(name = "id_profesor_materia")
@@ -22,6 +21,10 @@ public class ProfesorMateria {
     @ManyToOne
     @JoinColumn(name = "id_materia")
     private Materia materia;
+    @Column(name = "cant_alumnos")
+    private Integer cantAlumnos;
+
+
 
 
 }

@@ -19,14 +19,12 @@ public class Reserva {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @ManyToOne
-    @JoinColumn(name = "id_profesor")
-    private Usuario profesor;
+    @JoinColumn(name = "comision")
+    private Comision comision;
     @ManyToOne
     @JoinColumn(name = "id_aula")
     private Aula aula;
-    @ManyToOne
-    @JoinColumn(name = "id_materia")
-    private Materia materia;
+
     private LocalDate fecha;
     @Column(name = "hora_inicio")
     private LocalTime horaInicio;
