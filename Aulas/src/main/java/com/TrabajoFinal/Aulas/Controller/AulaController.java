@@ -29,7 +29,7 @@ public class AulaController {
     public Aula buscar(@PathVariable Integer id_aula)  {
         return aulaService.aulaXid(id_aula);
     }
-    @DeleteMapping
+    @DeleteMapping("/{id_aula}")
     public void eliminar(@PathVariable Integer id_aula)  {
         aulaService.borrarAula(id_aula);
     }

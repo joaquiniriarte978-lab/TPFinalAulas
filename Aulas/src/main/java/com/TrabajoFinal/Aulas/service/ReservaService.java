@@ -9,6 +9,7 @@ import com.TrabajoFinal.Aulas.model.Aula;
 import com.TrabajoFinal.Aulas.model.Materia;
 import com.TrabajoFinal.Aulas.model.Reserva;
 import com.TrabajoFinal.Aulas.model.Usuario;
+import com.TrabajoFinal.Aulas.model.enums.EstadoReserva;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,7 @@ public class ReservaService {
     private final UsuarioRepository usuarioRepository;
     private final AulaRepository aulaRepository;
 
-    public Reserva subirReserva(ReservaResponseDTO dto){
+    public Reserva hacerReserva(ReservaResponseDTO dto){
         Reserva reserva=new Reserva();
         Usuario profesor=usuarioRepository.findById(dto.getId_profesor())
                 .orElseThrow(()-> new RuntimeException("Usuario no encontrado"));
@@ -34,6 +35,7 @@ public class ReservaService {
         reserva.setFecha(dto.getFecha());
         reserva.setHoraFin(dto.getHoraFin());
         reserva.setHoraInicio(dto.getHoraInicio());
+        reserva.setEstadoReserva(EstadoReserva.RESERVADA);
         return reservaRepository.save(reserva);
     }
 
@@ -57,6 +59,15 @@ public class ReservaService {
         reservaVieja.setProfesor(profesor);
         reservaVieja.setAula(aula);
         return reservaRepository.save(reservaVieja);
+    }
+    public Reserva cancelarReserva(Integer id){
+        Reserva reserva=listarXId(id);
+        if(reserva.getEstadoReserva().equals(EstadoReserva.RESERVADA)){
+            reserva.setEstadoReserva(EstadoReserva.CANCELADA);
+            return  reservaRepository.save(reserva);
+        }else {
+            throw new RuntimeException("La reserva no esta reservada");
+        }
     }
     public void eliminarReserva(Integer id){
         reservaRepository.deleteById(id);
