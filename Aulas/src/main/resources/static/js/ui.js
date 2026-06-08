@@ -44,13 +44,11 @@ function emptyState(icon, title, sub = '') {
 // ── APP (objeto global accesible desde el HTML) ───────────────
 const App = {
 
-  // Muestra el formulario de login y oculta la app
   showLogin() {
     document.getElementById('page-login').style.display = 'flex';
     document.getElementById('page-app').style.display   = 'none';
   },
 
-  // Muestra la app y oculta el login
   showApp() {
     document.getElementById('page-login').style.display = 'none';
     document.getElementById('page-app').style.display   = 'block';
@@ -60,58 +58,90 @@ const App = {
       document.getElementById('user-name').textContent   = session.username;
       document.getElementById('user-role').textContent   = session.role;
       document.getElementById('user-avatar').textContent = session.username[0].toUpperCase();
+
+      // Mostrar/ocultar ítems de nav según el rol
+      this._applyRoleVisibility(session.role);
     }
 
-    // Cargar la primera sección
     this.navigate('aulas');
   },
 
-  // Rellena el formulario con las credenciales demo al hacer clic en un chip
+  /**
+   * Oculta secciones del menú lateral que el rol actual no puede ver.
+   * Se basa en la jerarquía de SecurityConfig.java:
+   *   ADMIN  > PROFESOR > ALUMNO
+   */
+  _applyRoleVisibility(role) {
+    const adminOnly  = ['usuarios', 'comision'];
+    const profeAndUp = ['reservas', 'avisos'];
+
+    document.querySelectorAll('.nav-item[data-section]').forEach(btn => {
+      const section = btn.dataset.section;
+      if (adminOnly.includes(section) && role !== 'ADMIN') {
+        btn.style.display = 'none';
+      } else if (profeAndUp.includes(section) && role === 'ALUMNO') {
+        btn.style.display = 'none';
+      } else {
+        btn.style.display = '';
+      }
+    });
+  },
+
+  /** Rellena el formulario de login con credenciales de demo */
   fillLogin(user, pass) {
     document.getElementById('login-user').value = user;
     document.getElementById('login-pass').value = pass;
   },
 
-  // Navega entre secciones
+  /** Navega entre secciones del panel principal */
   navigate(section) {
-    // Marcar nav item activo
     document.querySelectorAll('.nav-item').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.section === section);
     });
 
     const titles = {
-      aulas:          'Aulas',
-      materias:       'Materias',
-      reservas:       'Reservas',
-      avisos:         'Avisos',
-      usuarios:       'Usuarios',
-      profesorMateria:'Profesor–Materia',
+      aulas:   'Aulas',
+      materias:'Materias',
+      reservas:'Reservas',
+      avisos:  'Avisos',
+      usuarios:'Usuarios',
+      comision:'Profesor–Materia',    // ← coincide con data-section="comision" del HTML
     };
     document.getElementById('topbar-title').textContent = titles[section] || section;
 
-    // Renderizar la vista correspondiente
     const body = document.getElementById('page-body');
-    switch(section) {
-      case 'aulas':          Views.aulas(body);          break;
-      case 'materias':       Views.materias(body);       break;
-      case 'reservas':       Views.reservas(body);       break;
-      case 'avisos':         Views.avisos(body);         break;
-      case 'usuarios':       Views.usuarios(body);       break;
-      case 'profesorMateria':Views.profesorMateria(body);break;
-      default:               body.innerHTML = '<p>Sección no encontrada.</p>';
+    switch (section) {
+      case 'aulas':    Views.aulas(body);    break;
+      case 'materias': Views.materias(body); break;
+      case 'reservas': Views.reservas(body); break;
+      case 'avisos':   Views.avisos(body);   break;
+      case 'usuarios': Views.usuarios(body); break;
+      case 'comision': Views.comision(body); break;    // ← antes era 'profesorMateria'
+      default:         body.innerHTML = '<p>Sección no encontrada.</p>';
     }
   },
 
   // ── Inicialización ─────────────────────────────────────────
   init() {
-    // ¿Hay sesión activa?
     if (AuthService.isAuthenticated()) {
       this.showApp();
     } else {
       this.showLogin();
     }
 
+    // ── Botón de login ──────────────────────────────────────
+    // FIX: este addEventListener faltaba en la versión anterior,
+    //      por eso el botón no hacía nada al hacer clic.
+    document.getElementById('btn-login')
+      .addEventListener('click', () => this._handleLogin());
 
+    // También permitir enviar con Enter desde los inputs
+    ['login-user', 'login-pass'].forEach(id => {
+      document.getElementById(id)
+        .addEventListener('keydown', e => {
+          if (e.key === 'Enter') this._handleLogin();
+        });
+    });
 
     // Botón logout
     document.getElementById('btn-logout').addEventListener('click', () => {
@@ -153,9 +183,8 @@ const App = {
       return;
     }
 
-    // Deshabilitar botón mientras espera
-    btnLogin.disabled     = true;
-    btnLogin.textContent  = 'Verificando…';
+    btnLogin.disabled    = true;
+    btnLogin.textContent = 'Verificando…';
 
     try {
       await AuthService.login(username, password);
@@ -171,7 +200,7 @@ const App = {
   },
 };
 
-// ── VISTAS (stubs para la Fase 2) ─────────────────────────────
+// ── VISTAS (stubs — Fase 2 completará el render real) ─────────
 const Views = {
   async aulas(container) {
     setLoading(container);
@@ -179,7 +208,7 @@ const Views = {
       const data = await AulaService.listar();
       container.innerHTML = `<p style="color:var(--clr-subtle)">
         ✅ ${data.length} aulas cargadas. (Vista completa en Fase 2)</p>`;
-    } catch(e) {
+    } catch (e) {
       container.innerHTML = `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
     }
   },
@@ -190,7 +219,7 @@ const Views = {
       const data = await MateriaService.listar();
       container.innerHTML = `<p style="color:var(--clr-subtle)">
         ✅ ${data.length} materias cargadas. (Vista completa en Fase 2)</p>`;
-    } catch(e) {
+    } catch (e) {
       container.innerHTML = `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
     }
   },
@@ -201,7 +230,7 @@ const Views = {
       const data = await ReservaService.listar();
       container.innerHTML = `<p style="color:var(--clr-subtle)">
         ✅ ${data.length} reservas cargadas. (Vista completa en Fase 2)</p>`;
-    } catch(e) {
+    } catch (e) {
       container.innerHTML = `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
     }
   },
@@ -212,7 +241,7 @@ const Views = {
       const data = await AvisoService.listar();
       container.innerHTML = `<p style="color:var(--clr-subtle)">
         ✅ ${data.length} avisos cargados. (Vista completa en Fase 2)</p>`;
-    } catch(e) {
+    } catch (e) {
       container.innerHTML = `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
     }
   },
@@ -223,18 +252,18 @@ const Views = {
       const data = await UsuarioService.listar();
       container.innerHTML = `<p style="color:var(--clr-subtle)">
         ✅ ${data.length} usuarios cargados. (Vista completa en Fase 2)</p>`;
-    } catch(e) {
+    } catch (e) {
       container.innerHTML = `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
     }
   },
 
-  async profesorMateria(container) {
+  async comision(container) {
     setLoading(container);
     try {
       const data = await ProfesorMateriaService.listar();
       container.innerHTML = `<p style="color:var(--clr-subtle)">
-        ✅ ${data.length} registros cargados. (Vista completa en Fase 2)</p>`;
-    } catch(e) {
+        ✅ ${data.length} comisiones cargadas. (Vista completa en Fase 2)</p>`;
+    } catch (e) {
       container.innerHTML = `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
     }
   },
@@ -244,6 +273,5 @@ const Views = {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => App.init());
 } else {
-  // El DOM ya estaba listo cuando cargó el script
   App.init();
 }

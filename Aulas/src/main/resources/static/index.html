@@ -22,17 +22,28 @@
             <p>Ingresá tus credenciales para continuar</p>
         </div>
 
-        <!-- Chips de acceso rápido (demo) -->
+        <!--
+          Chips de acceso rápido.
+          FIX: credenciales corregidas para que coincidan con SecurityConfig.java:
+            alumno   / 1234
+            profesor / 1234
+            admin    / 1234
+        -->
         <div class="login-demo-chips">
             <button class="demo-chip" onclick="App.fillLogin('alumno','1234')">
                 <div class="chip-role">Alumno</div>
                 <div class="chip-user">alumno</div>
                 <div class="chip-pass">1234</div>
             </button>
-            <button class="demo-chip admin" onclick="App.fillLogin('profe','admin123')">
+            <button class="demo-chip" onclick="App.fillLogin('profesor','1234')">
+                <div class="chip-role">Profesor</div>
+                <div class="chip-user">profesor</div>
+                <div class="chip-pass">1234</div>
+            </button>
+            <button class="demo-chip admin" onclick="App.fillLogin('admin','1234')">
                 <div class="chip-role">Admin</div>
-                <div class="chip-user">profe</div>
-                <div class="chip-pass">admin123</div>
+                <div class="chip-user">admin</div>
+                <div class="chip-pass">1234</div>
             </button>
         </div>
 
@@ -41,7 +52,7 @@
             <label class="form-label" for="login-user">Usuario</label>
             <input
                     class="form-input" type="text" id="login-user"
-                    placeholder="alumno / profe" autocomplete="username"
+                    placeholder="alumno / profesor / admin" autocomplete="username"
             >
         </div>
 
@@ -55,10 +66,15 @@
 
         <!-- Mensaje de error -->
         <p id="login-error" style="
-      color:var(--clr-danger);font-size:.83rem;
-      margin-bottom:12px;display:none;
-    "></p>
+            color:var(--clr-danger);font-size:.83rem;
+            margin-bottom:12px;display:none;
+        "></p>
 
+        <!--
+          FIX: el botón ya NO tiene onclick="…".
+          El addEventListener se registra en App.init() dentro de ui.js.
+          Antes faltaba esa conexión → el botón no hacía nada.
+        -->
         <button class="btn btn-primary btn-full" id="btn-login">
             Iniciar sesión
         </button>
@@ -99,16 +115,30 @@
                 <button class="nav-item" data-section="materias">
                     <span class="nav-icon">📚</span> Materias
                 </button>
+                <!--
+                  Reservas y Avisos: visibles para PROFESOR y ADMIN.
+                  El script ui.js los oculta si el rol es ALUMNO.
+                -->
                 <button class="nav-item" data-section="reservas">
                     <span class="nav-icon">📅</span> Reservas
                 </button>
                 <button class="nav-item" data-section="avisos">
                     <span class="nav-icon">🔔</span> Avisos
                 </button>
+
+                <!--
+                  Gestión: solo visibles para ADMIN.
+                  El script ui.js los oculta si el rol es ALUMNO o PROFESOR.
+                -->
                 <div class="nav-section-label">Gestión</div>
                 <button class="nav-item" data-section="usuarios">
                     <span class="nav-icon">👤</span> Usuarios
                 </button>
+                <!--
+                  FIX: data-section="comision" (antes "comision" en el HTML
+                  pero navigate() lo buscaba como 'profesorMateria').
+                  Ahora ambos lados usan "comision".
+                -->
                 <button class="nav-item" data-section="comision">
                     <span class="nav-icon">🔗</span> Profesor–Materia
                 </button>
@@ -140,9 +170,10 @@
 </div>
 
 <!--
-  IMPORTANTE: Los tres scripts se cargan SIN type="module"
-  para compartir el objeto global `App`.
-  El orden es obligatorio: config → services → ui
+  El orden de carga es obligatorio: config → services → ui
+  config.js  expone: AuthService, http, ENDPOINTS
+  services.js expone: AulaService, AvisoService, etc.
+  ui.js       expone: App, Toast, Views  (y llama a App.init())
 -->
 <script src="js/config.js"></script>
 <script src="js/services.js"></script>
