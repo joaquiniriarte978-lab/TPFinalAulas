@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping ("/api/profesorMateria")
+@RequestMapping ("/api/comision")
 public class ComisionController {
     private final ComisionService service;
     @GetMapping
