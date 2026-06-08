@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class Comision {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
-    @Column(name = "id_profesor_materia")
+    @Column(name = "id_comision")
     private Integer id;
     @ManyToOne
     @JoinColumn(name = "id_profesor")

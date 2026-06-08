@@ -27,12 +27,12 @@ const MateriaService = {
   eliminar:  (id)       => http.delete(`${ENDPOINTS.materias}/${id}`),
 };
 
-const ProfesorMateriaService = {
-  listar:    ()         => http.get(ENDPOINTS.profesorMateria),
-  buscarId:  (id)       => http.get(`${ENDPOINTS.profesorMateria}/${id}`),
-  crear:     (dto)      => http.post(ENDPOINTS.profesorMateria, dto),
-  modificar: (id, dto)  => http.put(`${ENDPOINTS.profesorMateria}/${id}`, dto),
-  eliminar:  (id)       => http.delete(`${ENDPOINTS.profesorMateria}/${id}`),
+const ComisionService = {
+    listar:    ()      => http.get(ENDPOINTS.comisiones),
+    buscarId:  (id)    => http.get(`${ENDPOINTS.comisiones}/${id}`),
+    crear:     (dto)   => http.post(ENDPOINTS.comisiones, dto),
+    modificar: (id, dto) => http.put(`${ENDPOINTS.comisiones}/${id}`, dto),
+    eliminar:  (id)    => http.delete(`${ENDPOINTS.comisiones}/${id}`),
 };
 
 const ReservaService = {

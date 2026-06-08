@@ -6,12 +6,12 @@
 const API_BASE_URL = 'http://localhost:8080';
 
 const ENDPOINTS = {
-  aulas:          `${API_BASE_URL}/api/aulas`,
-  avisos:         `${API_BASE_URL}/api/avisos`,
-  materias:       `${API_BASE_URL}/api/materias`,
-  profesorMateria:`${API_BASE_URL}/api/profesorMateria`,
-  reservas:       `${API_BASE_URL}/api/reservas`,
-  usuarios:       `${API_BASE_URL}/api/usuarios`,
+    aulas:      `${API_BASE_URL}/api/aulas`,
+    avisos:     `${API_BASE_URL}/api/avisos`,
+    materias:   `${API_BASE_URL}/api/materias`,
+    comisiones: `${API_BASE_URL}/api/comision`,
+    reservas:   `${API_BASE_URL}/api/reservas`,
+    usuarios:   `${API_BASE_URL}/api/usuarios`,
 };
 
 // ── AuthService ───────────────────────────────────────────────
