@@ -1,6 +1,7 @@
 package com.TrabajoFinal.Aulas.service;
 
 import com.TrabajoFinal.Aulas.Repository.MateriaRepository;
+import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.Materia;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.query.sqm.mutation.internal.inline.MatchingIdRestrictionProducer;
@@ -19,7 +20,7 @@ public class MateriaService{
     }
 
     public Materia listarPorId(Integer id) {
-        return materiaRepository.findById(id).orElseThrow(() -> new RuntimeException("Materia no encontrada"));
+        return materiaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Materia", id));
     }
 
     public Materia guardar(Materia materia) {
@@ -31,7 +32,7 @@ public class MateriaService{
     }
 
     public Materia actualizar(Integer id, Materia materia) {
-        Materia m = materiaRepository.findById(id).orElseThrow(() -> new RuntimeException("Materia no encontrada"));
+        Materia m = materiaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Aula", id));
         m.setNombre(materia.getNombre());
         m.setRequiereLaboratorio(materia.isRequiereLaboratorio());
         return materiaRepository.save(m);

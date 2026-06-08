@@ -8,6 +8,7 @@ import com.TrabajoFinal.Aulas.model.Aviso;
 import com.TrabajoFinal.Aulas.model.Reserva;
 import com.TrabajoFinal.Aulas.service.ReservaService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,7 +41,8 @@ public class ReservaController {
         return reservaService.modificarReserva(id_reserva, reservaNueva);
     }
     @PutMapping("/cancelar/{id_reserva}")
-    public void cancelar(@PathVariable Integer id_reserva)  {
-        reservaService.cancelarReserva(id_reserva);
+    @ResponseStatus(HttpStatus.OK)
+    public Reserva cancelar(@PathVariable Integer id_reserva) {
+        return reservaService.cancelarReserva(id_reserva);
     }
 }

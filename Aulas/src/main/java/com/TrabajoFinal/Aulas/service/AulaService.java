@@ -1,6 +1,7 @@
 package com.TrabajoFinal.Aulas.service;
 
 import com.TrabajoFinal.Aulas.Repository.AulaRepository;
+import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.Aula;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ public class AulaService {
 
     public Aula aulaXid(Integer id) {
         return aulaRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException());
+                .orElseThrow(()-> new ResourceNotFoundException("Aula", id));
     }
 
     public Aula guardarAula(Aula aula){

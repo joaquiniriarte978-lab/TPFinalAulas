@@ -5,6 +5,7 @@ import com.TrabajoFinal.Aulas.Dtos.avisoDTO.AvisoResponseDTO;
 import com.TrabajoFinal.Aulas.Repository.AulaRepository;
 import com.TrabajoFinal.Aulas.Repository.AvisoRepository;
 import com.TrabajoFinal.Aulas.Repository.UsuarioRepository;
+import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.Aula;
 import com.TrabajoFinal.Aulas.model.Aviso;
 import com.TrabajoFinal.Aulas.model.Usuario;
@@ -26,13 +27,13 @@ public class AvisoService {
 
     public Aviso avisoXid(Integer id){
         return avisoRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException());
+                .orElseThrow(()->new ResourceNotFoundException("Aviso", id));
     }
 
     public Aviso guardarAviso(AvisoResponseDTO avisoDto) {
         Aviso aviso = new Aviso();
-        Aula aula=aulaRepository.findById(avisoDto.getIdAula()).orElseThrow(()-> new RuntimeException());
-        Usuario profesor=usuarioRepository.findById(avisoDto.getIdUsuario()).orElseThrow(()-> new RuntimeException());
+        Aula aula=aulaRepository.findById(avisoDto.getIdAula()).orElseThrow(()-> new ResourceNotFoundException("Aula", avisoDto.getIdAula()));
+        Usuario profesor=usuarioRepository.findById(avisoDto.getIdUsuario()).orElseThrow(()-> new ResourceNotFoundException("Usuario", avisoDto.getIdUsuario()));
         aviso.setUsuario(profesor);
         aviso.setFecha(avisoDto.getFecha());
         aviso.setEstado(avisoDto.getEstado());
@@ -49,10 +50,10 @@ public class AvisoService {
     public Aviso modificarAviso(Integer id, AvisoResponseDTO nuevo){
         Aviso modificado= avisoXid(id);
         Aula aula= aulaRepository.findById(nuevo.getIdAula())
-                .orElseThrow(()-> new RuntimeException());
+                .orElseThrow(()-> new ResourceNotFoundException("Aula", id));
 
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException());
+        Usuario usuario = usuarioRepository.findById(nuevo.getIdUsuario())
+                .orElseThrow(()-> new ResourceNotFoundException("Usuario", id));
 
         modificado.setAula(aula);
         modificado.setUsuario(usuario);
