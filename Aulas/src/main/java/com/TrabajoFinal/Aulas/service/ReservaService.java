@@ -18,12 +18,19 @@ public class ReservaService {
     private final AulaRepository aulaRepository;
 
     public Reserva hacerReserva(ReservaResponseDTO dto){
-        Reserva reserva=new Reserva();
-        Comision comision=comisionRepository.findById(dto.getId_comision())
-                .orElseThrow(()-> new ResourceNotFoundException("Comision", dto.getId_comision()));
-        Aula aula=aulaRepository.findById(dto.getId_aula())
-                .orElseThrow(()-> new ResourceNotFoundException("Aula", dto.getId_aula()));
-       reserva.setComision(comision);
+        Comision comision = comisionRepository.findById(dto.getId_comision())
+                .orElseThrow(() -> new ResourceNotFoundException("Comision", dto.getId_comision()));
+        Aula aula = aulaRepository.findById(dto.getId_aula())
+                .orElseThrow(() -> new ResourceNotFoundException("Aula", dto.getId_aula()));
+
+        if (reservaRepository.existeConflicto(
+                dto.getId_aula(), dto.getFecha(), dto.getHoraInicio(), dto.getHoraFin())) {
+            throw new RuntimeException(
+                    "El aula ya tiene una reserva activa en ese horario.");
+        }
+
+        Reserva reserva = new Reserva();
+        reserva.setComision(comision);
         reserva.setAula(aula);
         reserva.setFecha(dto.getFecha());
         reserva.setHoraFin(dto.getHoraFin());
@@ -40,10 +47,31 @@ public class ReservaService {
                 .orElseThrow(()->new ResourceNotFoundException("Reserva", id));
     }
     public Reserva modificarReserva(Integer id, ReservaResponseDTO reservaNueva){
-        Comision comision=comisionRepository.findById(reservaNueva.getId_comision())
-                .orElseThrow(()-> new ResourceNotFoundException("Comision", reservaNueva.getId_comision()));
-        Aula aula=aulaRepository.findById(reservaNueva.getId_aula()).orElseThrow(()-> new ResourceNotFoundException("Aula", reservaNueva.getId_aula()));
-        Reserva reservaVieja=listarXId(id);
+        Comision comision = comisionRepository.findById(reservaNueva.getId_comision())
+                .orElseThrow(() -> new ResourceNotFoundException("Comision", reservaNueva.getId_comision()));
+        Aula aula = aulaRepository.findById(reservaNueva.getId_aula())
+                .orElseThrow(() -> new ResourceNotFoundException("Aula", reservaNueva.getId_aula()));
+
+        boolean conflicto = reservaRepository.existeConflicto(
+                reservaNueva.getId_aula(),
+                reservaNueva.getFecha(),
+                reservaNueva.getHoraInicio(),
+                reservaNueva.getHoraFin());
+
+        if (conflicto) {
+            Reserva actual = listarXId(id);
+            boolean esConsigoMisma =
+                    actual.getAula().getId().equals(reservaNueva.getId_aula()) &&
+                            actual.getFecha().equals(reservaNueva.getFecha()) &&
+                            actual.getHoraInicio().equals(reservaNueva.getHoraInicio()) &&
+                            actual.getHoraFin().equals(reservaNueva.getHoraFin());
+
+            if (!esConsigoMisma) {
+                throw new RuntimeException(
+                        "El aula ya tiene una reserva activa en ese horario.");
+            }
+        }
+        Reserva reservaVieja = listarXId(id);
         reservaVieja.setFecha(reservaNueva.getFecha());
         reservaVieja.setHoraFin(reservaNueva.getHoraFin());
         reservaVieja.setHoraInicio(reservaNueva.getHoraInicio());
