@@ -49,4 +49,5 @@ const UsuarioService = {
   crear:     (dto)      => http.post(ENDPOINTS.usuarios, dto),
   modificar: (id, dto)  => http.put(`${ENDPOINTS.usuarios}/${id}`, dto),
   eliminar:  (id)       => http.delete(`${ENDPOINTS.usuarios}/${id}`),
+  miPerfil: () => http.get(`${ENDPOINTS.usuarios}/me`),
 };

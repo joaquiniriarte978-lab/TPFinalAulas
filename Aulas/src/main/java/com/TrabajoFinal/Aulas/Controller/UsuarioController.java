@@ -5,6 +5,7 @@ import com.TrabajoFinal.Aulas.model.Usuario;
 import com.TrabajoFinal.Aulas.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -52,5 +53,10 @@ public class UsuarioController {
         dto.setEmail(usuario.getEmail());
         dto.setRol(usuario.getRol());
         return dto;
+    }
+    @GetMapping("/me")
+    public UsuarioResponseDTO miPerfil(Authentication authentication) {
+        Usuario usuario = (Usuario) authentication.getPrincipal();
+        return convertirADto(usuario);
     }
 }
