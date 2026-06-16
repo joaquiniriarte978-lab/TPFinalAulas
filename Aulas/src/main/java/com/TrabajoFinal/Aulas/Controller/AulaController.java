@@ -1,14 +1,12 @@
 package com.TrabajoFinal.Aulas.Controller;
+
 import com.TrabajoFinal.Aulas.model.Aula;
-import com.TrabajoFinal.Aulas.Repository.AulaRepository;
 import com.TrabajoFinal.Aulas.service.AulaService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,8 +18,9 @@ public class AulaController {
     public List<Aula> Aulas() {
         return aulaService.listarAulas();
     }
+
     @PostMapping
-    public Aula crear(@RequestBody Aula aula) {
+    public Aula crear(@Valid @RequestBody Aula aula) {
         return aulaService.guardarAula(aula);
     }
 
@@ -29,17 +28,14 @@ public class AulaController {
     public Aula buscar(@PathVariable Integer id_aula)  {
         return aulaService.aulaXid(id_aula);
     }
+
     @DeleteMapping("/{id_aula}")
     public void eliminar(@PathVariable Integer id_aula)  {
         aulaService.borrarAula(id_aula);
     }
 
     @PutMapping("/{id_aula}")
-    public Aula modificar(@PathVariable Integer id_aula, @RequestBody Aula aulaNueva) {
+    public Aula modificar(@PathVariable Integer id_aula, @Valid @RequestBody Aula aulaNueva) {
         return aulaService.modificarAula(id_aula, aulaNueva);
     }
-
-
-
-
 }

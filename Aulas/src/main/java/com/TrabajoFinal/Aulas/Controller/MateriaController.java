@@ -1,16 +1,12 @@
 package com.TrabajoFinal.Aulas.Controller;
 
-import com.TrabajoFinal.Aulas.Repository.MateriaRepository;
 import com.TrabajoFinal.Aulas.model.Materia;
 import com.TrabajoFinal.Aulas.service.MateriaService;
-import lombok.AllArgsConstructor;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/materias")
@@ -18,14 +14,13 @@ import java.util.Optional;
 public class    MateriaController {
     private final MateriaService materiaService;
 
-
     @GetMapping
     public List<Materia> Materias() {
         return materiaService.listar();
     }
 
     @PostMapping
-    public Materia crear(@RequestBody Materia materia) {
+    public Materia crear(@Valid @RequestBody Materia materia) {
         return materiaService.guardar(materia);
     }
 
@@ -39,9 +34,8 @@ public class    MateriaController {
         materiaService.borrar(id_materia);
     }
 
-
     @PutMapping("/{id_materia}")
-    public Materia actualizarAula(@PathVariable Integer id_materia, @RequestBody Materia materiaDetalles) {
+    public Materia actualizarAula(@PathVariable Integer id_materia, @Valid @RequestBody Materia materiaDetalles) {
         return materiaService.actualizar(id_materia, materiaDetalles);
     }
 

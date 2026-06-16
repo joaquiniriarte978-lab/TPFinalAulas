@@ -2,6 +2,10 @@ package com.TrabajoFinal.Aulas.model;
 
 import com.TrabajoFinal.Aulas.model.enums.Rol;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,12 +25,21 @@ public class Usuario implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @NotBlank(message = "El nombre no puede estar vacío")
+    @Size(max = 20, message = "El nombre debe tener un máximo de 20 caracteres")
     @Column(nullable=false)
     private String nombre;
+
+    @NotBlank(message = "El email es obligatorio")
+    @Email(message = "El formato del email no es válido")
+    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$", message = "Debe ingresar un correo válido con su dominio (ej: @gmail.com, @hotmail.com)")
     @Column(unique = true, nullable=false)
     private String email;
+
     @Column(nullable=false, name = "contrasenia")
     private String password;
+
     @Enumerated(EnumType.STRING)
     private Rol rol;
 
@@ -51,5 +64,4 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isEnabled() { return true; }
-
 }
