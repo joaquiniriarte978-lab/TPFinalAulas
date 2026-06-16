@@ -4,10 +4,12 @@ package com.TrabajoFinal.Aulas.service;
 import com.TrabajoFinal.Aulas.Dtos.comisionDTO.ComisionResponseDTO;
 import com.TrabajoFinal.Aulas.Repository.MateriaRepository;
 import com.TrabajoFinal.Aulas.Repository.ComisionRepository;
+import com.TrabajoFinal.Aulas.Repository.ProfesorRepository;
 import com.TrabajoFinal.Aulas.Repository.UsuarioRepository;
 import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.Comision;
 import com.TrabajoFinal.Aulas.model.Materia;
+import com.TrabajoFinal.Aulas.model.Profesor;
 import com.TrabajoFinal.Aulas.model.Usuario;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ public class ComisionService {
     private final ComisionRepository comisionRepository;
     private final UsuarioRepository usuarioRepository;
     private final MateriaRepository materiaRepository;
+    private final ProfesorRepository profesorRepository;
 
     public List<Comision> listar(){
         return comisionRepository.findAll();
@@ -32,7 +35,7 @@ public class ComisionService {
 
     public Comision guardar(ComisionResponseDTO dto){
         Comision comision = new Comision();
-        Usuario profesor=usuarioRepository.findById(dto.getId_profesor())
+        Profesor profesor=profesorRepository.findById(dto.getId_profesor())
                 .orElseThrow(()-> new RuntimeException("Usuario no encontrado"));
         Materia materia=materiaRepository.findById(dto.getId_materia()).orElseThrow(()-> new ResourceNotFoundException("materia", dto.getId_materia()));
         comision.setProfesor(profesor);
@@ -48,7 +51,7 @@ public class ComisionService {
     public Comision actualizar(Integer id, ComisionResponseDTO dto){
         Comision com = comisionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Comision", id));
-        Usuario profesor=usuarioRepository.findById(dto.getId_profesor())
+        Profesor profesor=profesorRepository.findById(dto.getId_profesor())
                 .orElseThrow(()-> new ResourceNotFoundException("Usuario", id));
         Materia materia=materiaRepository.findById(dto.getId_materia()).orElseThrow(()-> new ResourceNotFoundException("Materia", dto.getId_materia()));
         com.setMateria(materia);
