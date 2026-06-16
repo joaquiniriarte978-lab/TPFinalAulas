@@ -536,8 +536,7 @@ async perfil(container) {
       <div class="form-group"><label class="form-label">Comisión *</label>
         <select class="form-select" id="f-comision">
           <option value="">— Seleccionar —</option>
-          ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected':''}>${c.materia?.nombre||'—'} · ${c.profesor?.nombre||'—'}</option>`).join('')}
-        </select></div>
+${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected':''}>${c.materia?.nombre||'—'} · ${c.profesor?.usuario?.nombre||'—'}</option>`).join('')}        </select></div>
       <div class="form-group"><label class="form-label">Fecha *</label>
         <input class="form-input" type="date" id="f-fecha" value="${r.fecha||''}"></div>
       <div class="form-row">
