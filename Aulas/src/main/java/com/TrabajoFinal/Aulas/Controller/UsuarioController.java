@@ -56,7 +56,22 @@ public class UsuarioController {
     }
     @GetMapping("/me")
     public UsuarioResponseDTO miPerfil(Authentication authentication) {
-        Usuario usuario = (Usuario) authentication.getPrincipal();
-        return convertirADto(usuario);
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof Usuario usuario) {
+            return convertirADto(usuario);
+        }
+
+        String username = authentication.getName();
+        String rol = authentication.getAuthorities().stream()
+                .findFirst()
+                .map(authority -> authority.getAuthority().replace("ROLE_", ""))
+                .orElse("ALUMNO");
+
+        UsuarioResponseDTO dto = new UsuarioResponseDTO();
+        dto.setNombre(username);
+        dto.setEmail(username);
+        dto.setRol(com.TrabajoFinal.Aulas.model.enums.Rol.valueOf(rol));
+        return dto;
     }
 }
