@@ -54,24 +54,7 @@ public class SecurityConfig {
                 .build();
 
     }
-    @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder encoder) {
-        UserDetails alumno = User.withUsername("alumno")
-                .password(encoder.encode("1234"))
-                .roles("ALUMNO")
-                .build();
 
-        UserDetails profesor = User.withUsername("profesor")
-                .password(encoder.encode("1234"))
-                .roles("PROFESOR")
-                .build();
-
-        UserDetails admin = User.withUsername("admin")
-                .password(encoder.encode("1234"))
-                .roles("ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(alumno, profesor, admin);
-    }
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

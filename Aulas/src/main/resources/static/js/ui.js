@@ -678,7 +678,7 @@ const Views = {
           <td><span class="badge ${rolBadge[u.rol]||'badge-user'}">${u.rol||'—'}</span></td>
           <td class="td-actions">
             <button class="btn btn-secondary btn-sm" onclick="Views._editUsuario(${u.id})">✏ Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="Views._deleteUsuario(${u.id},'${u.nombre}')">🗑</button>
+            <button class="btn btn-danger btn-sm" onclick="Views._deleteUsuario(${u.id}, '${u.nombre}')">🗑</button>
           </td>
         </tr>`).join('');
     };
