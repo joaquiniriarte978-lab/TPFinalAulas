@@ -15,7 +15,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/materias")
 @RequiredArgsConstructor
-public class MateriaController {
+public class    MateriaController {
     private final MateriaService materiaService;
 
 

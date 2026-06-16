@@ -4,6 +4,9 @@ import com.TrabajoFinal.Aulas.Dtos.usuarioDTO.UsuarioResponseDTO;
 import com.TrabajoFinal.Aulas.Repository.UsuarioRepository;
 import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.Usuario;
+import com.TrabajoFinal.Aulas.model.Profesor;
+import com.TrabajoFinal.Aulas.Repository.ProfesorRepository;
+import com.TrabajoFinal.Aulas.model.enums.Rol;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,11 +18,31 @@ import java.util.List;
 public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ProfesorRepository profesorRepository;
+
     public Usuario subirUsuario(Usuario usuario){
+
+        if(usuarioRepository.existsByEmail(usuario.getEmail())){
+            throw new RuntimeException("El email ya está registrado");
+        }
         String passwordEncriptado = passwordEncoder.encode(usuario.getPassword());
         usuario.setPassword(passwordEncriptado);
-        return usuarioRepository.save(usuario);
-    }
+
+        Usuario usuarioGuardado = usuarioRepository.save(usuario);
+
+
+        if(usuarioGuardado.getRol().equals(Rol.PROFESOR)){
+
+            Profesor profesor = new Profesor();
+
+            profesor.setUsuario(usuarioGuardado);
+
+            profesorRepository.save(profesor);
+        }
+
+
+        return usuarioGuardado;
+        }
     public List<Usuario> listarTodos(){
         return usuarioRepository.findAll();
     }

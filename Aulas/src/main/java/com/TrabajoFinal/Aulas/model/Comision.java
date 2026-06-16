@@ -17,7 +17,7 @@ public class Comision {
     private Integer id;
     @ManyToOne
     @JoinColumn(name = "id_profesor")
-    private Usuario profesor;
+    private Profesor profesor;
     @ManyToOne
     @JoinColumn(name = "id_materia")
     private Materia materia;
