@@ -35,8 +35,8 @@ public class ComisionService {
 
     public Comision guardar(ComisionResponseDTO dto){
         Comision comision = new Comision();
-        Profesor profesor=profesorRepository.findById(dto.getId_profesor())
-                .orElseThrow(()-> new RuntimeException("Usuario no encontrado"));
+        Profesor profesor = profesorRepository.findByUsuarioId(dto.getId_profesor())
+                .orElseThrow(() -> new RuntimeException("Profesor no encontrado"));
         Materia materia=materiaRepository.findById(dto.getId_materia()).orElseThrow(()-> new ResourceNotFoundException("materia", dto.getId_materia()));
         comision.setProfesor(profesor);
         comision.setMateria(materia);

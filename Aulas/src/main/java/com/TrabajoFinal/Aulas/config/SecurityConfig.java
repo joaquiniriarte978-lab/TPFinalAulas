@@ -47,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/comision/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/comision/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/reservas/materia/{id_materia}").hasAnyRole("ADMIN", "PROFESOR", "ALUMNO")
 
                          .anyRequest().authenticated()
                 )
