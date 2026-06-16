@@ -1,7 +1,3 @@
-// ============================================================
-//  ui.js  –  Lógica de UI completa (Fase 2)
-//  Depende de: config.js, services.js
-// ============================================================
 
 // ── TOAST ─────────────────────────────────────────────────────
 const Toast = {
@@ -242,9 +238,7 @@ async perfil(container) {
       </div>
     </div>`;
 },
-  // ══════════════════════════════════════════════════
   //  AULAS
-  // ══════════════════════════════════════════════════
   async aulas(container) {
     setLoading(container);
     const isAdmin = AuthService.isAdmin();
@@ -355,9 +349,7 @@ async perfil(container) {
     });
   },
 
-  // ══════════════════════════════════════════════════
   //  MATERIAS
-  // ══════════════════════════════════════════════════
   async materias(container) {
     setLoading(container);
     const isAdmin = AuthService.isAdmin();
@@ -456,9 +448,7 @@ async perfil(container) {
     });
   },
 
-  // ══════════════════════════════════════════════════
   //  RESERVAS
-  // ══════════════════════════════════════════════════
   async reservas(container) {
     setLoading(container);
     const isAdmin  = AuthService.isAdmin();
@@ -531,7 +521,6 @@ async perfil(container) {
       document.getElementById('btn-nueva-reserva').addEventListener('click', () =>
         Views._editReserva(null, aulas, comisiones));
     }
-    // store for modal
     Views._reservaCache = { aulas, comisiones };
   },
 
@@ -596,9 +585,7 @@ async perfil(container) {
     });
   },
 
-  // ══════════════════════════════════════════════════
   //  AVISOS
-  // ══════════════════════════════════════════════════
   async avisos(container) {
     setLoading(container);
     const isAdmin = AuthService.isAdmin();
@@ -722,9 +709,7 @@ async perfil(container) {
     });
   },
 
-  // ══════════════════════════════════════════════════
   //  USUARIOS  (solo ADMIN)
-  // ══════════════════════════════════════════════════
   async usuarios(container) {
     setLoading(container);
     if (!AuthService.isAdmin()) { container.innerHTML = emptyState('🔒','Acceso denegado','Solo administradores.'); return; }
@@ -825,9 +810,7 @@ async perfil(container) {
     });
   },
 
-  // ══════════════════════════════════════════════════
   //  COMISIONES (PROFESOR–MATERIA)  solo ADMIN
-  // ══════════════════════════════════════════════════
   async comision(container) {
     setLoading(container);
     if (!AuthService.isAdmin()) { container.innerHTML = emptyState('🔒','Acceso denegado','Solo administradores.'); return; }
@@ -881,7 +864,8 @@ async perfil(container) {
       render(data.filter(c =>
         (c.materia?.nombre||'').toLowerCase().includes(q) ||
         (c.profesor?.usuario?.nombre||'').toLowerCase().includes(q)
-    }));
+      ));
+    });
     Views._comisionCache = { materias, profesores };
     document.getElementById('btn-nueva-comision').addEventListener('click', () => Views._editComision(null));
   },
@@ -911,27 +895,21 @@ async perfil(container) {
 
         Modal.show(id?'Editar Comisión':'Nueva Comisión', this._comisionForm(c, materias, profesores), async () => {
 
-            // 1. CAPTURAMOS LOS VALORES DE LOS INPUTS DEL FORMULARIO
             const idMateria = document.getElementById('f-materia').value;
             const idProfesor = document.getElementById('f-profesor').value;
             const cantAlumnos = document.getElementById('f-cant').value;
 
-            // Validamos rápido que no estén vacíos (puedes mejorar esto)
             if (!idMateria || !idProfesor || !cantAlumnos) {
                 Toast.error("Por favor, completa todos los campos obligatorios (*)");
-                return; // Corta la ejecución para que no envíe datos vacíos
+                return;
             }
 
-            // 2. CREAMOS LA VARIABLE dto QUE ESTABA FALTANDO
-            // Nota: Los nombres de las propiedades deben coincidir con tu backend:
-            // id_profesor, id_materia y cantAlumnos (según tu ComisionRequestDTO)
             const dto = {
                 id_materia: parseInt(idMateria),
                 id_profesor: parseInt(idProfesor),
                 cantAlumnos: parseInt(cantAlumnos)
             };
 
-            // 3. ENVIAMOS EL DTO AL SERVICIO (Esto ya lo tenías)
             try {
                 if (id) await ComisionService.modificar(id, dto); else await ComisionService.crear(dto);
                 Toast.success(id?'Comisión actualizada.':'Comisión creada.');
@@ -951,7 +929,6 @@ async perfil(container) {
     },
 };
 
-// ── ARRANQUE ──────────────────────────────────────────────────
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => App.init());
 } else {
