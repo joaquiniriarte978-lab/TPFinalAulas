@@ -5,6 +5,7 @@ import com.TrabajoFinal.Aulas.Repository.UsuarioRepository;
 import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.Usuario;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,7 +14,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
     public Usuario subirUsuario(Usuario usuario){
+        String passwordEncriptado = passwordEncoder.encode(usuario.getPassword());
+        usuario.setPassword(passwordEncriptado);
         return usuarioRepository.save(usuario);
     }
     public List<Usuario> listarTodos(){

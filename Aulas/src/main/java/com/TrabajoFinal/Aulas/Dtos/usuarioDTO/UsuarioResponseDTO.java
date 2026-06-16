@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class UsuarioResponseDTO {
+    private Integer id;
     private String nombre;
     private String email;
     private Rol rol;
