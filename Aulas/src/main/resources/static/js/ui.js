@@ -98,7 +98,7 @@ const App = {
   navigate(section) {
     document.querySelectorAll('.nav-item').forEach(btn =>
       btn.classList.toggle('active', btn.dataset.section === section));
-      const titles = { aulas:'Aulas', materias:'Materias', reservas:'Reservas',
+      const titles = {perfil: 'Mi Perfil', aulas:'Aulas', materias:'Materias', reservas:'Reservas',
           avisos:'Avisos', usuarios:'Usuarios', comision:'Comisiones' };
     document.getElementById('topbar-title').textContent = titles[section] || section;
     const body = document.getElementById('page-body');
@@ -109,6 +109,7 @@ const App = {
       case 'avisos':   Views.avisos(body);   break;
       case 'usuarios': Views.usuarios(body); break;
       case 'comision': Views.comision(body); break;
+      case 'perfil': Views.perfil(body); break;
       default:         body.innerHTML = '<p>Sección no encontrada.</p>';
     }
   },
@@ -158,6 +159,47 @@ const App = {
 // ── VIEWS ─────────────────────────────────────────────────────
 const Views = {
 
+//PERFIL
+async perfil(container) {
+  setLoading(container);
+  let u = {};
+  try { u = await UsuarioService.miPerfil(); }
+  catch(e) { container.innerHTML = `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`; return; }
+
+  const rolBadge = { ADMIN:'badge-admin', PROFESOR:'badge-profesor', ALUMNO:'badge-user' };
+
+  container.innerHTML = `
+    <div class="page-header">
+      <div class="page-header-text"><h2>Mi Perfil</h2><p>Tu información personal</p></div>
+    </div>
+    <div class="card" style="max-width:480px">
+      <div style="display:flex;align-items:center;gap:18px;margin-bottom:24px">
+        <div class="user-avatar" style="width:56px;height:56px;font-size:1.4rem">
+          ${u.nombre?.[0]?.toUpperCase() || '?'}
+        </div>
+        <div>
+          <h3 style="margin-bottom:4px">${u.nombre}</h3>
+          <span class="badge ${rolBadge[u.rol] || 'badge-user'}">${u.rol}</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ID</label>
+        <input class="form-input" value="#${u.id}" disabled>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nombre</label>
+        <input class="form-input" value="${u.nombre}" disabled>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" value="${u.email}" disabled>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Rol</label>
+        <input class="form-input" value="${u.rol}" disabled>
+      </div>
+    </div>`;
+},
   // ══════════════════════════════════════════════════
   //  AULAS
   // ══════════════════════════════════════════════════
