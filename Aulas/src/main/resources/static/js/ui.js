@@ -821,13 +821,38 @@ const Views = {
         const { materias, profesores } = Views._comisionCache;
         let c = {};
         if (id) { try { c = await ComisionService.buscarId(id); } catch(e) { Toast.error(e.message); return; } }
+
         Modal.show(id?'Editar Comisión':'Nueva Comisión', this._comisionForm(c, materias, profesores), async () => {
-            // ... (mantener la creación del dto tal cual está)
+
+            // 1. CAPTURAMOS LOS VALORES DE LOS INPUTS DEL FORMULARIO
+            const idMateria = document.getElementById('f-materia').value;
+            const idProfesor = document.getElementById('f-profesor').value;
+            const cantAlumnos = document.getElementById('f-cant').value;
+
+            // Validamos rápido que no estén vacíos (puedes mejorar esto)
+            if (!idMateria || !idProfesor || !cantAlumnos) {
+                Toast.error("Por favor, completa todos los campos obligatorios (*)");
+                return; // Corta la ejecución para que no envíe datos vacíos
+            }
+
+            // 2. CREAMOS LA VARIABLE dto QUE ESTABA FALTANDO
+            // Nota: Los nombres de las propiedades deben coincidir con tu backend:
+            // id_profesor, id_materia y cantAlumnos (según tu ComisionRequestDTO)
+            const dto = {
+                id_materia: parseInt(idMateria),
+                id_profesor: parseInt(idProfesor),
+                cantAlumnos: parseInt(cantAlumnos)
+            };
+
+            // 3. ENVIAMOS EL DTO AL SERVICIO (Esto ya lo tenías)
             try {
                 if (id) await ComisionService.modificar(id, dto); else await ComisionService.crear(dto);
                 Toast.success(id?'Comisión actualizada.':'Comisión creada.');
-                Modal.hide(); Views.comision(document.getElementById('page-body'));
-            } catch(e) { Toast.error(e.message); }
+                Modal.hide();
+                Views.comision(document.getElementById('page-body'));
+            } catch(e) {
+                Toast.error(e.message);
+            }
         });
     },
 
