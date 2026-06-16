@@ -159,6 +159,48 @@ const App = {
 // ── VIEWS ─────────────────────────────────────────────────────
 const Views = {
 
+// ver reservas por materia
+async _verReservasMateria(idMateria, nombreMateria) {
+  const bodyHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
+  Modal.show(`Reservas – ${nombreMateria}`, bodyHTML, () => Modal.hide(), 'Cerrar', 'btn-secondary');
+
+  // Quitar el botón de "Guardar" que no aplica acá
+  document.getElementById('modal-confirm').style.display = 'none';
+
+  try {
+    const reservas = await ReservaService.listarPorMateria(idMateria);
+    const body = document.querySelector('#modal-overlay .modal-body');
+
+    if (!reservas.length) {
+      body.innerHTML = emptyState('📅', 'Sin reservas activas', `No hay reservas para ${nombreMateria}`);
+      return;
+    }
+
+    body.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Aula</th><th>Fecha</th><th>Horario</th><th>Profesor</th>
+          </tr></thead>
+          <tbody>
+            ${reservas.map(r => `
+              <tr>
+                <td><strong>${r.aula?.nombre || '—'}</strong></td>
+                <td>${r.fecha || '—'}</td>
+                <td><code>${r.horaInicio || '?'} – ${r.horaFin || '?'}</code></td>
+                <td style="color:var(--clr-subtle)">
+                  ${r.comision?.profesor?.usuario?.nombre || '—'}
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } catch(e) {
+    document.querySelector('#modal-overlay .modal-body').innerHTML =
+      `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
+  }
+},
+
 //PERFIL
 async perfil(container) {
   setLoading(container);
@@ -341,7 +383,7 @@ async perfil(container) {
         <table>
           <thead><tr>
             <th>ID</th><th>Nombre</th><th>Laboratorio</th>
-            ${isAdmin ? '<th>Acciones</th>' : ''}
+            <th>Acciones</th>
           </tr></thead>
           <tbody id="tbody-materias"></tbody>
         </table>
@@ -357,10 +399,13 @@ async perfil(container) {
           <td>${m.requiereLaboratorio
             ? '<span class="badge badge-laboratorio">✓ Sí</span>'
             : '<span class="badge badge-user">✗ No</span>'}</td>
-          ${isAdmin ? `<td class="td-actions">
-            <button class="btn btn-secondary btn-sm" onclick="Views._editMateria(${m.id})">✏ Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="Views._deleteMateria(${m.id},'${m.nombre}')">🗑</button>
-          </td>` : ''}
+          <td class="td-actions">
+            <button class="btn btn-secondary btn-sm" onclick="Views._verReservasMateria(${m.id}, '${m.nombre}')">📅 Reservas</button>
+            ${isAdmin ? `
+              <button class="btn btn-secondary btn-sm" onclick="Views._editMateria(${m.id})">✏ Editar</button>
+              <button class="btn btn-danger btn-sm" onclick="Views._deleteMateria(${m.id},'${m.nombre}')">🗑</button>
+            ` : ''}
+          </td>
         </tr>`).join('');
     };
 
@@ -426,7 +471,7 @@ async perfil(container) {
     } catch(e) { container.innerHTML=`<p style="color:var(--clr-danger)">Error: ${e.message}</p>`; return; }
 
     const aulaMap     = Object.fromEntries(aulas.map(a => [a.id, a.nombre]));
-    const comisionMap = Object.fromEntries(comisiones.map(c => [c.id, `${c.materia?.nombre||'—'} (${c.profesor?.nombre||'—'})`]));
+  const comisionMap = Object.fromEntries(comisiones.map(c => [c.id, `${c.materia?.nombre||'—'} (${c.profesor?.usuario?.nombre||'—'})`]));
 
     container.innerHTML = `
       <div class="page-header">
@@ -821,7 +866,7 @@ async perfil(container) {
         <tr>
           <td><code>#${c.id}</code></td>
           <td><strong>${c.materia?.nombre||'—'}</strong></td>
-          <td>${c.profesor?.nombre||'—'}</td>
+          <td>${c.profesor?.usuario?.nombre||'—'}</td>
           <td>${c.cantAlumnos||'—'}</td>
           <td class="td-actions">
             <button class="btn btn-secondary btn-sm" onclick="Views._editComision(${c.id})">✏ Editar</button>
@@ -835,8 +880,8 @@ async perfil(container) {
       const q = e.target.value.toLowerCase();
       render(data.filter(c =>
         (c.materia?.nombre||'').toLowerCase().includes(q) ||
-        (c.profesor?.nombre||'').toLowerCase().includes(q)));
-    });
+        (c.profesor?.usuario?.nombre||'').toLowerCase().includes(q)
+    }));
     Views._comisionCache = { materias, profesores };
     document.getElementById('btn-nueva-comision').addEventListener('click', () => Views._editComision(null));
   },

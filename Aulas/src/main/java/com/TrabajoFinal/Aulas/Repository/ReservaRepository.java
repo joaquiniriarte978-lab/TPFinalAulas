@@ -28,4 +28,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
             @Param("horaInicio") LocalTime horaInicio,
             @Param("horaFin")    LocalTime horaFin
     );
+
+    @Query("SELECT r FROM Reserva r WHERE r.comision.materia.id = :idMateria AND r.estadoReserva = 'RESERVADA'")
+    List<Reserva> findReservasByMateria(@Param("idMateria") Integer idMateria);
 }
