@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 public class CustomUserDetailsService implements UserDetailsService {
     private final UsuarioRepository usuarioRepository;
 
-    private final PasswordEncoder passwordEncoder; // Inyectamos el encoder para los fijos
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

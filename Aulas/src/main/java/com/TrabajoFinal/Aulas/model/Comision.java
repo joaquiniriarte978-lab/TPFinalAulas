@@ -18,11 +18,9 @@ public class Comision {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     @Column(name = "id_comision")
     private Integer id;
-
     @ManyToOne
     @JoinColumn(name = "id_profesor")
-    private Usuario profesor;
-
+    private Profesor profesor;
     @ManyToOne
     @JoinColumn(name = "id_materia")
     private Materia materia;
@@ -32,4 +30,8 @@ public class Comision {
     @Max(value = 100, message = "La cantidad máxima permitida de alumnos es 100")
     @Column(name = "cant_alumnos")
     private Integer cantAlumnos;
+
+
+
+
 }
