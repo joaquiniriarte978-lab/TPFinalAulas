@@ -137,4 +137,8 @@ public class ReservaService {
         reservaRepository.deleteById(id);
     }
 
+    public List<Reserva> listarPorMateria(Integer idMateria) {
+        return reservaRepository.findReservasByMateria(idMateria);
+    }
+
 }

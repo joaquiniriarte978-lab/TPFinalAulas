@@ -41,6 +41,7 @@ const ReservaService = {
   crear:     (dto)      => http.post(ENDPOINTS.reservas, dto),
   modificar: (id, dto)  => http.put(`${ENDPOINTS.reservas}/${id}`, dto),
   eliminar:  (id)       => http.delete(`${ENDPOINTS.reservas}/${id}`),
+  listarPorMateria: (idMateria) => http.get(`${ENDPOINTS.reservas}/materia/${idMateria}`),
 };
 
 const UsuarioService = {

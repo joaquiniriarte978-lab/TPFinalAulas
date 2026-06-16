@@ -1,5 +1,6 @@
 package com.TrabajoFinal.Aulas.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,9 +23,11 @@ public class Profesor {
     @OneToOne(cascade = CascadeType.ALL)
     private Usuario usuario;
 
+    @JsonIgnore
     @ManyToMany
     private List<Materia> materias;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "profesor")
     private List<Comision> comisiones;
 
