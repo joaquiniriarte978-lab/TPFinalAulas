@@ -7,6 +7,8 @@ import lombok.Data;
 
 @Data
 public class ComisionResponseDTO {
+    private Integer id;
+
     @NotNull(message = "El profesor es obligatorio")
     private Integer id_profesor;
 
