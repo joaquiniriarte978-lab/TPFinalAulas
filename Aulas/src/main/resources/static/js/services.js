@@ -41,6 +41,7 @@ const ReservaService = {
   crear:     (dto)      => http.post(ENDPOINTS.reservas, dto),
   modificar: (id, dto)  => http.put(`${ENDPOINTS.reservas}/${id}`, dto),
   eliminar:  (id)       => http.delete(`${ENDPOINTS.reservas}/${id}`),
+  listarPorMateria: (idMateria) => http.get(`${ENDPOINTS.reservas}/materia/${idMateria}`),
 };
 
 const UsuarioService = {
@@ -50,4 +51,15 @@ const UsuarioService = {
   modificar: (id, dto)  => http.put(`${ENDPOINTS.usuarios}/${id}`, dto),
   eliminar:  (id)       => http.delete(`${ENDPOINTS.usuarios}/${id}`),
   miPerfil: () => http.get(`${ENDPOINTS.usuarios}/me`),
+};
+
+const ProfesorService = {
+  listar: () =>
+    http.get(`${API_BASE_URL}/api/profesores`),
+
+  buscarPorMateria: (idMateria) =>
+    http.get(`${API_BASE_URL}/api/profesores/materia/${idMateria}`),
+
+  asignarMateria: (idProfesor, idMateria) =>
+    http.put(`${API_BASE_URL}/api/profesores/${idProfesor}/materia/${idMateria}`),
 };

@@ -1,7 +1,3 @@
-// ============================================================
-//  ui.js  –  Lógica de UI completa (Fase 2)
-//  Depende de: config.js, services.js
-// ============================================================
 
 // ── TOAST ─────────────────────────────────────────────────────
 const Toast = {
@@ -159,6 +155,48 @@ const App = {
 // ── VIEWS ─────────────────────────────────────────────────────
 const Views = {
 
+// ver reservas por materia
+async _verReservasMateria(idMateria, nombreMateria) {
+  const bodyHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
+  Modal.show(`Reservas – ${nombreMateria}`, bodyHTML, () => Modal.hide(), 'Cerrar', 'btn-secondary');
+
+  // Quitar el botón de "Guardar" que no aplica acá
+  document.getElementById('modal-confirm').style.display = 'none';
+
+  try {
+    const reservas = await ReservaService.listarPorMateria(idMateria);
+    const body = document.querySelector('#modal-overlay .modal-body');
+
+    if (!reservas.length) {
+      body.innerHTML = emptyState('📅', 'Sin reservas activas', `No hay reservas para ${nombreMateria}`);
+      return;
+    }
+
+    body.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Aula</th><th>Fecha</th><th>Horario</th><th>Profesor</th>
+          </tr></thead>
+          <tbody>
+            ${reservas.map(r => `
+              <tr>
+                <td><strong>${r.aula?.nombre || '—'}</strong></td>
+                <td>${r.fecha || '—'}</td>
+                <td><code>${r.horaInicio || '?'} – ${r.horaFin || '?'}</code></td>
+                <td style="color:var(--clr-subtle)">
+                  ${r.comision?.profesor?.usuario?.nombre || '—'}
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } catch(e) {
+    document.querySelector('#modal-overlay .modal-body').innerHTML =
+      `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
+  }
+},
+
 //PERFIL
 async perfil(container) {
   setLoading(container);
@@ -200,9 +238,7 @@ async perfil(container) {
       </div>
     </div>`;
 },
-  // ══════════════════════════════════════════════════
   //  AULAS
-  // ══════════════════════════════════════════════════
   async aulas(container) {
     setLoading(container);
     const isAdmin = AuthService.isAdmin();
@@ -313,9 +349,7 @@ async perfil(container) {
     });
   },
 
-  // ══════════════════════════════════════════════════
   //  MATERIAS
-  // ══════════════════════════════════════════════════
   async materias(container) {
     setLoading(container);
     const isAdmin = AuthService.isAdmin();
@@ -341,7 +375,7 @@ async perfil(container) {
         <table>
           <thead><tr>
             <th>ID</th><th>Nombre</th><th>Laboratorio</th>
-            ${isAdmin ? '<th>Acciones</th>' : ''}
+            <th>Acciones</th>
           </tr></thead>
           <tbody id="tbody-materias"></tbody>
         </table>
@@ -357,10 +391,13 @@ async perfil(container) {
           <td>${m.requiereLaboratorio
             ? '<span class="badge badge-laboratorio">✓ Sí</span>'
             : '<span class="badge badge-user">✗ No</span>'}</td>
-          ${isAdmin ? `<td class="td-actions">
-            <button class="btn btn-secondary btn-sm" onclick="Views._editMateria(${m.id})">✏ Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="Views._deleteMateria(${m.id},'${m.nombre}')">🗑</button>
-          </td>` : ''}
+          <td class="td-actions">
+            <button class="btn btn-secondary btn-sm" onclick="Views._verReservasMateria(${m.id}, '${m.nombre}')">📅 Reservas</button>
+            ${isAdmin ? `
+              <button class="btn btn-secondary btn-sm" onclick="Views._editMateria(${m.id})">✏ Editar</button>
+              <button class="btn btn-danger btn-sm" onclick="Views._deleteMateria(${m.id},'${m.nombre}')">🗑</button>
+            ` : ''}
+          </td>
         </tr>`).join('');
     };
 
@@ -411,9 +448,7 @@ async perfil(container) {
     });
   },
 
-  // ══════════════════════════════════════════════════
   //  RESERVAS
-  // ══════════════════════════════════════════════════
   async reservas(container) {
     setLoading(container);
     const isAdmin  = AuthService.isAdmin();
@@ -426,7 +461,7 @@ async perfil(container) {
     } catch(e) { container.innerHTML=`<p style="color:var(--clr-danger)">Error: ${e.message}</p>`; return; }
 
     const aulaMap     = Object.fromEntries(aulas.map(a => [a.id, a.nombre]));
-    const comisionMap = Object.fromEntries(comisiones.map(c => [c.id, `${c.materia?.nombre||'—'} (${c.profesor?.nombre||'—'})`]));
+  const comisionMap = Object.fromEntries(comisiones.map(c => [c.id, `${c.materia?.nombre||'—'} (${c.profesor?.usuario?.nombre||'—'})`]));
 
     container.innerHTML = `
       <div class="page-header">
@@ -486,7 +521,6 @@ async perfil(container) {
       document.getElementById('btn-nueva-reserva').addEventListener('click', () =>
         Views._editReserva(null, aulas, comisiones));
     }
-    // store for modal
     Views._reservaCache = { aulas, comisiones };
   },
 
@@ -502,8 +536,7 @@ async perfil(container) {
       <div class="form-group"><label class="form-label">Comisión *</label>
         <select class="form-select" id="f-comision">
           <option value="">— Seleccionar —</option>
-          ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected':''}>${c.materia?.nombre||'—'} · ${c.profesor?.nombre||'—'}</option>`).join('')}
-        </select></div>
+${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected':''}>${c.materia?.nombre||'—'} · ${c.profesor?.usuario?.nombre||'—'}</option>`).join('')}        </select></div>
       <div class="form-group"><label class="form-label">Fecha *</label>
         <input class="form-input" type="date" id="f-fecha" value="${r.fecha||''}"></div>
       <div class="form-row">
@@ -551,9 +584,7 @@ async perfil(container) {
     });
   },
 
-  // ══════════════════════════════════════════════════
   //  AVISOS
-  // ══════════════════════════════════════════════════
   async avisos(container) {
     setLoading(container);
     const isAdmin = AuthService.isAdmin();
@@ -677,9 +708,7 @@ async perfil(container) {
     });
   },
 
-  // ══════════════════════════════════════════════════
   //  USUARIOS  (solo ADMIN)
-  // ══════════════════════════════════════════════════
   async usuarios(container) {
     setLoading(container);
     if (!AuthService.isAdmin()) { container.innerHTML = emptyState('🔒','Acceso denegado','Solo administradores.'); return; }
@@ -780,9 +809,7 @@ async perfil(container) {
     });
   },
 
-  // ══════════════════════════════════════════════════
   //  COMISIONES (PROFESOR–MATERIA)  solo ADMIN
-  // ══════════════════════════════════════════════════
   async comision(container) {
     setLoading(container);
     if (!AuthService.isAdmin()) { container.innerHTML = emptyState('🔒','Acceso denegado','Solo administradores.'); return; }
@@ -821,7 +848,7 @@ async perfil(container) {
         <tr>
           <td><code>#${c.id}</code></td>
           <td><strong>${c.materia?.nombre||'—'}</strong></td>
-          <td>${c.profesor?.nombre||'—'}</td>
+          <td>${c.profesor?.usuario?.nombre||'—'}</td>
           <td>${c.cantAlumnos||'—'}</td>
           <td class="td-actions">
             <button class="btn btn-secondary btn-sm" onclick="Views._editComision(${c.id})">✏ Editar</button>
@@ -835,7 +862,8 @@ async perfil(container) {
       const q = e.target.value.toLowerCase();
       render(data.filter(c =>
         (c.materia?.nombre||'').toLowerCase().includes(q) ||
-        (c.profesor?.nombre||'').toLowerCase().includes(q)));
+        (c.profesor?.usuario?.nombre||'').toLowerCase().includes(q)
+      ));
     });
     Views._comisionCache = { materias, profesores };
     document.getElementById('btn-nueva-comision').addEventListener('click', () => Views._editComision(null));
@@ -866,27 +894,21 @@ async perfil(container) {
 
         Modal.show(id?'Editar Comisión':'Nueva Comisión', this._comisionForm(c, materias, profesores), async () => {
 
-            // 1. CAPTURAMOS LOS VALORES DE LOS INPUTS DEL FORMULARIO
             const idMateria = document.getElementById('f-materia').value;
             const idProfesor = document.getElementById('f-profesor').value;
             const cantAlumnos = document.getElementById('f-cant').value;
 
-            // Validamos rápido que no estén vacíos (puedes mejorar esto)
             if (!idMateria || !idProfesor || !cantAlumnos) {
                 Toast.error("Por favor, completa todos los campos obligatorios (*)");
-                return; // Corta la ejecución para que no envíe datos vacíos
+                return;
             }
 
-            // 2. CREAMOS LA VARIABLE dto QUE ESTABA FALTANDO
-            // Nota: Los nombres de las propiedades deben coincidir con tu backend:
-            // id_profesor, id_materia y cantAlumnos (según tu ComisionRequestDTO)
             const dto = {
                 id_materia: parseInt(idMateria),
                 id_profesor: parseInt(idProfesor),
                 cantAlumnos: parseInt(cantAlumnos)
             };
 
-            // 3. ENVIAMOS EL DTO AL SERVICIO (Esto ya lo tenías)
             try {
                 if (id) await ComisionService.modificar(id, dto); else await ComisionService.crear(dto);
                 Toast.success(id?'Comisión actualizada.':'Comisión creada.');
@@ -906,7 +928,6 @@ async perfil(container) {
     },
 };
 
-// ── ARRANQUE ──────────────────────────────────────────────────
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => App.init());
 } else {

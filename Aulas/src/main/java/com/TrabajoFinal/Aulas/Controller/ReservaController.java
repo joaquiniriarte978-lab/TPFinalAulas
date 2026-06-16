@@ -20,6 +20,10 @@ public class ReservaController {
 
     private final ReservaService reservaService;
 
+    @GetMapping("/materia/{id_materia}")
+    public List<Reserva> buscarPorMateria(@PathVariable Integer id_materia) {
+        return reservaService.listarPorMateria(id_materia);
+    }
     @GetMapping
     public List<Reserva> Reservas() {
         return reservaService.listarReservas();
