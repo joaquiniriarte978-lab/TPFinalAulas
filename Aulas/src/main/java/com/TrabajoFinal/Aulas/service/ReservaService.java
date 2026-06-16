@@ -5,9 +5,12 @@ import com.TrabajoFinal.Aulas.Repository.*;
 import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.*;
 import com.TrabajoFinal.Aulas.model.enums.EstadoReserva;
+import com.TrabajoFinal.Aulas.model.enums.Tipo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -22,6 +25,27 @@ public class ReservaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Comision", dto.getId_comision()));
         Aula aula = aulaRepository.findById(dto.getId_aula())
                 .orElseThrow(() -> new ResourceNotFoundException("Aula", dto.getId_aula()));
+
+
+        if (!dto.getHoraFin().isAfter(dto.getHoraInicio())) {
+            throw new RuntimeException("La hora de fin debe ser posterior a la hora de inicio.");
+        }else if (dto.getFecha().isBefore(LocalDate.now())){
+            throw new RuntimeException("La fecha de la reserva debe ser posterior a la fecha actual");
+        }else if (dto.getFecha().isEqual(LocalDate.now()) && dto.getHoraInicio().isBefore(LocalTime.now())){
+            throw new RuntimeException("La hora de inicio de la reserva debe ser posterior a la hora actual");
+        }
+
+        boolean materiaRequiereLab = comision.getMateria().isRequiereLaboratorio();
+        boolean aulaEsLaboratorio  = aula.getTipo() == Tipo.LABORATORIO
+                || aula.getTipo() == Tipo.LABORATORIO_TEXTIL
+                || aula.getTipo() == Tipo.LABORATORIO_IDIOMAS;
+
+        if (materiaRequiereLab && !aulaEsLaboratorio) {
+            throw new RuntimeException(
+                    "La materia '" + comision.getMateria().getNombre() +
+                            "' requiere laboratorio, pero el aula '" + aula.getNombre() +
+                            "' es de tipo " + aula.getTipo() + ".");
+        }
 
         if (reservaRepository.existeConflicto(
                 dto.getId_aula(), dto.getFecha(), dto.getHoraInicio(), dto.getHoraFin())) {
@@ -51,6 +75,27 @@ public class ReservaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Comision", reservaNueva.getId_comision()));
         Aula aula = aulaRepository.findById(reservaNueva.getId_aula())
                 .orElseThrow(() -> new ResourceNotFoundException("Aula", reservaNueva.getId_aula()));
+
+
+        if (!reservaNueva.getHoraFin().isAfter(reservaNueva.getHoraInicio())) {
+            throw new RuntimeException("La hora de fin debe ser posterior a la hora de inicio.");
+        }else if (reservaNueva.getFecha().isBefore(LocalDate.now())){
+            throw new RuntimeException("La fecha de la reserva debe ser posterior a la fecha actual");
+        }else if (reservaNueva.getFecha().isEqual(LocalDate.now()) && reservaNueva.getHoraInicio().isBefore(LocalTime.now())){
+            throw new RuntimeException("La hora de inicio de la reserva debe ser posterior a la hora actual");
+        }
+
+        boolean materiaRequiereLab = comision.getMateria().isRequiereLaboratorio();
+        boolean aulaEsLaboratorio  = aula.getTipo() == Tipo.LABORATORIO
+                || aula.getTipo() == Tipo.LABORATORIO_TEXTIL
+                || aula.getTipo() == Tipo.LABORATORIO_IDIOMAS;
+
+        if (materiaRequiereLab && !aulaEsLaboratorio) {
+            throw new RuntimeException(
+                    "La materia '" + comision.getMateria().getNombre() +
+                            "' requiere laboratorio, pero el aula '" + aula.getNombre() +
+                            "' es de tipo " + aula.getTipo() + ".");
+        }
 
         boolean conflicto = reservaRepository.existeConflicto(
                 reservaNueva.getId_aula(),
