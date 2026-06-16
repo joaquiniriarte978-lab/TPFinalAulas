@@ -24,6 +24,8 @@ public class ComisionController {
                     dto.setId_profesor(comision.getProfesor().getId());
                     dto.setId_materia(comision.getMateria().getId());
                     dto.setCantAlumnos(comision.getCantAlumnos());
+                    dto.setMateriaNombre(comision.getMateria().getNombre());
+                    dto.setProfesorNombre(comision.getProfesor().getUsuario().getNombre());
                     return dto;
                 })
                 .toList();
@@ -37,6 +39,8 @@ public class ComisionController {
         dto.setId_profesor(comision.getProfesor().getId());
         dto.setId_materia(comision.getMateria().getId());
         dto.setCantAlumnos(comision.getCantAlumnos());
+        dto.setMateriaNombre(comision.getMateria().getNombre());
+        dto.setProfesorNombre(comision.getProfesor().getUsuario().getNombre());
         return dto;
     }
 
@@ -48,6 +52,8 @@ public class ComisionController {
         dto.setId_profesor(saved.getProfesor().getId());
         dto.setId_materia(saved.getMateria().getId());
         dto.setCantAlumnos(saved.getCantAlumnos());
+        dto.setMateriaNombre(saved.getMateria().getNombre());
+        dto.setProfesorNombre(saved.getProfesor().getUsuario().getNombre());
         return dto;
     }
 
@@ -59,6 +65,8 @@ public class ComisionController {
         dto.setId_profesor(updated.getProfesor().getId());
         dto.setId_materia(updated.getMateria().getId());
         dto.setCantAlumnos(updated.getCantAlumnos());
+        dto.setMateriaNombre(updated.getMateria().getNombre());
+        dto.setProfesorNombre(updated.getProfesor().getUsuario().getNombre());
         return dto;
     }
 

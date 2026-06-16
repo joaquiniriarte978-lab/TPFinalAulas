@@ -461,7 +461,7 @@ async perfil(container) {
     } catch(e) { container.innerHTML=`<p style="color:var(--clr-danger)">Error: ${e.message}</p>`; return; }
 
     const aulaMap     = Object.fromEntries(aulas.map(a => [a.id, a.nombre]));
-  const comisionMap = Object.fromEntries(comisiones.map(c => [c.id, `${c.materia?.nombre||'—'} (${c.profesor?.usuario?.nombre||'—'})`]));
+  const comisionMap = Object.fromEntries(comisiones.map(c => [c.id, `${c.materiaNombre||'—'} (${c.profesorNombre||'—'})`]));
 
     container.innerHTML = `
       <div class="page-header">
@@ -536,7 +536,7 @@ async perfil(container) {
       <div class="form-group"><label class="form-label">Comisión *</label>
         <select class="form-select" id="f-comision">
           <option value="">— Seleccionar —</option>
-${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected':''}>${c.materia?.nombre||'—'} · ${c.profesor?.usuario?.nombre||'—'}</option>`).join('')}        </select></div>
+${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected':''}>${c.materiaNombre||'—'} · ${c.profesorNombre||'—'}</option>`).join('')}        </select></div>
       <div class="form-group"><label class="form-label">Fecha *</label>
         <input class="form-input" type="date" id="f-fecha" value="${r.fecha||''}"></div>
       <div class="form-row">
@@ -847,8 +847,8 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
       tbody.innerHTML = rows.map(c => `
         <tr>
           <td><code>#${c.id}</code></td>
-          <td><strong>${c.materia?.nombre||'—'}</strong></td>
-          <td>${c.profesor?.usuario?.nombre||'—'}</td>
+          <td><strong>${c.materiaNombre||'—'}</strong></td>
+          <td>${c.profesorNombre||'—'}</td>
           <td>${c.cantAlumnos||'—'}</td>
           <td class="td-actions">
             <button class="btn btn-secondary btn-sm" onclick="Views._editComision(${c.id})">✏ Editar</button>
@@ -861,8 +861,8 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
     document.getElementById('search-comisiones').addEventListener('input', e => {
       const q = e.target.value.toLowerCase();
       render(data.filter(c =>
-        (c.materia?.nombre||'').toLowerCase().includes(q) ||
-        (c.profesor?.usuario?.nombre||'').toLowerCase().includes(q)
+        (c.materiaNombre||'').toLowerCase().includes(q) ||
+        (c.profesorNombre||'').toLowerCase().includes(q)
       ));
     });
     Views._comisionCache = { materias, profesores };
