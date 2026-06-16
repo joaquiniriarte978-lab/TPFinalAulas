@@ -26,8 +26,9 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public Usuario crear(@Valid @RequestBody Usuario usuario){
-        return usuarioService.subirUsuario(usuario);
+    public UsuarioResponseDTO crear(@Valid @RequestBody Usuario usuario){
+        Usuario saved = usuarioService.subirUsuario(usuario);
+        return convertirADto(saved);
     }
 
     @GetMapping("/{id_usuario}")
@@ -42,8 +43,9 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id_usuario}")
-    public Usuario modificar(@PathVariable Integer id_usuario, @Valid @RequestBody Usuario usuarioNuevo) {
-        return usuarioService.modificar(id_usuario, usuarioNuevo);
+    public UsuarioResponseDTO modificar(@PathVariable Integer id_usuario, @Valid @RequestBody Usuario usuarioNuevo) {
+        Usuario updated = usuarioService.modificar(id_usuario, usuarioNuevo);
+        return convertirADto(updated);
     }
 
     private UsuarioResponseDTO convertirADto(Usuario usuario) {
