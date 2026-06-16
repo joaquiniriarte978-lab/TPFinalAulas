@@ -18,12 +18,7 @@ const ENDPOINTS = {
 const AuthService = {
   SESSION_KEY: 'aulas_session',
 
-  /**
-   * Valida las credenciales contra el backend usando HTTP Basic.
-   * Llama a GET /api/aulas como ping autenticado.
-   * - 200 OK  → credenciales correctas
-   * - 401/403 → credenciales incorrectas o sin permisos
-   */
+
   async login(username, password) {
     // 1. Codificar las credenciales en Base64
     const token = btoa(`${username}:${password}`);
@@ -48,21 +43,28 @@ const AuthService = {
       throw new Error(`Error del servidor (${response.status}). Intentá de nuevo.`);
     }
 
-    // 3. Determinar el rol a partir del username
-    //    DEBE coincidir exactamente con los usuarios de SecurityConfig.java:
-    //      "alumno"  → ROLE_ALUMNO
-    //      "profesor"→ ROLE_PROFESOR
-    //      "admin"   → ROLE_ADMIN
-    const roleMap = {
-      alumno:   'ALUMNO',
-      profesor: 'PROFESOR',
-      admin:    'ADMIN',
-    };
-    const role = roleMap[username] || 'ALUMNO';
 
-    // 4. Guardar la sesión en sessionStorage
-    //    (se borra automáticamente al cerrar la pestaña)
-    const session = { username, role, token };
+    const perfilResponse = await fetch(`${API_BASE_URL}/api/usuarios/me`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!perfilResponse.ok) {
+      throw new Error('No se pudo obtener el perfil del usuario.');
+    }
+
+    const perfil = await perfilResponse.json();
+
+    const session = {
+      username: perfil.nombre || username,
+      email: perfil.email,
+      role: perfil.rol,
+      token,
+    };
+
     sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
     return session;
   },
