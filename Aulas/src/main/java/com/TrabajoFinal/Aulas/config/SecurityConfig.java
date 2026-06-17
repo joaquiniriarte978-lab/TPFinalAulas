@@ -44,6 +44,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/avisos").hasAnyRole("ADMIN", "PROFESOR")
                         .requestMatchers(HttpMethod.GET, "/api/avisos/{id_aviso}").hasAnyRole("ADMIN", "PROFESOR")
                         .requestMatchers(HttpMethod.POST, "/api/reservas").hasRole("PROFESOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/reservas/{id_reserva}").hasAnyRole("ADMIN", "PROFESOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/reservas/{id_reserva}").hasAnyRole("ADMIN", "PROFESOR")
                         .requestMatchers(HttpMethod.POST, "/api/avisos").hasRole("PROFESOR")
                         .requestMatchers(HttpMethod.PUT, "/api/avisos/{id_aviso}/estado").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/avisos/{id_aviso}").hasRole("PROFESOR")
@@ -53,7 +55,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/comision/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/reservas/materia/{id_materia}").hasAnyRole("ADMIN", "PROFESOR", "ALUMNO")
                         .anyRequest().authenticated()
-
                 )
                 .httpBasic(basic -> basic.authenticationEntryPoint((request, response, authException) -> {
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
