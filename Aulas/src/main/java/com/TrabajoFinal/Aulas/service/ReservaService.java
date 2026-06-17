@@ -20,9 +20,15 @@ public class ReservaService {
     private final ComisionRepository comisionRepository;
     private final AulaRepository aulaRepository;
 
-    public Reserva hacerReserva(ReservaResponseDTO dto){
+    public Reserva hacerReserva(ReservaResponseDTO dto, String emailUsuario, boolean esAdmin){
         Comision comision = comisionRepository.findById(dto.getId_comision())
                 .orElseThrow(() -> new ResourceNotFoundException("Comision", dto.getId_comision()));
+        if (!esAdmin) {
+            String emailProfesor = comision.getProfesor().getUsuario().getEmail();
+            if (!emailProfesor.equals(emailUsuario)) {
+                throw new RuntimeException("No tienes permiso para crear reservas de una comisión que no dictas.");
+            }
+        }
         Aula aula = aulaRepository.findById(dto.getId_aula())
                 .orElseThrow(() -> new ResourceNotFoundException("Aula", dto.getId_aula()));
 
@@ -76,7 +82,28 @@ public class ReservaService {
         return reservaRepository.findById(id)
                 .orElseThrow(()->new ResourceNotFoundException("Reserva", id));
     }
-    public Reserva modificarReserva(Integer id, ReservaResponseDTO reservaNueva){
+    public Reserva modificarReserva(Integer id, ReservaResponseDTO reservaNueva, String emailUsuario, boolean esAdmin){
+        // First, find existing reservation to check ownership
+        Reserva existente = listarXId(id);
+        if (!esAdmin) {
+            String emailProfesorExistente = existente.getComision()
+                    .getProfesor().getUsuario().getEmail();
+            if (!emailProfesorExistente.equals(emailUsuario)) {
+                throw new RuntimeException("No tienes permiso para modificar reservas de una comisión que no dictas.");
+            }
+        }
+        // If commission is being changed, also validate new commission ownership
+        if (!reservaNueva.getId_comision().equals(existente.getComision().getId())) {
+            Comision comisionNueva = comisionRepository.findById(reservaNueva.getId_comision())
+                    .orElseThrow(() -> new ResourceNotFoundException("Comision", reservaNueva.getId_comision()));
+            if (!esAdmin) {
+                String emailProfesorNuevo = comisionNueva.getProfesor().getUsuario().getEmail();
+                if (!emailProfesorNuevo.equals(emailUsuario)) {
+                    throw new RuntimeException("No tienes permiso para crear reservas de una comisión que no dictas.");
+                }
+            }
+        }
+
         Comision comision = comisionRepository.findById(reservaNueva.getId_comision())
                 .orElseThrow(() -> new ResourceNotFoundException("Comision", reservaNueva.getId_comision()));
         Aula aula = aulaRepository.findById(reservaNueva.getId_aula())
@@ -156,7 +183,15 @@ public class ReservaService {
         }
     }
 
-    public void eliminarReserva(Integer id){
+    public void eliminarReserva(Integer id, String emailUsuario, boolean esAdmin){
+        Reserva reserva = listarXId(id);
+        if (!esAdmin) {
+            String emailProfesorReserva = reserva.getComision()
+                    .getProfesor().getUsuario().getEmail();
+            if (!emailProfesorReserva.equals(emailUsuario)) {
+                throw new RuntimeException("No tienes permiso para eliminar reservas de una comisión que no dictas.");
+            }
+        }
         reservaRepository.deleteById(id);
     }
 

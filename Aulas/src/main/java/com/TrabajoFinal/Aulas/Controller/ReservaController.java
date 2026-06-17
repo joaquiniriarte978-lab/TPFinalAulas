@@ -30,20 +30,29 @@ public class ReservaController {
         return reservaService.listarReservas();
     }
     @PostMapping
-    public Reserva crear(@RequestBody ReservaResponseDTO reserva){
-        return reservaService.hacerReserva(reserva);
+    public Reserva crear(@RequestBody ReservaResponseDTO reserva, Authentication authentication) {
+        String email = authentication.getName();
+        boolean esAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        return reservaService.hacerReserva(reserva, email, esAdmin);
     }
     @GetMapping("/{id_reserva}")
     public Reserva buscar(@PathVariable Integer id_reserva)  {
         return reservaService.listarXId(id_reserva);
     }
     @DeleteMapping("/{id_reserva}")
-    public void eliminar(@PathVariable Integer id_reserva)  {
-        reservaService.eliminarReserva(id_reserva);
+    public void eliminar(@PathVariable Integer id_reserva, Authentication authentication) {
+        String email = authentication.getName();
+        boolean esAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        reservaService.eliminarReserva(id_reserva, email, esAdmin);
     }
     @PutMapping("/{id_reserva}")
-    public Reserva modificar(@PathVariable Integer id_reserva, @RequestBody ReservaResponseDTO reservaNueva) {
-        return reservaService.modificarReserva(id_reserva, reservaNueva);
+    public Reserva modificar(@PathVariable Integer id_reserva, @RequestBody ReservaResponseDTO reservaNueva, Authentication authentication) {
+        String email = authentication.getName();
+        boolean esAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        return reservaService.modificarReserva(id_reserva, reservaNueva, email, esAdmin);
     }
     @PutMapping("/cancelar/{id_reserva}")
     @ResponseStatus(HttpStatus.OK)
