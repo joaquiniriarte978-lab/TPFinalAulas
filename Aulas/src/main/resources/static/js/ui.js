@@ -1,6 +1,6 @@
 
 const Toast = {
-  _icons: { success: '✓', error: '✕', info: 'ℹ', warning: '⚠' },
+  _icons: { success: '✓', error: '✕', info: 'i', warning: '!' },
   show(message, type = 'info', duration = 3500) {
     const container = document.getElementById('toast-container');
     if (!container) return;
@@ -23,8 +23,8 @@ const Toast = {
 function setLoading(container) {
   container.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
 }
-function emptyState(icon, title, sub = '') {
-  return `<div class="empty-state"><div class="empty-icon">${icon}</div><h3>${title}</h3>${sub ? `<p>${sub}</p>` : ''}</div>`;
+function emptyState(title, sub = '') {
+  return `<div class="empty-state"><h3>${title}</h3>${sub ? `<p>${sub}</p>` : ''}</div>`;
 }
 
 
@@ -165,7 +165,7 @@ async _verReservasMateria(idMateria, nombreMateria) {
     const body = document.querySelector('#modal-overlay .modal-body');
 
     if (!reservas.length) {
-      body.innerHTML = emptyState('📅', 'Sin reservas activas', `No hay reservas para ${nombreMateria}`);
+      body.innerHTML = emptyState('Sin reservas activas', `No hay reservas para ${nombreMateria}`);
       return;
     }
 
@@ -249,7 +249,7 @@ async perfil(container) {
         ${isAdmin ? `<button class="btn btn-primary" id="btn-nueva-aula">+ Nueva Aula</button>` : ''}
       </div>
       <div class="filters-bar">
-        <div class="search-input-wrap"><span class="search-icon">🔍</span>
+        <div class="search-input-wrap">
           <input class="form-input" id="search-aulas" placeholder="Buscar por nombre o equipamiento…">
         </div>
         <select class="form-select" id="filter-tipo" style="width:160px">
@@ -270,7 +270,7 @@ async perfil(container) {
 
     const render = (rows) => {
       const tbody = document.getElementById('tbody-aulas');
-      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="6">${emptyState('🏫','Sin resultados')}</td></tr>`; return; }
+      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="6">${emptyState('Sin resultados')}</td></tr>`; return; }
       tbody.innerHTML = rows.map(a => `
         <tr>
           <td><code>#${a.id}</code></td>
@@ -279,8 +279,8 @@ async perfil(container) {
           <td><span class="badge ${tiposBadge[a.tipo]||'badge-aula'}">${a.tipo||'—'}</span></td>
           <td style="color:var(--clr-subtle)">${a.equipamiento||'—'}</td>
           ${isAdmin ? `<td class="td-actions">
-            <button class="btn btn-secondary btn-sm" onclick="Views._editAula(${a.id})">✏ Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="Views._deleteAula(${a.id},'${a.nombre}')">🗑</button>
+            <button class="btn btn-secondary btn-sm" onclick="Views._editAula(${a.id})">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="Views._deleteAula(${a.id},'${a.nombre}')">Eliminar</button>
           </td>` : ''}
         </tr>`).join('');
     };
@@ -372,7 +372,7 @@ async perfil(container) {
   `<button class="btn btn-primary" id="btn-nueva-materia">+ Nueva Materia</button>` : ''}
         </div>
         <div class="filters-bar">
-          <div class="search-input-wrap"><span class="search-icon">🔍</span>
+          <div class="search-input-wrap">
             <input class="form-input" id="search-materias" placeholder="Buscar por nombre…">
           </div>
           <select class="form-select" id="filter-lab" style="width:180px">
@@ -393,22 +393,22 @@ async perfil(container) {
 
       const render = (rows) => {
             const tbody = document.getElementById('tbody-materias');
-            if (!rows.length) { tbody.innerHTML=`<tr><td colspan="4">${emptyState('📚','Sin resultados')}</td></tr>`; return; }
+            if (!rows.length) { tbody.innerHTML=`<tr><td colspan="4">${emptyState('Sin resultados')}</td></tr>`; return; }
             tbody.innerHTML = rows.map(m => `
               <tr>
                 <td><code>#${m.id}</code></td>
                 <td><strong>${m.nombre}</strong></td>
                 <td>${m.requiereLaboratorio
-                  ? '<span class="badge badge-laboratorio">✓ Sí</span>'
-                  : '<span class="badge badge-user">✗ No</span>'}</td>
+                  ? '<span class="badge badge-laboratorio">Sí</span>'
+                  : '<span class="badge badge-user">No</span>'}</td>
                 <td class="td-actions">
 
-                  <button class="btn btn-secondary btn-sm" onclick="Views._verReservasMateria(${m.id}, '${m.nombre}')">📅 Reservas</button>
-                  <button class="btn btn-secondary btn-sm" onclick="Views._verComisionesMateria(${m.id}, '${m.nombre}')">👥 Comisiones</button>
+                  <button class="btn btn-secondary btn-sm" onclick="Views._verReservasMateria(${m.id}, '${m.nombre}')">Reservas</button>
+                  <button class="btn btn-secondary btn-sm" onclick="Views._verComisionesMateria(${m.id}, '${m.nombre}')">Comisiones</button>
 
                   ${isAdmin ? `
-                    <button class="btn btn-secondary btn-sm" onclick="Views._editMateria(${m.id})">✏ Editar</button>
-                    <button class="btn btn-danger btn-sm" onclick="Views._deleteMateria(${m.id},'${m.nombre}')">🗑</button>
+                    <button class="btn btn-secondary btn-sm" onclick="Views._editMateria(${m.id})">Editar</button>
+                    <button class="btn btn-danger btn-sm" onclick="Views._deleteMateria(${m.id},'${m.nombre}')">Eliminar</button>
                   ` : ''}
                 </td>
               </tr>`).join('');
@@ -555,7 +555,7 @@ async perfil(container) {
         ${isProfe ? `<button class="btn btn-primary" id="btn-nueva-reserva">+ Nueva Reserva</button>` : ''}
       </div>
       <div class="filters-bar">
-        <div class="search-input-wrap"><span class="search-icon">🔍</span>
+        <div class="search-input-wrap">
           <input class="form-input" id="search-reservas" placeholder="Buscar por aula o fecha…">
         </div>
         <select class="form-select" id="filter-estado-r" style="width:160px">
@@ -575,7 +575,7 @@ async perfil(container) {
 
     const render = (rows) => {
       const tbody = document.getElementById('tbody-reservas');
-      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="7">${emptyState('📅','Sin reservas')}</td></tr>`; return; }
+      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="7">${emptyState('Sin reservas')}</td></tr>`; return; }
       tbody.innerHTML = rows.map(r => `
         <tr>
           <td><code>#${r.id}</code></td>
@@ -585,9 +585,9 @@ async perfil(container) {
           <td><code>${r.horaInicio||'?'} – ${r.horaFin||'?'}</code></td>
           <td><span class="badge ${r.estadoReserva==='RESERVADA'?'badge-resuelto':'badge-pendiente'}">${r.estadoReserva||'—'}</span></td>
           ${isProfe||isAdmin ? `<td class="td-actions">
-            ${isProfe&&r.estadoReserva==='RESERVADA'?`<button class="btn btn-secondary btn-sm" onclick="Views._cancelarReserva(${r.id})">⛔ Cancelar</button>`:''}
-            ${isAdmin?`<button class="btn btn-secondary btn-sm" onclick="Views._editReserva(${r.id})">✏ Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="Views._deleteReserva(${r.id})">🗑</button>`:''}
+            ${isProfe&&r.estadoReserva==='RESERVADA'?`<button class="btn btn-danger btn-sm" onclick="Views._cancelarReserva(${r.id})">Cancelar</button>`:''}
+            ${isAdmin?`<button class="btn btn-secondary btn-sm" onclick="Views._editReserva(${r.id})">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="Views._deleteReserva(${r.id})">Eliminar</button>`:''}
           </td>` : ''}
         </tr>`).join('');
     };
@@ -689,7 +689,7 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
         ${isProfe ? `<button class="btn btn-primary" id="btn-nuevo-aviso">+ Nuevo Aviso</button>` : ''}
       </div>
       <div class="filters-bar">
-        <div class="search-input-wrap"><span class="search-icon">🔍</span>
+        <div class="search-input-wrap">
           <input class="form-input" id="search-avisos" placeholder="Buscar por mensaje o aula…">
         </div>
         <select class="form-select" id="filter-estado-a" style="width:160px">
@@ -709,7 +709,7 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
 
     const render = (rows) => {
       const tbody = document.getElementById('tbody-avisos');
-      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="7">${emptyState('🔔','Sin avisos')}</td></tr>`; return; }
+      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="7">${emptyState('Sin avisos')}</td></tr>`; return; }
       tbody.innerHTML = rows.map(a => `
         <tr>
           <td><code>#${a.id}</code></td>
@@ -719,9 +719,9 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
           <td>${a.fecha||'—'}</td>
           <td><span class="badge ${estadoBadge[a.estado]||'badge-user'}">${a.estado||'—'}</span></td>
           ${isAdmin || isProfe ? `<td class="td-actions">
-            ${isProfe ? `<button class="btn btn-secondary btn-sm" onclick="Views._editAviso(${a.id})">✏ Editar</button>` : ''}
+            ${isProfe ? `<button class="btn btn-secondary btn-sm" onclick="Views._editAviso(${a.id})">Editar</button>` : ''}
             ${isAdmin ? `<button class="btn btn-secondary btn-sm" onclick="Views._editEstadoAviso(${a.id})">Estado</button>` : ''}
-            ${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="Views._deleteAviso(${a.id})">🗑</button>` : ''}
+            ${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="Views._deleteAviso(${a.id})">Eliminar</button>` : ''}
           </td>` : ''}
         </tr>`).join('');
     };
@@ -843,7 +843,7 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
 
   async usuarios(container) {
     setLoading(container);
-    if (!AuthService.isAdmin()) { container.innerHTML = emptyState('🔒','Acceso denegado','Solo administradores.'); return; }
+    if (!AuthService.isAdmin()) { container.innerHTML = emptyState('Acceso denegado','Solo administradores.'); return; }
     let data = [];
     try { data = await UsuarioService.listar(); } catch(e) { container.innerHTML=`<p style="color:var(--clr-danger)">Error: ${e.message}</p>`; return; }
 
@@ -855,7 +855,7 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
         <button class="btn btn-primary" id="btn-nuevo-usuario">+ Nuevo Usuario</button>
       </div>
       <div class="filters-bar">
-        <div class="search-input-wrap"><span class="search-icon">🔍</span>
+        <div class="search-input-wrap">
           <input class="form-input" id="search-usuarios" placeholder="Buscar por nombre o email…">
         </div>
         <select class="form-select" id="filter-rol" style="width:140px">
@@ -872,7 +872,7 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
 
     const render = (rows) => {
       const tbody = document.getElementById('tbody-usuarios');
-      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="5">${emptyState('👤','Sin resultados')}</td></tr>`; return; }
+      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="5">${emptyState('Sin resultados')}</td></tr>`; return; }
       tbody.innerHTML = rows.map(u => `
         <tr>
           <td><code>#${u.id||'—'}</code></td>
@@ -880,8 +880,8 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
           <td style="color:var(--clr-subtle)">${u.email}</td>
           <td><span class="badge ${rolBadge[u.rol]||'badge-user'}">${u.rol||'—'}</span></td>
           <td class="td-actions">
-            <button class="btn btn-secondary btn-sm" onclick="Views._editUsuario(${u.id})">✏ Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="Views._deleteUsuario(${u.id}, '${u.nombre}')">🗑</button>
+            <button class="btn btn-secondary btn-sm" onclick="Views._editUsuario(${u.id})">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="Views._deleteUsuario(${u.id}, '${u.nombre}')">Eliminar</button>
           </td>
         </tr>`).join('');
     };
@@ -1014,7 +1014,7 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
 
   async comision(container) {
     setLoading(container);
-    if (!AuthService.isAdmin()) { container.innerHTML = emptyState('🔒','Acceso denegado','Solo administradores.'); return; }
+    if (!AuthService.isAdmin()) { container.innerHTML = emptyState('Acceso denegado','Solo administradores.'); return; }
     let data = [], materias = [], usuarios = [];
     try {
         [data, materias, usuarios] = await Promise.all([
@@ -1030,7 +1030,7 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
         <button class="btn btn-primary" id="btn-nueva-comision">+ Nueva Comisión</button>
       </div>
       <div class="filters-bar">
-        <div class="search-input-wrap"><span class="search-icon">🔍</span>
+        <div class="search-input-wrap">
           <input class="form-input" id="search-comisiones" placeholder="Buscar por materia o profesor…">
         </div>
       </div>
@@ -1045,7 +1045,7 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
 
     const render = (rows) => {
       const tbody = document.getElementById('tbody-comisiones');
-      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="5">${emptyState('🔗','Sin comisiones')}</td></tr>`; return; }
+      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="5">${emptyState('Sin comisiones')}</td></tr>`; return; }
       tbody.innerHTML = rows.map(c => `
         <tr>
           <td><code>#${c.id}</code></td>
@@ -1053,8 +1053,8 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
           <td>${c.profesorNombre||'—'}</td>
           <td>${c.cantAlumnos||'—'}</td>
           <td class="td-actions">
-            <button class="btn btn-secondary btn-sm" onclick="Views._editComision(${c.id})">✏ Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="Views._deleteComision(${c.id})">🗑</button>
+            <button class="btn btn-secondary btn-sm" onclick="Views._editComision(${c.id})">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="Views._deleteComision(${c.id})">Eliminar</button>
           </td>
         </tr>`).join('');
     };
