@@ -8,10 +8,8 @@
 </head>
 <body>
 
-<!-- ═══ TOAST CONTAINER (siempre presente) ═══ -->
 <div id="toast-container"></div>
 
-<!-- ═══ PÁGINA DE LOGIN ═══ -->
 <div id="page-login" class="login-page">
     <div class="login-bg"></div>
 
@@ -22,13 +20,7 @@
             <p>Ingresá tus credenciales para continuar</p>
         </div>
 
-        <!--
-          Chips de acceso rápido.
-          FIX: credenciales corregidas para que coincidan con SecurityConfig.java:
-            alumno   / 1234
-            profesor / 1234
-            admin    / 1234
-        -->
+
         <div class="login-demo-chips">
             <button class="demo-chip" onclick="App.fillLogin('alumno','1234')">
                 <div class="chip-role">Alumno</div>
@@ -47,7 +39,6 @@
             </button>
         </div>
 
-        <!-- Formulario -->
         <div class="form-group">
             <label class="form-label" for="login-user">Usuario</label>
             <input
@@ -64,28 +55,21 @@
             >
         </div>
 
-        <!-- Mensaje de error -->
         <p id="login-error" style="
             color:var(--clr-danger);font-size:.83rem;
             margin-bottom:12px;display:none;
         "></p>
 
-        <!--
-          FIX: el botón ya NO tiene onclick="…".
-          El addEventListener se registra en App.init() dentro de ui.js.
-          Antes faltaba esa conexión → el botón no hacía nada.
-        -->
+
         <button class="btn btn-primary btn-full" id="btn-login">
             Iniciar sesión
         </button>
     </div>
 </div>
 
-<!-- ═══ APP PRINCIPAL (oculta hasta hacer login) ═══ -->
 <div id="page-app" style="display:none">
     <div id="app">
 
-        <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-logo">
                 <div class="logo-mark">
@@ -115,10 +99,7 @@
                 <button class="nav-item" data-section="materias">
                     <span class="nav-icon">📚</span> Materias
                 </button>
-                <!--
-                  Reservas y Avisos: visibles para PROFESOR y ADMIN.
-                  El script ui.js los oculta si el rol es ALUMNO.
-                -->
+
                 <button class="nav-item" data-section="reservas">
                     <span class="nav-icon">📅</span> Reservas
                 </button>
@@ -126,19 +107,12 @@
                     <span class="nav-icon">🔔</span> Avisos
                 </button>
 
-                <!--
-                  Gestión: solo visibles para ADMIN.
-                  El script ui.js los oculta si el rol es ALUMNO o PROFESOR.
-                -->
+
                 <div class="nav-section-label">Gestión</div>
                 <button class="nav-item" data-section="usuarios">
                     <span class="nav-icon">👤</span> Usuarios
                 </button>
-                <!--
-                  FIX: data-section="comision" (antes "comision" en el HTML
-                  pero navigate() lo buscaba como 'profesorMateria').
-                  Ahora ambos lados usan "comision".
-                -->
+
                 <button class="nav-item" data-section="comision">
                     <span class="nav-icon">🔗</span> Comisiones
                 </button>
@@ -153,10 +127,8 @@
             </div>
         </aside>
 
-        <!-- Overlay mobile -->
         <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-        <!-- Contenido principal -->
         <div class="main-content">
             <header class="topbar">
                 <button class="hamburger" id="hamburger">☰</button>
@@ -164,19 +136,13 @@
             </header>
 
             <main class="page-body" id="page-body">
-                <!-- Las vistas se inyectan acá -->
             </main>
         </div>
 
     </div>
 </div>
 
-<!--
-  El orden de carga es obligatorio: config → services → ui
-  config.js  expone: AuthService, http, ENDPOINTS
-  services.js expone: AulaService, AvisoService, etc.
-  ui.js       expone: App, Toast, Views  (y llama a App.init())
--->
+
 <script src="js/config.js"></script>
 <script src="js/services.js"></script>
 <script src="js/ui.js"></script>
