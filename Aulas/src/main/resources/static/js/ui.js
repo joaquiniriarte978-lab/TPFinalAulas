@@ -656,49 +656,82 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
 
   _avisoCache: { aulas:[], usuarios:[] },
 
-  _avisoForm(a = {}, aulas = [], usuarios = []) {
+  _avisoForm(a = {}, aulas = []) {
     return `
       <div class="form-group"><label class="form-label">Aula *</label>
         <select class="form-select" id="f-aula">
           <option value="">— Seleccionar —</option>
           ${aulas.map(au => `<option value="${au.id}" ${a.aula?.id===au.id?'selected':''}>${au.nombre}</option>`).join('')}
         </select></div>
-      <div class="form-group"><label class="form-label">Usuario *</label>
-        <select class="form-select" id="f-usuario">
-          <option value="">— Seleccionar —</option>
-          ${usuarios.map(u => `<option value="${u.id}" ${a.usuario?.id===u.id?'selected':''}>${u.nombre}</option>`).join('')}
-        </select></div>
+
       <div class="form-group"><label class="form-label">Mensaje *</label>
-        <textarea class="form-textarea" id="f-mensaje">${a.mensaje||''}</textarea></div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Fecha</label>
-          <input class="form-input" type="date" id="f-fecha" value="${a.fecha||''}"></div>
-        <div class="form-group"><label class="form-label">Estado</label>
-          <select class="form-select" id="f-estado">
-            ${['PENDIENTE','RESUELTO','EN_REVISION'].map(s=>`<option ${a.estado===s?'selected':''}>${s}</option>`).join('')}
-          </select></div>
-      </div>`;
+        <textarea class="form-input" id="f-mensaje">${a.mensaje || ''}</textarea>
+      </div>
+    `;
   },
 
   async _editAviso(id) {
-    const { aulas, usuarios } = Views._avisoCache;
-    let a = {};
-    if (id) { try { a = await AvisoService.buscarId(id); } catch(e) { Toast.error(e.message); return; } }
-    Modal.show(id?'Editar Aviso':'Nuevo Aviso', this._avisoForm(a, aulas, usuarios), async () => {
-      const dto = {
-        idAula:   parseInt(document.getElementById('f-aula').value),
-        idUsuario:parseInt(document.getElementById('f-usuario').value),
-        mensaje:  document.getElementById('f-mensaje').value.trim(),
-        fecha:    document.getElementById('f-fecha').value || null,
-        estado:   document.getElementById('f-estado').value,
-      };
-      if (!dto.idAula||!dto.idUsuario||!dto.mensaje) { Toast.warning('Aula, usuario y mensaje son obligatorios.'); return; }
+    const { aulas } = Views._avisoCache;
+
+    if (id) {
+      let a = {};
       try {
-        if (id) await AvisoService.modificar(id, dto); else await AvisoService.crear(dto);
-        Toast.success(id?'Aviso actualizado.':'Aviso creado.');
-        Modal.hide(); Views.avisos(document.getElementById('page-body'));
-      } catch(e) { Toast.error(e.message); }
+        a = await AvisoService.buscarId(id);
+      } catch(e) {
+        Toast.error(e.message);
+        return;
+      }
+
+      Modal.show('Cambiar estado del aviso', this._avisoEstadoForm(a), async () => {
+        const dto = {
+          estado: document.getElementById('f-estado').value
+        };
+
+        try {
+          await AvisoService.cambiarEstado(id, dto);
+
+          Toast.success('Estado del aviso actualizado.');
+          Modal.hide();
+          Views.avisos(document.getElementById('page-body'));
+        } catch(e) {
+          Toast.error(e.message);
+        }
+      });
+
+      return;
+    }
+
+    Modal.show('Nuevo Aviso', this._avisoForm({}, aulas), async () => {
+      const dto = {
+        id_aula: parseInt(document.getElementById('f-aula').value),
+        mensaje: document.getElementById('f-mensaje').value.trim(),
+      };
+
+      if (!dto.id_aula || !dto.mensaje) {
+        Toast.warning('Aula y mensaje son obligatorios.');
+        return;
+      }
+
+      try {
+        await AvisoService.crear(dto);
+
+        Toast.success('Aviso creado.');
+        Modal.hide();
+        Views.avisos(document.getElementById('page-body'));
+      } catch(e) {
+        Toast.error(e.message);
+      }
     });
+  },
+  _avisoEstadoForm(a = {}) {
+    return `
+      <div class="form-group">
+        <label class="form-label">Estado *</label>
+        <select class="form-select" id="f-estado">
+          <option value="PENDIENTE" ${a.estado === 'PENDIENTE' ? 'selected' : ''}>PENDIENTE</option>
+          <option value="RESUELTO" ${a.estado === 'RESUELTO' ? 'selected' : ''}>RESUELTO</option>
+        </select>
+      </div>`;
   },
 
   async _deleteAviso(id) {

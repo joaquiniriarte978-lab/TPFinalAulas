@@ -12,11 +12,12 @@ const AulaService = {
 };
 
 const AvisoService = {
-  listar:    ()         => http.get(ENDPOINTS.avisos),
-  buscarId:  (id)       => http.get(`${ENDPOINTS.avisos}/${id}`),
-  crear:     (dto)      => http.post(ENDPOINTS.avisos, dto),
-  modificar: (id, dto)  => http.put(`${ENDPOINTS.avisos}/${id}`, dto),
-  eliminar:  (id)       => http.delete(`${ENDPOINTS.avisos}/${id}`),
+  listar:        ()        => http.get(ENDPOINTS.avisos),
+  buscarId:      (id)      => http.get(`${ENDPOINTS.avisos}/${id}`),
+  crear:         (dto)     => http.post(ENDPOINTS.avisos, dto),
+  modificar:     (id, dto) => http.put(`${ENDPOINTS.avisos}/${id}`, dto),
+  cambiarEstado: (id, dto) => http.put(`${ENDPOINTS.avisos}/${id}/estado`, dto),
+  eliminar:      (id)      => http.delete(`${ENDPOINTS.avisos}/${id}`),
 };
 
 const MateriaService = {
