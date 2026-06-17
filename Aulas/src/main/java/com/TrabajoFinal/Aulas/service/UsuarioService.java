@@ -52,9 +52,12 @@ public class UsuarioService {
     public Usuario modificar(Integer id, Usuario modificar){
         Usuario viejo=buscarPorId(id);
         viejo.setRol(modificar.getRol());
-        viejo.setPassword(modificar.getPassword());
         viejo.setNombre(modificar.getNombre());
         viejo.setEmail(modificar.getEmail());
+
+        if (modificar.getPassword() != null && !modificar.getPassword().isBlank()) {
+            viejo.setPassword(passwordEncoder.encode(modificar.getPassword()));
+        }
         return usuarioRepository.save(viejo);
     }
     public void eliminarUsuario(Integer id){
