@@ -31,6 +31,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/aulas").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/aulas/{id_aula}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/aulas/{id_aula}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/me").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/usuarios/{id_usuario}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios/{id_usuario}").hasRole("ADMIN")
@@ -45,14 +47,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/avisos").hasRole("PROFESOR")
                         .requestMatchers(HttpMethod.PUT, "/api/avisos/{id_aviso}/estado").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/avisos/{id_aviso}").hasRole("PROFESOR")
-                        .requestMatchers(HttpMethod.PUT, "/api/avisos/{id_aviso}/estado").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/materias").hasAnyRole("ADMIN", "PROFESOR", "ALUMNO")
                         .requestMatchers(HttpMethod.POST, "/api/comision").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/comision/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/comision/{id}").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/reservas/materia/{id_materia}").hasAnyRole("ADMIN", "PROFESOR", "ALUMNO")
-                         .anyRequest().authenticated()
+                        .anyRequest().authenticated()
+
                 )
                 .httpBasic(basic -> basic.authenticationEntryPoint((request, response, authException) -> {
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());

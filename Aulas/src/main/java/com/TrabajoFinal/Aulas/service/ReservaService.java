@@ -47,6 +47,12 @@ public class ReservaService {
                             "' es de tipo " + aula.getTipo() + ".");
         }
 
+        if (aula.getCapacidad() < comision.getCantAlumnos()) {
+            throw new RuntimeException(
+                    "El aula '" + aula.getNombre() + "' tiene capacidad para " + aula.getCapacidad() +
+                            " personas, pero la comisión tiene " + comision.getCantAlumnos() + " alumnos.");
+        }
+
         if (reservaRepository.existeConflicto(
                 dto.getId_aula(), dto.getFecha(), dto.getHoraInicio(), dto.getHoraFin())) {
             throw new RuntimeException(
@@ -95,6 +101,12 @@ public class ReservaService {
                     "La materia '" + comision.getMateria().getNombre() +
                             "' requiere laboratorio, pero el aula '" + aula.getNombre() +
                             "' es de tipo " + aula.getTipo() + ".");
+        }
+
+        if (aula.getCapacidad() < comision.getCantAlumnos()) {
+            throw new RuntimeException(
+                    "El aula '" + aula.getNombre() + "' tiene capacidad para " + aula.getCapacidad() +
+                            " personas, pero la comisión tiene " + comision.getCantAlumnos() + " alumnos.");
         }
 
         boolean conflicto = reservaRepository.existeConflicto(

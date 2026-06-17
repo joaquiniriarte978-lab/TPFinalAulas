@@ -91,4 +91,19 @@ public class UsuarioController {
         dto.setRol(com.TrabajoFinal.Aulas.model.enums.Rol.valueOf(rol));
         return dto;
     }
+    @PutMapping("/me")
+    public UsuarioResponseDTO modificarMiPerfil(Authentication authentication,
+                                                @Valid @RequestBody UsuarioRequestDTO usuarioNuevo) {
+        Object principal = authentication.getPrincipal();
+        Integer id;
+
+        if (principal instanceof Usuario usuario) {
+            id = usuario.getId();
+        } else {
+            throw new RuntimeException("Los usuarios de prueba no pueden modificar su perfil.");
+        }
+
+        Usuario updated = usuarioService.modificar(id, usuarioNuevo);
+        return convertirADto(updated);
+    }
 }
