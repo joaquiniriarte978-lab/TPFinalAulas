@@ -345,68 +345,85 @@ async perfil(container) {
   },
 
   async materias(container) {
-    setLoading(container);
-    const isAdmin = AuthService.isAdmin();
-    let data = [];
-    try { data = await MateriaService.listar(); } catch(e) { container.innerHTML=`<p style="color:var(--clr-danger)">Error: ${e.message}</p>`; return; }
+      setLoading(container);
+      const isAdmin = AuthService.isAdmin();
+      const session = AuthService.getSession();
 
-    container.innerHTML = `
-      <div class="page-header">
-        <div class="page-header-text"><h2>Materias</h2><p>${data.length} materias registradas</p></div>
-        ${isAdmin ? `<button class="btn btn-primary" id="btn-nueva-materia">+ Nueva Materia</button>` : ''}
-      </div>
-      <div class="filters-bar">
-        <div class="search-input-wrap"><span class="search-icon">🔍</span>
-          <input class="form-input" id="search-materias" placeholder="Buscar por nombre…">
+      let data = [];
+      try {
+          data = await MateriaService.listar();
+
+          if (session && session.role === 'PROFESOR') {
+              const perfil = await UsuarioService.miPerfil();
+              const misMaterias = perfil.materiasIds || [];
+
+              data = data.filter(m => misMaterias.includes(m.id));
+          }
+
+      } catch(e) {
+          container.innerHTML=`<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
+          return;
+      }
+
+      container.innerHTML = `
+        <div class="page-header">
+          <div class="page-header-text"><h2>Materias</h2><p>${data.length} materias asignadas</p></div>
+          ${isAdmin ?
+  `<button class="btn btn-primary" id="btn-nueva-materia">+ Nueva Materia</button>` : ''}
         </div>
-        <select class="form-select" id="filter-lab" style="width:180px">
-          <option value="">Todas</option>
-          <option value="true">Requieren laboratorio</option>
-          <option value="false">No requieren lab.</option>
-        </select>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr>
-            <th>ID</th><th>Nombre</th><th>Laboratorio</th>
-            <th>Acciones</th>
-          </tr></thead>
-          <tbody id="tbody-materias"></tbody>
-        </table>
-      </div>`;
+        <div class="filters-bar">
+          <div class="search-input-wrap"><span class="search-icon">🔍</span>
+            <input class="form-input" id="search-materias" placeholder="Buscar por nombre…">
+          </div>
+          <select class="form-select" id="filter-lab" style="width:180px">
+            <option value="">Todas</option>
+            <option value="true">Requieren laboratorio</option>
+            <option value="false">No requieren lab.</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>ID</th><th>Nombre</th><th>Laboratorio</th>
+              <th>Acciones</th>
+            </tr></thead>
+            <tbody id="tbody-materias"></tbody>
+          </table>
+        </div>`;
 
-    const render = (rows) => {
-      const tbody = document.getElementById('tbody-materias');
-      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="4">${emptyState('📚','Sin resultados')}</td></tr>`; return; }
-      tbody.innerHTML = rows.map(m => `
-        <tr>
-          <td><code>#${m.id}</code></td>
-          <td><strong>${m.nombre}</strong></td>
-          <td>${m.requiereLaboratorio
-            ? '<span class="badge badge-laboratorio">✓ Sí</span>'
-            : '<span class="badge badge-user">✗ No</span>'}</td>
-          <td class="td-actions">
-            <button class="btn btn-secondary btn-sm" onclick="Views._verReservasMateria(${m.id}, '${m.nombre}')">📅 Reservas</button>
-            ${isAdmin ? `
-              <button class="btn btn-secondary btn-sm" onclick="Views._editMateria(${m.id})">✏ Editar</button>
-              <button class="btn btn-danger btn-sm" onclick="Views._deleteMateria(${m.id},'${m.nombre}')">🗑</button>
-            ` : ''}
-          </td>
-        </tr>`).join('');
-    };
+      const render = (rows) => {
+        const tbody = document.getElementById('tbody-materias');
+        if (!rows.length) { tbody.innerHTML=`<tr><td colspan="4">${emptyState('📚','Sin resultados')}</td></tr>`; return; }
+        tbody.innerHTML = rows.map(m => `
+          <tr>
+            <td><code>#${m.id}</code></td>
+            <td><strong>${m.nombre}</strong></td>
+            <td>${m.requiereLaboratorio
+              ? '<span class="badge badge-laboratorio">✓ Sí</span>'
+              : '<span class="badge badge-user">✗ No</span>'}</td>
+            <td class="td-actions">
 
-    render(data);
-    const filter = () => {
-      const q = document.getElementById('search-materias').value.toLowerCase();
-      const l = document.getElementById('filter-lab').value;
-      render(data.filter(m =>
-        (!q || m.nombre.toLowerCase().includes(q)) &&
-        (l === '' || String(m.requiereLaboratorio) === l)));
-    };
-    document.getElementById('search-materias').addEventListener('input', filter);
-    document.getElementById('filter-lab').addEventListener('change', filter);
-    if (isAdmin) document.getElementById('btn-nueva-materia').addEventListener('click', () => Views._editMateria(null));
-  },
+              <button class="btn btn-secondary btn-sm" onclick="Views._verReservasMateria(${m.id}, '${m.nombre}')">📅 Reservas</button>
+              ${isAdmin ? `
+                <button class="btn btn-secondary btn-sm" onclick="Views._editMateria(${m.id})">✏ Editar</button>
+                <button class="btn btn-danger btn-sm" onclick="Views._deleteMateria(${m.id},'${m.nombre}')">🗑</button>
+              ` : ''}
+            </td>
+          </tr>`).join('');
+      };
+
+      render(data);
+      const filter = () => {
+        const q = document.getElementById('search-materias').value.toLowerCase();
+        const l = document.getElementById('filter-lab').value;
+        render(data.filter(m =>
+          (!q || m.nombre.toLowerCase().includes(q)) &&
+          (l === '' || String(m.requiereLaboratorio) === l)));
+      };
+      document.getElementById('search-materias').addEventListener('input', filter);
+      document.getElementById('filter-lab').addEventListener('change', filter);
+      if (isAdmin) document.getElementById('btn-nueva-materia').addEventListener('click', () => Views._editMateria(null));
+    },
 
   _materiaForm(m = {}) {
     return `
