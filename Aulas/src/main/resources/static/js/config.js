@@ -1,7 +1,3 @@
-// ============================================================
-//  config.js  –  Auth + HTTP client
-//  ⚠ NO uses import/export: se carga como script clásico
-// ============================================================
 
 const API_BASE_URL = 'http://localhost:8080';
 
@@ -14,17 +10,14 @@ const ENDPOINTS = {
     usuarios:   `${API_BASE_URL}/api/usuarios`,
 };
 
-// ── AuthService ───────────────────────────────────────────────
 const AuthService = {
   SESSION_KEY: 'aulas_session',
 
 
   async login(username, password) {
-    // 1. Codificar las credenciales en Base64
     const token = btoa(`${username}:${password}`);
 
-    // 2. Hacer una petición de prueba al backend con el header Authorization
-    //    Usamos /api/aulas porque es accesible por todos los roles autenticados
+
     const response = await fetch(`${API_BASE_URL}/api/aulas`, {
       method: 'GET',
       headers: {
@@ -90,7 +83,6 @@ const AuthService = {
   },
 
   isProfesor() {
-    // ADMIN hereda PROFESOR y ALUMNO según la jerarquía de roles configurada
     const role = this.getSession()?.role;
     return role === 'PROFESOR' || role === 'ADMIN';
   },
@@ -103,19 +95,17 @@ const AuthService = {
   },
 };
 
-// ── HTTP Client ───────────────────────────────────────────────
 const http = {
 
   async _request(url, options = {}) {
     const headers = {
       'Content-Type': 'application/json',
-      ...AuthService.getAuthHeader(),        // ← se adjunta en CADA petición
+      ...AuthService.getAuthHeader(),
       ...(options.headers || {}),
     };
 
     const response = await fetch(url, { ...options, headers });
 
-    // Sesión expirada o revocada
     if (response.status === 401) {
       AuthService.logout();
       App.showLogin();
@@ -131,10 +121,8 @@ const http = {
       throw new Error(msg || `Error HTTP ${response.status}`);
     }
 
-    // 204 No Content (respuestas de DELETE) → no hay body que parsear
     if (response.status === 204) return null;
 
-    // Intentar parsear como JSON; si el body está vacío devolver null
     const text = await response.text();
     return text ? JSON.parse(text) : null;
   },

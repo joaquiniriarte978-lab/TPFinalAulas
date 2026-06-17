@@ -1,7 +1,4 @@
-// ============================================================
-//  services.js  –  Servicios de API
-//  Depende de: config.js (http, ENDPOINTS)
-// ============================================================
+
 
 const AulaService = {
   listar:    ()         => http.get(ENDPOINTS.aulas),

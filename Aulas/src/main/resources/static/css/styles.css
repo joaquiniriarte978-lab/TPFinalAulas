@@ -1,12 +1,7 @@
-/* ============================================================
-   styles.css – Sistema de diseño completo
-   Estética: Institucional-Técnica con toques modernos
-   Fuentes: DM Sans (body) + Space Grotesk (display) via Google
-============================================================ */
+
 
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* ── Variables ── */
 :root {
   --clr-bg:        #0b0f1a;
   --clr-surface:   #111827;
@@ -37,7 +32,6 @@
   --sidebar-w: 240px;
 }
 
-/* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
@@ -50,13 +44,12 @@ body {
   overflow-x: hidden;
 }
 
-/* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--clr-surface); }
 ::-webkit-scrollbar-thumb { background: var(--clr-border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--clr-accent); }
 
-/* ── Typography ── */
+
 h1,h2,h3,h4,h5 { font-family: var(--font-display); line-height: 1.2; }
 h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); }
 h2 { font-size: clamp(1.4rem, 3vw, 1.9rem); }
@@ -65,12 +58,10 @@ p  { color: var(--clr-subtle); }
 a  { color: var(--clr-accent); text-decoration: none; }
 code { font-family: var(--font-mono); font-size: .85em; background: var(--clr-surface2); padding: 2px 6px; border-radius: 4px; }
 
-/* ══════════════════════════════════════════════════════════
-   LAYOUT APP
-══════════════════════════════════════════════════════════ */
+
 #app { display: flex; min-height: 100vh; }
 
-/* ── Sidebar ── */
+
 .sidebar {
   position: fixed; top: 0; left: 0;
   width: var(--sidebar-w); height: 100vh;
@@ -178,7 +169,6 @@ code { font-family: var(--font-mono); font-size: .85em; background: var(--clr-su
 }
 .btn-logout:hover { border-color: var(--clr-danger); color: var(--clr-danger); }
 
-/* ── Main content ── */
 .main-content {
   margin-left: var(--sidebar-w);
   flex: 1; min-height: 100vh;
@@ -203,9 +193,7 @@ code { font-family: var(--font-mono); font-size: .85em; background: var(--clr-su
 }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-/* ══════════════════════════════════════════════════════════
-   LOGIN PAGE
-══════════════════════════════════════════════════════════ */
+
 .login-page {
   min-height: 100vh; width: 100%;
   display: flex; align-items: center; justify-content: center;
@@ -265,9 +253,7 @@ code { font-family: var(--font-mono); font-size: .85em; background: var(--clr-su
 .demo-chip .chip-pass { font-size: .72rem; color: var(--clr-muted); font-family: var(--font-mono); }
 .demo-chip.admin .chip-role { color: var(--clr-warn); }
 
-/* ══════════════════════════════════════════════════════════
-   FORMS
-══════════════════════════════════════════════════════════ */
+
 .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
 .form-label {
   font-size: .78rem; font-weight: 600; color: var(--clr-subtle);
@@ -297,9 +283,7 @@ code { font-family: var(--font-mono); font-size: .85em; background: var(--clr-su
 .form-error { font-size: .78rem; color: var(--clr-danger); margin-top: 2px; }
 .form-hint { font-size: .75rem; color: var(--clr-muted); }
 
-/* ══════════════════════════════════════════════════════════
-   BUTTONS
-══════════════════════════════════════════════════════════ */
+
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
   padding: 9px 18px; border-radius: var(--radius-sm);
@@ -325,9 +309,7 @@ code { font-family: var(--font-mono); font-size: .85em; background: var(--clr-su
 .btn-icon { padding: 7px; border-radius: var(--radius-sm); }
 .btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
 
-/* ══════════════════════════════════════════════════════════
-   CARDS
-══════════════════════════════════════════════════════════ */
+
 .card {
   background: var(--clr-surface);
   border: 1px solid var(--clr-border);
@@ -342,7 +324,7 @@ code { font-family: var(--font-mono); font-size: .85em; background: var(--clr-su
 }
 .card-title { font-size: 1rem; font-weight: 700; color: var(--clr-text); }
 
-/* Stats cards */
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -369,9 +351,7 @@ code { font-family: var(--font-mono); font-size: .85em; background: var(--clr-su
 .stat-value { font-size: 2rem; font-weight: 800; font-family: var(--font-display); color: var(--clr-text); }
 .stat-label { font-size: .78rem; color: var(--clr-muted); margin-top: 2px; }
 
-/* ══════════════════════════════════════════════════════════
-   TABLE
-══════════════════════════════════════════════════════════ */
+
 .table-wrap {
   overflow-x: auto; border-radius: var(--radius-md);
   border: 1px solid var(--clr-border);
@@ -397,9 +377,7 @@ tbody tr:hover { background: var(--clr-surface2); }
 tbody td { padding: 12px 16px; color: var(--clr-text); vertical-align: middle; }
 .td-actions { display: flex; gap: 6px; align-items: center; }
 
-/* ══════════════════════════════════════════════════════════
-   BADGES / CHIPS
-══════════════════════════════════════════════════════════ */
+
 .badge {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 3px 9px; border-radius: 20px;
@@ -419,9 +397,7 @@ tbody td { padding: 12px 16px; color: var(--clr-text); vertical-align: middle; }
   content: '●'; font-size: .5rem;
 }
 
-/* ══════════════════════════════════════════════════════════
-   MODAL
-══════════════════════════════════════════════════════════ */
+
 .modal-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,.65); backdrop-filter: blur(4px);
@@ -458,9 +434,7 @@ tbody td { padding: 12px 16px; color: var(--clr-text); vertical-align: middle; }
 }
 .btn-close:hover { color: var(--clr-text); }
 
-/* ══════════════════════════════════════════════════════════
-   TOAST NOTIFICATIONS
-══════════════════════════════════════════════════════════ */
+
 #toast-container {
   position: fixed; top: 20px; right: 20px;
   z-index: 999; display: flex; flex-direction: column; gap: 10px;
@@ -483,9 +457,7 @@ tbody td { padding: 12px 16px; color: var(--clr-text); vertical-align: middle; }
 @keyframes slideIn { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
 @keyframes slideOut { to { opacity: 0; transform: translateX(24px); } }
 
-/* ══════════════════════════════════════════════════════════
-   PAGE HEADERS
-══════════════════════════════════════════════════════════ */
+
 .page-header {
   display: flex; align-items: flex-start;
   justify-content: space-between; gap: 16px;
@@ -494,9 +466,7 @@ tbody td { padding: 12px 16px; color: var(--clr-text); vertical-align: middle; }
 .page-header-text h2 { margin-bottom: 4px; }
 .page-header-text p  { font-size: .85rem; }
 
-/* ══════════════════════════════════════════════════════════
-   FILTERS BAR
-══════════════════════════════════════════════════════════ */
+
 .filters-bar {
   display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap;
 }
@@ -511,18 +481,14 @@ tbody td { padding: 12px 16px; color: var(--clr-text); vertical-align: middle; }
   padding-left: 36px; width: 100%;
 }
 
-/* ══════════════════════════════════════════════════════════
-   EMPTY STATE
-══════════════════════════════════════════════════════════ */
+
 .empty-state {
   text-align: center; padding: 48px 20px; color: var(--clr-muted);
 }
 .empty-state .empty-icon { font-size: 3rem; margin-bottom: 12px; opacity: .5; }
 .empty-state h3 { font-size: 1rem; color: var(--clr-subtle); margin-bottom: 6px; }
 
-/* ══════════════════════════════════════════════════════════
-   SPINNER
-══════════════════════════════════════════════════════════ */
+
 .spinner-wrap { display: flex; align-items: center; justify-content: center; padding: 40px; }
 .spinner {
   width: 36px; height: 36px;
@@ -533,9 +499,7 @@ tbody td { padding: 12px 16px; color: var(--clr-text); vertical-align: middle; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ══════════════════════════════════════════════════════════
-   RESERVAS – Calendario semanal
-══════════════════════════════════════════════════════════ */
+
 .week-calendar {
   display: grid;
   grid-template-columns: 60px repeat(5, 1fr);
@@ -565,9 +529,7 @@ tbody td { padding: 12px 16px; color: var(--clr-text); vertical-align: middle; }
   overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
 }
 
-/* ══════════════════════════════════════════════════════════
-   AVISOS – Kanban-style board
-══════════════════════════════════════════════════════════ */
+
 .avisos-board {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -591,9 +553,7 @@ tbody td { padding: 12px 16px; color: var(--clr-text); vertical-align: middle; }
 .aviso-card:hover { border-color: var(--clr-accent); transform: translateY(-1px); box-shadow: var(--shadow-glow); }
 .aviso-meta { font-size: .73rem; color: var(--clr-muted); margin-top: 6px; font-family: var(--font-mono); }
 
-/* ══════════════════════════════════════════════════════════
-   RESPONSIVE
-══════════════════════════════════════════════════════════ */
+
 .hamburger {
   display: none; background: none; border: none;
   color: var(--clr-text); font-size: 1.3rem; cursor: pointer;
@@ -609,9 +569,7 @@ tbody td { padding: 12px 16px; color: var(--clr-text); vertical-align: middle; }
   .week-calendar { display: none; }
 }
 
-/* ══════════════════════════════════════════════════════════
-   OVERLAY para cerrar sidebar en mobile
-══════════════════════════════════════════════════════════ */
+
 .sidebar-overlay {
   display: none; position: fixed; inset: 0;
   background: rgba(0,0,0,.5); z-index: 99;

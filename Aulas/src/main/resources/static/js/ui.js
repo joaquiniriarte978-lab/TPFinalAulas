@@ -1,5 +1,4 @@
 
-// ── TOAST ─────────────────────────────────────────────────────
 const Toast = {
   _icons: { success: '✓', error: '✕', info: 'ℹ', warning: '⚠' },
   show(message, type = 'info', duration = 3500) {
@@ -20,7 +19,7 @@ const Toast = {
   warning: (m) => Toast.show(m, 'warning'),
 };
 
-// ── HELPERS ───────────────────────────────────────────────────
+
 function setLoading(container) {
   container.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
 }
@@ -28,7 +27,7 @@ function emptyState(icon, title, sub = '') {
   return `<div class="empty-state"><div class="empty-icon">${icon}</div><h3>${title}</h3>${sub ? `<p>${sub}</p>` : ''}</div>`;
 }
 
-// ── MODAL ─────────────────────────────────────────────────────
+
 const Modal = {
   show(title, bodyHTML, onConfirm, confirmLabel = 'Guardar', confirmClass = 'btn-primary') {
     document.getElementById('modal-overlay')?.remove();
@@ -59,7 +58,7 @@ const Modal = {
   },
 };
 
-// ── APP ───────────────────────────────────────────────────────
+
 const App = {
   showLogin() {
     document.getElementById('page-login').style.display = 'flex';
@@ -152,15 +151,13 @@ const App = {
   },
 };
 
-// ── VIEWS ─────────────────────────────────────────────────────
+
 const Views = {
 
-// ver reservas por materia
 async _verReservasMateria(idMateria, nombreMateria) {
   const bodyHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
   Modal.show(`Reservas – ${nombreMateria}`, bodyHTML, () => Modal.hide(), 'Cerrar', 'btn-secondary');
 
-  // Quitar el botón de "Guardar" que no aplica acá
   document.getElementById('modal-confirm').style.display = 'none';
 
   try {
@@ -197,7 +194,6 @@ async _verReservasMateria(idMateria, nombreMateria) {
   }
 },
 
-//PERFIL
 async perfil(container) {
   setLoading(container);
   let u = {};
@@ -238,7 +234,6 @@ async perfil(container) {
       </div>
     </div>`;
 },
-  //  AULAS
   async aulas(container) {
     setLoading(container);
     const isAdmin = AuthService.isAdmin();
@@ -349,7 +344,6 @@ async perfil(container) {
     });
   },
 
-  //  MATERIAS
   async materias(container) {
     setLoading(container);
     const isAdmin = AuthService.isAdmin();
@@ -448,7 +442,6 @@ async perfil(container) {
     });
   },
 
-  //  RESERVAS
   async reservas(container) {
     setLoading(container);
     const isAdmin  = AuthService.isAdmin();
@@ -584,7 +577,6 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
     });
   },
 
-  //  AVISOS
   async avisos(container) {
     setLoading(container);
     const isAdmin = AuthService.isAdmin();
@@ -756,7 +748,6 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
     });
   },
 
-  //  USUARIOS  (solo ADMIN)
   async usuarios(container) {
     setLoading(container);
     if (!AuthService.isAdmin()) { container.innerHTML = emptyState('🔒','Acceso denegado','Solo administradores.'); return; }
@@ -858,7 +849,6 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
     });
   },
 
-  //  COMISIONES (PROFESOR–MATERIA)  solo ADMIN
   async comision(container) {
     setLoading(container);
     if (!AuthService.isAdmin()) { container.innerHTML = emptyState('🔒','Acceso denegado','Solo administradores.'); return; }
