@@ -996,38 +996,65 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
         <input class="form-input" type="number" id="f-cant" value="${c.cantAlumnos||''}" min="1" placeholder="30"></div>`;
   },
 
-    async _editComision(id) {
-        const { materias, profesores } = Views._comisionCache;
-        let c = {};
-        if (id) { try { c = await ComisionService.buscarId(id); } catch(e) { Toast.error(e.message); return; } }
+   async _editComision(id) {
+           const { materias, profesores } = Views._comisionCache;
+           let c = {};
+           if (id) { try { c = await ComisionService.buscarId(id); } catch(e) { Toast.error(e.message); return; } }
 
-        Modal.show(id?'Editar Comisión':'Nueva Comisión', this._comisionForm(c, materias, profesores), async () => {
+           Modal.show(id ? 'Editar Comisión' : 'Nueva Comisión', this._comisionForm(c, materias, profesores), async () => {
 
-            const idMateria = document.getElementById('f-materia').value;
-            const idProfesor = document.getElementById('f-profesor').value;
-            const cantAlumnos = document.getElementById('f-cant').value;
+               const idMateria = document.getElementById('f-materia').value;
+               const idProfesor = document.getElementById('f-profesor').value;
+               const cantAlumnos = document.getElementById('f-cant').value;
 
-            if (!idMateria || !idProfesor || !cantAlumnos) {
-                Toast.error("Por favor, completa todos los campos obligatorios (*)");
-                return;
-            }
+               if (!idMateria || !idProfesor || !cantAlumnos) {
+                   Toast.error("Por favor, completa todos los campos obligatorios (*)");
+                   return;
+               }
 
-            const dto = {
-                id_materia: parseInt(idMateria),
-                id_profesor: parseInt(idProfesor),
-                cantAlumnos: parseInt(cantAlumnos)
-            };
+               const dto = {
+                   id_materia: parseInt(idMateria),
+                   id_profesor: parseInt(idProfesor),
+                   cantAlumnos: parseInt(cantAlumnos)
+               };
 
-            try {
-                if (id) await ComisionService.modificar(id, dto); else await ComisionService.crear(dto);
-                Toast.success(id?'Comisión actualizada.':'Comisión creada.');
-                Modal.hide();
-                Views.comision(document.getElementById('page-body'));
-            } catch(e) {
-                Toast.error(e.message);
-            }
-        });
-    },
+               try {
+                   if (id) await ComisionService.modificar(id, dto); else await ComisionService.crear(dto);
+                   Toast.success(id ? 'Comisión actualizada.' : 'Comisión creada.');
+                   Modal.hide();
+                   Views.comision(document.getElementById('page-body'));
+               } catch(e) {
+                   Toast.error(e.message);
+               }
+           });
+
+           const fMateria = document.getElementById('f-materia');
+           const fProfesor = document.getElementById('f-profesor');
+
+           const filtrarProfesores = () => {
+               const idMateria = parseInt(fMateria.value);
+
+               if (!idMateria) {
+                   fProfesor.innerHTML = '<option value="">— Seleccionar —</option>';
+                   return;
+               }
+
+               const profesAptos = profesores.filter(p => p.materiasIds && p.materiasIds.includes(idMateria));
+
+               fProfesor.innerHTML = '<option value="">— Seleccionar —</option>' +
+                   profesAptos.map(p => `<option value="${p.id}" ${c.id_profesor === p.id ? 'selected' : ''}>${p.nombre}</option>`).join('');
+           };
+
+           fMateria.addEventListener('change', filtrarProfesores);
+
+           if (c.id_materia) {
+               fMateria.value = c.id_materia; // Nos aseguramos de forzar la selección
+               filtrarProfesores();
+               fProfesor.value = c.id_profesor || '';
+           } else {
+               fProfesor.innerHTML = '<option value="">— Seleccionar —</option>';
+           }
+       },
 
     async _deleteComision(id) {
         Modal.confirm('Eliminar Comisión', '¿Eliminar esta comisión?', async () => {
