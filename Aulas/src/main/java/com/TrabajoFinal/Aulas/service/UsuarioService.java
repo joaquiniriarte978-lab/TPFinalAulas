@@ -1,8 +1,11 @@
 package com.TrabajoFinal.Aulas.service;
 
+import com.TrabajoFinal.Aulas.Dtos.usuarioDTO.UsuarioRequestDTO;
 import com.TrabajoFinal.Aulas.Dtos.usuarioDTO.UsuarioResponseDTO;
+import com.TrabajoFinal.Aulas.Repository.MateriaRepository;
 import com.TrabajoFinal.Aulas.Repository.UsuarioRepository;
 import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
+import com.TrabajoFinal.Aulas.model.Materia;
 import com.TrabajoFinal.Aulas.model.Usuario;
 import com.TrabajoFinal.Aulas.model.Profesor;
 import com.TrabajoFinal.Aulas.Repository.ProfesorRepository;
@@ -19,46 +22,80 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final ProfesorRepository profesorRepository;
+    private final MateriaRepository materiaRepository;
 
-    public Usuario subirUsuario(Usuario usuario){
+    public Usuario subirUsuario(UsuarioRequestDTO dto){
 
-        if(usuarioRepository.existsByEmail(usuario.getEmail())){
+        if(usuarioRepository.existsByEmail(dto.getEmail())){
             throw new RuntimeException("El email ya está registrado");
         }
-        String passwordEncriptado = passwordEncoder.encode(usuario.getPassword());
-        usuario.setPassword(passwordEncriptado);
+        if (dto.getPassword() == null || dto.getPassword().isBlank()) {
+            throw new RuntimeException("La contraseña es obligatoria");
+        }
+
+        Usuario usuario = new Usuario();
+        usuario.setNombre(dto.getNombre());
+        usuario.setEmail(dto.getEmail());
+        usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
+        usuario.setRol(Rol.valueOf(dto.getRol()));
 
         Usuario usuarioGuardado = usuarioRepository.save(usuario);
-
 
         if(usuarioGuardado.getRol().equals(Rol.PROFESOR)){
 
             Profesor profesor = new Profesor();
-
             profesor.setUsuario(usuarioGuardado);
+
+            if(dto.getMateriasIds() != null && !dto.getMateriasIds().isEmpty()){
+                List<Materia> materias = materiaRepository.findAllById(
+                        dto.getMateriasIds().stream().distinct().toList()
+                );
+                profesor.setMaterias(materias);
+            }
 
             profesorRepository.save(profesor);
         }
 
-
         return usuarioGuardado;
-        }
+    }
     public List<Usuario> listarTodos(){
         return usuarioRepository.findAll();
     }
     public Usuario buscarPorId(Integer id){
         return usuarioRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Usuario", id));
     }
-    public Usuario modificar(Integer id, Usuario modificar){
-        Usuario viejo=buscarPorId(id);
-        viejo.setRol(modificar.getRol());
-        viejo.setNombre(modificar.getNombre());
-        viejo.setEmail(modificar.getEmail());
+    public Usuario modificar(Integer id, UsuarioRequestDTO dto){
+        Usuario viejo = buscarPorId(id);
 
-        if (modificar.getPassword() != null && !modificar.getPassword().isBlank()) {
-            viejo.setPassword(passwordEncoder.encode(modificar.getPassword()));
+        viejo.setNombre(dto.getNombre());
+        viejo.setEmail(dto.getEmail());
+        viejo.setRol(Rol.valueOf(dto.getRol()));
+
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            viejo.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
-        return usuarioRepository.save(viejo);
+
+        Usuario usuarioGuardado = usuarioRepository.save(viejo);
+
+        if (usuarioGuardado.getRol().equals(Rol.PROFESOR)) {
+            Profesor profesor = profesorRepository.findByUsuarioId(usuarioGuardado.getId())
+                    .orElseGet(() -> {
+                        Profesor nuevoProfesor = new Profesor();
+                        nuevoProfesor.setUsuario(usuarioGuardado);
+                        return nuevoProfesor;
+                    });
+
+            if (dto.getMateriasIds() != null) {
+                List<Materia> materias = materiaRepository.findAllById(
+                        dto.getMateriasIds().stream().distinct().toList()
+                );
+                profesor.setMaterias(materias);
+            }
+
+            profesorRepository.save(profesor);
+        }
+
+        return usuarioGuardado;
     }
     public void eliminarUsuario(Integer id){
         usuarioRepository.deleteById(id);

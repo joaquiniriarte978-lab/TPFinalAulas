@@ -1,5 +1,6 @@
 package com.TrabajoFinal.Aulas.Controller;
 
+import com.TrabajoFinal.Aulas.Dtos.usuarioDTO.UsuarioRequestDTO;
 import com.TrabajoFinal.Aulas.Dtos.usuarioDTO.UsuarioResponseDTO;
 import com.TrabajoFinal.Aulas.model.Usuario;
 import com.TrabajoFinal.Aulas.service.UsuarioService;
@@ -7,6 +8,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import com.TrabajoFinal.Aulas.Repository.ProfesorRepository;
+import com.TrabajoFinal.Aulas.model.enums.Rol;
 
 import java.util.List;
 
@@ -16,6 +19,7 @@ import java.util.List;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
+    private final ProfesorRepository profesorRepository;
 
     @GetMapping
     public List<UsuarioResponseDTO> Usuarios() {
@@ -26,8 +30,8 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public UsuarioResponseDTO crear(@Valid @RequestBody Usuario usuario){
-        Usuario saved = usuarioService.subirUsuario(usuario);
+    public UsuarioResponseDTO crear(@Valid @RequestBody UsuarioRequestDTO dto){
+        Usuario saved = usuarioService.subirUsuario(dto);
         return convertirADto(saved);
     }
 
@@ -43,7 +47,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id_usuario}")
-    public UsuarioResponseDTO modificar(@PathVariable Integer id_usuario, @Valid @RequestBody Usuario usuarioNuevo) {
+    public UsuarioResponseDTO modificar(@PathVariable Integer id_usuario, @Valid @RequestBody UsuarioRequestDTO usuarioNuevo) {
         Usuario updated = usuarioService.modificar(id_usuario, usuarioNuevo);
         return convertirADto(updated);
     }
@@ -54,6 +58,17 @@ public class UsuarioController {
         dto.setNombre(usuario.getNombre());
         dto.setEmail(usuario.getEmail());
         dto.setRol(usuario.getRol());
+
+        if (usuario.getRol() == Rol.PROFESOR) {
+            profesorRepository.findByUsuarioId(usuario.getId())
+                    .ifPresent(profesor -> dto.setMateriasIds(
+                            profesor.getMaterias()
+                                    .stream()
+                                    .map(materia -> materia.getId())
+                                    .toList()
+                    ));
+        }
+
         return dto;
     }
     @GetMapping("/me")

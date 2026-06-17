@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class UsuarioRequestDTO {
 
@@ -18,9 +20,10 @@ public class UsuarioRequestDTO {
     @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$", message = "Debe ingresar un correo válido con su dominio (ej: @gmail.com, @hotmail.com)")
     private String email;
 
-    @NotBlank(message = "La contraseña es obligatoria")
+
     private String password;
 
     @NotBlank(message = "El rol es obligatorio")
     private String rol;
+    private List<Integer> materiasIds;
 }
