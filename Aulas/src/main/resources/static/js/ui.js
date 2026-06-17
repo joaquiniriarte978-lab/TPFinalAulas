@@ -633,10 +633,11 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
           <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.mensaje||'—'}</td>
           <td>${a.fecha||'—'}</td>
           <td><span class="badge ${estadoBadge[a.estado]||'badge-user'}">${a.estado||'—'}</span></td>
-          ${isAdmin||isProfe?`<td class="td-actions">
-            ${isAdmin?`<button class="btn btn-secondary btn-sm" onclick="Views._editAviso(${a.id})">✏ Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="Views._deleteAviso(${a.id})">🗑</button>`:''}
-          </td>`:''}
+          ${isAdmin || isProfe ? `<td class="td-actions">
+            ${isProfe ? `<button class="btn btn-secondary btn-sm" onclick="Views._editAviso(${a.id})">✏ Editar</button>` : ''}
+            ${isAdmin ? `<button class="btn btn-secondary btn-sm" onclick="Views._editEstadoAviso(${a.id})">Estado</button>` : ''}
+            ${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="Views._deleteAviso(${a.id})">🗑</button>` : ''}
+          </td>` : ''}
         </tr>`).join('');
     };
 
@@ -672,36 +673,18 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
 
   async _editAviso(id) {
     const { aulas } = Views._avisoCache;
+    let a = {};
 
     if (id) {
-      let a = {};
       try {
         a = await AvisoService.buscarId(id);
       } catch(e) {
         Toast.error(e.message);
         return;
       }
-
-      Modal.show('Cambiar estado del aviso', this._avisoEstadoForm(a), async () => {
-        const dto = {
-          estado: document.getElementById('f-estado').value
-        };
-
-        try {
-          await AvisoService.cambiarEstado(id, dto);
-
-          Toast.success('Estado del aviso actualizado.');
-          Modal.hide();
-          Views.avisos(document.getElementById('page-body'));
-        } catch(e) {
-          Toast.error(e.message);
-        }
-      });
-
-      return;
     }
 
-    Modal.show('Nuevo Aviso', this._avisoForm({}, aulas), async () => {
+    Modal.show(id ? 'Editar Aviso' : 'Nuevo Aviso', this._avisoForm(a, aulas), async () => {
       const dto = {
         id_aula: parseInt(document.getElementById('f-aula').value),
         mensaje: document.getElementById('f-mensaje').value.trim(),
@@ -713,9 +696,13 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
       }
 
       try {
-        await AvisoService.crear(dto);
+        if (id) {
+          await AvisoService.modificar(id, dto);
+        } else {
+          await AvisoService.crear(dto);
+        }
 
-        Toast.success('Aviso creado.');
+        Toast.success(id ? 'Aviso actualizado.' : 'Aviso creado.');
         Modal.hide();
         Views.avisos(document.getElementById('page-body'));
       } catch(e) {
@@ -723,6 +710,34 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
       }
     });
   },
+
+  async _editEstadoAviso(id) {
+    let a = {};
+
+    try {
+      a = await AvisoService.buscarId(id);
+    } catch(e) {
+      Toast.error(e.message);
+      return;
+    }
+
+    Modal.show('Cambiar estado del aviso', this._avisoEstadoForm(a), async () => {
+      const dto = {
+        estado: document.getElementById('f-estado').value
+      };
+
+      try {
+        await AvisoService.cambiarEstado(id, dto);
+
+        Toast.success('Estado del aviso actualizado.');
+        Modal.hide();
+        Views.avisos(document.getElementById('page-body'));
+      } catch(e) {
+        Toast.error(e.message);
+      }
+    });
+  },
+
   _avisoEstadoForm(a = {}) {
     return `
       <div class="form-group">
