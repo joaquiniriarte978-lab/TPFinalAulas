@@ -392,25 +392,28 @@ async perfil(container) {
         </div>`;
 
       const render = (rows) => {
-        const tbody = document.getElementById('tbody-materias');
-        if (!rows.length) { tbody.innerHTML=`<tr><td colspan="4">${emptyState('📚','Sin resultados')}</td></tr>`; return; }
-        tbody.innerHTML = rows.map(m => `
-          <tr>
-            <td><code>#${m.id}</code></td>
-            <td><strong>${m.nombre}</strong></td>
-            <td>${m.requiereLaboratorio
-              ? '<span class="badge badge-laboratorio">✓ Sí</span>'
-              : '<span class="badge badge-user">✗ No</span>'}</td>
-            <td class="td-actions">
+            const tbody = document.getElementById('tbody-materias');
+            if (!rows.length) { tbody.innerHTML=`<tr><td colspan="4">${emptyState('📚','Sin resultados')}</td></tr>`; return; }
+            tbody.innerHTML = rows.map(m => `
+              <tr>
+                <td><code>#${m.id}</code></td>
+                <td><strong>${m.nombre}</strong></td>
+                <td>${m.requiereLaboratorio
+                  ? '<span class="badge badge-laboratorio">✓ Sí</span>'
+                  : '<span class="badge badge-user">✗ No</span>'}</td>
+                <td class="td-actions">
 
-              <button class="btn btn-secondary btn-sm" onclick="Views._verReservasMateria(${m.id}, '${m.nombre}')">📅 Reservas</button>
-              ${isAdmin ? `
-                <button class="btn btn-secondary btn-sm" onclick="Views._editMateria(${m.id})">✏ Editar</button>
-                <button class="btn btn-danger btn-sm" onclick="Views._deleteMateria(${m.id},'${m.nombre}')">🗑</button>
-              ` : ''}
-            </td>
-          </tr>`).join('');
-      };
+                  <button class="btn btn-secondary btn-sm" onclick="Views._verReservasMateria(${m.id}, '${m.nombre}')">📅 Reservas</button>
+                  <button class="btn btn-secondary btn-sm" onclick="Views._verComisionesMateria(${m.id}, '${m.nombre}')">👥 Comisiones</button>
+
+                  ${isAdmin ? `
+                    <button class="btn btn-secondary btn-sm" onclick="Views._editMateria(${m.id})">✏ Editar</button>
+                    <button class="btn btn-danger btn-sm" onclick="Views._deleteMateria(${m.id},'${m.nombre}')">🗑</button>
+                  ` : ''}
+                </td>
+              </tr>`).join('');
+          };
+
 
       render(data);
       const filter = () => {
@@ -424,6 +427,75 @@ async perfil(container) {
       document.getElementById('filter-lab').addEventListener('change', filter);
       if (isAdmin) document.getElementById('btn-nueva-materia').addEventListener('click', () => Views._editMateria(null));
     },
+    async _verComisionesMateria(idMateria, nombreMateria) {
+        // 1. Abrimos el modal inmediatamente con un spinner
+        Modal.show(`Comisiones - ${nombreMateria}`, `
+          <div id="modal-comisiones-body" class="spinner-wrap" style="padding:30px;">
+            <div class="spinner"></div>
+          </div>
+        `, null);
+
+        try {
+          // 2. Traemos todas las comisiones del backend
+          const todasLasComisiones = await ComisionService.listar();
+          const session = AuthService.getSession();
+
+          // Variable para guardar el NOMBRE en lugar del ID
+          let nombreProfesorLogueado = null;
+
+          // 3. Si es PROFESOR, sacamos su nombre del perfil
+          if (session && session.role === 'PROFESOR') {
+            const perfil = await UsuarioService.miPerfil();
+            nombreProfesorLogueado = perfil.nombre;
+          }
+
+          // 4. Filtramos
+          const comisionesFiltradas = todasLasComisiones.filter(c => {
+            const coincideMateria = (c.id_materia === idMateria || (c.materia && c.materia.id === idMateria));
+            if (!coincideMateria) return false;
+
+            // Si es profesor, comparamos el nombre en lugar de los IDs que son de tablas distintas
+            if (session && session.role === 'PROFESOR') {
+              return c.profesorNombre === nombreProfesorLogueado;
+            }
+
+            return true; // Si es ADMIN, pasa de largo
+          });
+
+          const modalBody = document.getElementById('modal-comisiones-body');
+          if (!modalBody) return;
+
+          // 5. Dibujamos la tabla
+          modalBody.className = "table-wrap";
+          modalBody.style = "margin-top: 0; max-height: 350px; overflow-y: auto;";
+          modalBody.innerHTML = `
+            <table>
+              <thead>
+                <tr>
+                  <th>ID Comisión</th>
+                  <th>Profesor Asignado</th>
+                  <th>Cantidad Alumnos</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${comisionesFiltradas.length === 0 ?
+                  `<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--clr-muted);">No se encontraron comisiones para esta materia.</td></tr>` :
+                  comisionesFiltradas.map(com => `
+                    <tr>
+                      <td><code>#${com.id}</code></td>
+                      <td><strong>${com.profesorNombre || '—'}</strong></td>
+                      <td><span class="badge badge-laboratorio">${com.cantAlumnos} alumnos</span></td>
+                    </tr>
+                  `).join('')
+                }
+              </tbody>
+            </table>
+          `;
+        } catch (e) {
+          Modal.hide();
+          Toast.error("Error al obtener las comisiones: " + e.message);
+        }
+      },
 
   _materiaForm(m = {}) {
     return `
