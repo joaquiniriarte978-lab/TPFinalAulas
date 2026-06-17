@@ -806,42 +806,112 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
     document.getElementById('btn-nuevo-usuario').addEventListener('click', () => Views._editUsuario(null));
   },
 
-  _usuarioForm(u = {}) {
+  _usuarioForm(u = {}, materias = []) {
     return `
-      <div class="form-group"><label class="form-label">Nombre *</label>
-        <input class="form-input" id="f-nombre" value="${u.nombre||''}" placeholder="Juan García"></div>
-      <div class="form-group"><label class="form-label">Email *</label>
-        <input class="form-input" type="email" id="f-email" value="${u.email||''}" placeholder="juan@uni.edu"></div>
-      <div class="form-group"><label class="form-label">Contraseña ${u.id?'(dejar vacío para no cambiar)':'*'}</label>
-        <input class="form-input" type="password" id="f-pass" placeholder="••••••••"></div>
-      <div class="form-group"><label class="form-label">Rol *</label>
-        <select class="form-select" id="f-rol">
-          ${['ALUMNO','PROFESOR','ADMIN'].map(r=>`<option ${u.rol===r?'selected':''}>${r}</option>`).join('')}
-        </select></div>`;
-  },
+    <div class="form-group"><label class="form-label">Nombre *</label>
+      <input class="form-input" id="f-nombre" value="${u.nombre||''}" placeholder="Juan García"></div>
 
+    <div class="form-group"><label class="form-label">Email *</label>
+      <input class="form-input" type="email" id="f-email" value="${u.email||''}" placeholder="juan@uni.edu"></div>
+
+    <div class="form-group"><label class="form-label">Contraseña ${u.id?'(dejar vacío para no cambiar)':'*'}</label>
+      <input class="form-input" type="password" id="f-pass" placeholder="••••••••"></div>
+
+    <div class="form-group"><label class="form-label">Rol *</label>
+      <select class="form-select" id="f-rol">
+        ${['ALUMNO','PROFESOR','ADMIN'].map(r=>`<option ${u.rol===r?'selected':''}>${r}</option>`).join('')}
+      </select></div>
+
+    <div class="form-group" id="materias-profesor-group" style="display:none">
+      <label class="form-label">Materias que puede dar *</label>
+
+      <div style="display:grid;gap:8px;max-height:180px;overflow:auto;border:1px solid var(--clr-border);border-radius:8px;padding:10px;background:white">
+      ${materias.map(m => `
+  <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;cursor:pointer">
+    <input
+      type="checkbox"
+      class="f-materia-profesor"
+      value="${m.id}"
+      ${(u.materiasIds || []).includes(m.id) ? 'checked' : ''}
+    >
+    <span>${m.nombre}</span>
+  </label>
+`).join('')}
+      </div>
+    </div>`;
+  },
   async _editUsuario(id) {
     let u = {};
-    if (id) { try { u = await UsuarioService.buscarId(id); } catch(e) { Toast.error(e.message); return; } }
-    Modal.show(id?'Editar Usuario':'Nuevo Usuario', this._usuarioForm(u), async () => {
+    let materias = [];
+
+    try {
+      materias = await MateriaService.listar();
+
+      if (id) {
+        u = await UsuarioService.buscarId(id);
+      }
+    } catch(e) {
+      Toast.error(e.message);
+      return;
+    }
+
+    Modal.show(id ? 'Editar Usuario' : 'Nuevo Usuario', this._usuarioForm(u, materias), async () => {
       const pass = document.getElementById('f-pass').value;
+
+      const materiasSeleccionadas = Array.from(
+          document.querySelectorAll('.f-materia-profesor:checked')
+      ).map(input => parseInt(input.value));
+
       const dto = {
         nombre:   document.getElementById('f-nombre').value.trim(),
         email:    document.getElementById('f-email').value.trim(),
         rol:      document.getElementById('f-rol').value,
+        password: pass || (u.password || ''),
+        materiasIds: document.getElementById('f-rol').value === 'PROFESOR'
+            ? materiasSeleccionadas
+            : [],
       };
-        if (pass) dto.password = pass;
 
-      if (!dto.nombre||!dto.email) { Toast.warning('Nombre y email son obligatorios.'); return; }
-      if (!id && !pass) { Toast.warning('La contraseña es obligatoria para usuarios nuevos.'); return; }
+      if (!dto.nombre || !dto.email) {
+        Toast.warning('Nombre y email son obligatorios.');
+        return;
+      }
+
+      if (!id && !pass) {
+        Toast.warning('La contraseña es obligatoria para usuarios nuevos.');
+        return;
+      }
+
+      if (dto.rol === 'PROFESOR' && dto.materiasIds.length === 0) {
+        Toast.warning('Seleccioná al menos una materia para el profesor.');
+        return;
+      }
+
       try {
-        if (id) await UsuarioService.modificar(id, dto); else await UsuarioService.crear(dto);
-        Toast.success(id?'Usuario actualizado.':'Usuario creado.');
-        Modal.hide(); Views.usuarios(document.getElementById('page-body'));
-      } catch(e) { Toast.error(e.message); }
-    });
-  },
+        if (id) {
+          await UsuarioService.modificar(id, dto);
+        } else {
+          await UsuarioService.crear(dto);
+        }
 
+        Toast.success(id ? 'Usuario actualizado.' : 'Usuario creado.');
+        Modal.hide();
+        Views.usuarios(document.getElementById('page-body'));
+      } catch(e) {
+        Toast.error(e.message);
+      }
+    });
+
+    const rolSelect = document.getElementById('f-rol');
+    const materiasGroup = document.getElementById('materias-profesor-group');
+
+    const toggleMateriasProfesor = () => {
+      materiasGroup.style.display = rolSelect.value === 'PROFESOR' ? 'block' : 'none';
+    };
+
+    toggleMateriasProfesor();
+    rolSelect.addEventListener('change', toggleMateriasProfesor);
+  },
   async _deleteUsuario(id, nombre) {
     Modal.confirm('Eliminar Usuario', `¿Eliminar a "${nombre}"?`, async () => {
       try { await UsuarioService.eliminar(id); Toast.success('Usuario eliminado.'); Modal.hide(); Views.usuarios(document.getElementById('page-body')); }
