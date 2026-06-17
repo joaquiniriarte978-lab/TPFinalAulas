@@ -205,6 +205,7 @@ async perfil(container) {
   container.innerHTML = `
     <div class="page-header">
       <div class="page-header-text"><h2>Mi Perfil</h2><p>Tu información personal</p></div>
+      <button class="btn btn-primary" id="btn-editar-perfil">✏ Editar perfil</button>
     </div>
     <div class="card" style="max-width:480px">
       <div style="display:flex;align-items:center;gap:18px;margin-bottom:24px">
@@ -233,6 +234,50 @@ async perfil(container) {
         <input class="form-input" value="${u.rol}" disabled>
       </div>
     </div>`;
+
+  document.getElementById('btn-editar-perfil').addEventListener('click', () => {
+    Views._editarMiPerfil(u);
+  });
+},
+
+async _editarMiPerfil(u) {
+  const formHTML = `
+    <div class="form-group">
+      <label class="form-label">Nombre *</label>
+      <input class="form-input" id="f-nombre" value="${u.nombre || ''}" placeholder="Tu nombre">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email *</label>
+      <input class="form-input" type="email" id="f-email" value="${u.email || ''}" placeholder="tu@email.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nueva contraseña (dejar vacío para no cambiar)</label>
+      <input class="form-input" type="password" id="f-pass" placeholder="••••••••">
+    </div>`;
+
+  Modal.show('Editar mi perfil', formHTML, async () => {
+    const pass = document.getElementById('f-pass').value;
+    const dto = {
+      nombre: document.getElementById('f-nombre').value.trim(),
+      email:  document.getElementById('f-email').value.trim(),
+      rol:    u.rol,
+    };
+    if (pass) dto.password = pass;
+
+    if (!dto.nombre || !dto.email) {
+      Toast.warning('Nombre y email son obligatorios.');
+      return;
+    }
+
+    try {
+      await UsuarioService.modificarPerfil(dto);
+      Toast.success('Perfil actualizado.');
+      Modal.hide();
+      Views.perfil(document.getElementById('page-body'));
+    } catch(e) {
+      Toast.error(e.message);
+    }
+  });
 },
   async aulas(container) {
     setLoading(container);
@@ -823,16 +868,17 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
     });
   },
 
-  _avisoEstadoForm(a = {}) {
-    return `
-      <div class="form-group">
-        <label class="form-label">Estado *</label>
-        <select class="form-select" id="f-estado">
-          <option value="PENDIENTE" ${a.estado === 'PENDIENTE' ? 'selected' : ''}>PENDIENTE</option>
-          <option value="RESUELTO" ${a.estado === 'RESUELTO' ? 'selected' : ''}>RESUELTO</option>
-        </select>
-      </div>`;
-  },
+ _avisoEstadoForm(a = {}) {
+     return `
+       <div class="form-group">
+         <label class="form-label">Estado *</label>
+         <select class="form-select" id="f-estado">
+           <option value="PENDIENTE" ${a.estado === 'PENDIENTE' ? 'selected' : ''}>PENDIENTE</option>
+           <option value="RESUELTO" ${a.estado === 'RESUELTO' ? 'selected' : ''}>RESUELTO</option>
+           <option value="EN_REVISION" ${a.estado === 'EN_REVISION' ? 'selected' : ''}>EN_REVISION</option>
+         </select>
+       </div>`;
+   },
 
   async _deleteAviso(id) {
     Modal.confirm('Eliminar Aviso', '¿Eliminar este aviso?', async () => {
