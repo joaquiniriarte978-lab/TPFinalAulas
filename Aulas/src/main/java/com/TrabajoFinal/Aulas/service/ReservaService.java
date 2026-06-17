@@ -124,15 +124,26 @@ public class ReservaService {
         reservaVieja.setAula(aula);
         return reservaRepository.save(reservaVieja);
     }
-    public Reserva cancelarReserva(Integer id){
-        Reserva reserva=listarXId(id);
-        if(reserva.getEstadoReserva().equals(EstadoReserva.RESERVADA)){
+    public Reserva cancelarReserva(Integer id, String emailUsuario, boolean esAdmin) {
+        Reserva reserva = listarXId(id);
+
+        if (!esAdmin) {
+            String emailProfesorReserva = reserva.getComision()
+                    .getProfesor().getUsuario().getEmail();
+
+            if (!emailProfesorReserva.equals(emailUsuario)) {
+                throw new RuntimeException("No tenés permiso para cancelar esta reserva.");
+            }
+        }
+
+        if (reserva.getEstadoReserva().equals(EstadoReserva.RESERVADA)) {
             reserva.setEstadoReserva(EstadoReserva.CANCELADA);
-            return  reservaRepository.save(reserva);
-        }else {
-            throw new RuntimeException("La reserva no esta reservada");
+            return reservaRepository.save(reserva);
+        } else {
+            throw new RuntimeException("La reserva no está reservada.");
         }
     }
+
     public void eliminarReserva(Integer id){
         reservaRepository.deleteById(id);
     }
