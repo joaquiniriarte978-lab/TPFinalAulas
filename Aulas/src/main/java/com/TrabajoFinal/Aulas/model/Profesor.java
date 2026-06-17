@@ -21,6 +21,7 @@ public class Profesor {
     private Integer id;
 
     @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(unique = true)
     private Usuario usuario;
 
     @JsonIgnore

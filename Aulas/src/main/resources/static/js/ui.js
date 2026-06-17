@@ -463,11 +463,15 @@ async perfil(container) {
     setLoading(container);
     const isAdmin  = AuthService.isAdmin();
     const isProfe  = AuthService.isProfesor();
-    let data = [], aulas = [], comisiones = [];
+    const isSoloProfe = isProfe && !isAdmin;
+    let data = [], aulas = [], comisiones = [], comisionesForm = [];
     try {
-        [data, aulas, comisiones] = await Promise.all([
-            ReservaService.listar(), AulaService.listar(), ComisionService.listar()
+        const results = await Promise.all([
+            ReservaService.listar(), AulaService.listar(), ComisionService.listar(),
+            ...(isSoloProfe ? [ComisionService.misComisiones()] : [])
         ]);
+        [data, aulas, comisiones] = results;
+        comisionesForm = isSoloProfe ? results[3] : comisiones;
     } catch(e) { container.innerHTML=`<p style="color:var(--clr-danger)">Error: ${e.message}</p>`; return; }
 
     const aulaMap     = Object.fromEntries(aulas.map(a => [a.id, a.nombre]));
@@ -529,12 +533,12 @@ async perfil(container) {
 
     if (isProfe) {
       document.getElementById('btn-nueva-reserva').addEventListener('click', () =>
-        Views._editReserva(null, aulas, comisiones));
+        Views._editReserva(null));
     }
-    Views._reservaCache = { aulas, comisiones };
+    Views._reservaCache = { aulas, comisiones, comisionesForm };
   },
 
-  _reservaCache: { aulas:[], comisiones:[] },
+  _reservaCache: { aulas:[], comisiones:[], comisionesForm:[] },
 
   _reservaForm(r = {}, aulas = [], comisiones = []) {
     return `
@@ -558,10 +562,10 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
   },
 
   async _editReserva(id) {
-    const { aulas, comisiones } = Views._reservaCache;
+    const { aulas, comisionesForm } = Views._reservaCache;
     let r = {};
     if (id) { try { r = await ReservaService.buscarId(id); } catch(e) { Toast.error(e.message); return; } }
-    Modal.show(id?'Editar Reserva':'Nueva Reserva', this._reservaForm(r, aulas, comisiones), async () => {
+    Modal.show(id?'Editar Reserva':'Nueva Reserva', this._reservaForm(r, aulas, comisionesForm), async () => {
       const dto = {
         id_aula:      parseInt(document.getElementById('f-aula').value),
         id_comision:  parseInt(document.getElementById('f-comision').value),

@@ -44,6 +44,10 @@ public class ComisionService {
         return comisionRepository.save(comision);
     }
 
+    public List<Comision> listarPorProfesorEmail(String email) {
+        return comisionRepository.findByProfesorUsuarioEmail(email);
+    }
+
     public void borrar(Integer id){
         comisionRepository.deleteById(id);
     }

@@ -5,6 +5,7 @@ import com.TrabajoFinal.Aulas.model.Comision;
 import com.TrabajoFinal.Aulas.service.ComisionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,22 @@ import java.util.List;
 @RequestMapping ("/api/comision")
 public class ComisionController {
     private final ComisionService service;
+
+    @GetMapping("/mis-comisiones")
+    public List<ComisionResponseDTO> misComisiones(Authentication authentication) {
+        return service.listarPorProfesorEmail(authentication.getName()).stream()
+                .map(comision -> {
+                    ComisionResponseDTO dto = new ComisionResponseDTO();
+                    dto.setId(comision.getId());
+                    dto.setId_profesor(comision.getProfesor().getId());
+                    dto.setId_materia(comision.getMateria().getId());
+                    dto.setCantAlumnos(comision.getCantAlumnos());
+                    dto.setMateriaNombre(comision.getMateria().getNombre());
+                    dto.setProfesorNombre(comision.getProfesor().getUsuario().getNombre());
+                    return dto;
+                })
+                .toList();
+    }
 
     @GetMapping
     public List<ComisionResponseDTO> listarTodos() {
