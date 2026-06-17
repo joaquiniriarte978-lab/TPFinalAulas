@@ -9,6 +9,7 @@ import com.TrabajoFinal.Aulas.model.Reserva;
 import com.TrabajoFinal.Aulas.service.ReservaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,7 +47,10 @@ public class ReservaController {
     }
     @PutMapping("/cancelar/{id_reserva}")
     @ResponseStatus(HttpStatus.OK)
-    public Reserva cancelar(@PathVariable Integer id_reserva) {
-        return reservaService.cancelarReserva(id_reserva);
+    public Reserva cancelar(@PathVariable Integer id_reserva, Authentication authentication) {
+        String email = authentication.getName();
+        boolean esAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        return reservaService.cancelarReserva(id_reserva, email, esAdmin);
     }
 }
