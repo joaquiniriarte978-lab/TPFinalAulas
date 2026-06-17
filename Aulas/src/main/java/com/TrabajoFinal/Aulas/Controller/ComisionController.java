@@ -48,6 +48,22 @@ public class ComisionController {
                 .toList();
     }
 
+    @GetMapping("/materia/{id_materia}")
+    public List<ComisionResponseDTO> listarPorMateria(@PathVariable Integer id_materia) {
+        return service.listarPorMateria(id_materia).stream()
+                .map(comision -> {
+                    ComisionResponseDTO dto = new ComisionResponseDTO();
+                    dto.setId(comision.getId());
+                    dto.setId_profesor(comision.getProfesor().getId());
+                    dto.setId_materia(comision.getMateria().getId());
+                    dto.setCantAlumnos(comision.getCantAlumnos());
+                    dto.setMateriaNombre(comision.getMateria().getNombre());
+                    dto.setProfesorNombre(comision.getProfesor().getUsuario().getNombre());
+                    return dto;
+                })
+                .toList();
+    }
+
     @GetMapping("/{id}")
     public ComisionResponseDTO listarPorId(@PathVariable Integer id) {
         Comision comision = service.listarPorId(id);
