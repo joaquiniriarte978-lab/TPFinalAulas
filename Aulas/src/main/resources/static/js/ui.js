@@ -823,8 +823,9 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
         nombre:   document.getElementById('f-nombre').value.trim(),
         email:    document.getElementById('f-email').value.trim(),
         rol:      document.getElementById('f-rol').value,
-        password: pass || (u.password||''),
       };
+        if (pass) dto.password = pass;
+
       if (!dto.nombre||!dto.email) { Toast.warning('Nombre y email son obligatorios.'); return; }
       if (!id && !pass) { Toast.warning('La contraseña es obligatoria para usuarios nuevos.'); return; }
       try {
