@@ -26,11 +26,12 @@ const MateriaService = {
 };
 
 const ComisionService = {
-    listar:    ()      => http.get(ENDPOINTS.comisiones),
-    buscarId:  (id)    => http.get(`${ENDPOINTS.comisiones}/${id}`),
-    crear:     (dto)   => http.post(ENDPOINTS.comisiones, dto),
-    modificar: (id, dto) => http.put(`${ENDPOINTS.comisiones}/${id}`, dto),
-    eliminar:  (id)    => http.delete(`${ENDPOINTS.comisiones}/${id}`),
+    listar:        ()        => http.get(ENDPOINTS.comisiones),
+    misComisiones: ()        => http.get(`${ENDPOINTS.comisiones}/mis-comisiones`),
+    buscarId:      (id)      => http.get(`${ENDPOINTS.comisiones}/${id}`),
+    crear:         (dto)     => http.post(ENDPOINTS.comisiones, dto),
+    modificar:     (id, dto) => http.put(`${ENDPOINTS.comisiones}/${id}`, dto),
+    eliminar:      (id)      => http.delete(`${ENDPOINTS.comisiones}/${id}`),
 };
 
 const ReservaService = {
