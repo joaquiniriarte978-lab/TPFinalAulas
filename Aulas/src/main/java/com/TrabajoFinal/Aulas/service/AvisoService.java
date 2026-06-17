@@ -9,9 +9,11 @@ import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.Aula;
 import com.TrabajoFinal.Aulas.model.Aviso;
 import com.TrabajoFinal.Aulas.model.Usuario;
+import com.TrabajoFinal.Aulas.model.enums.Estado;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -30,15 +32,21 @@ public class AvisoService {
                 .orElseThrow(()->new ResourceNotFoundException("Aviso", id));
     }
 
-    public Aviso guardarAviso(AvisoResponseDTO avisoDto) {
+    public Aviso guardarAviso(AvisoRequestDTO avisoDto, String emailUsuario) {
         Aviso aviso = new Aviso();
-        Aula aula=aulaRepository.findById(avisoDto.getIdAula()).orElseThrow(()-> new ResourceNotFoundException("Aula", avisoDto.getIdAula()));
-        Usuario profesor=usuarioRepository.findById(avisoDto.getIdUsuario()).orElseThrow(()-> new ResourceNotFoundException("Usuario", avisoDto.getIdUsuario()));
-        aviso.setUsuario(profesor);
-        aviso.setFecha(avisoDto.getFecha());
-        aviso.setEstado(avisoDto.getEstado());
-        aviso.setMensaje(avisoDto.getMensaje());
+
+        Aula aula = aulaRepository.findById(avisoDto.getId_aula())
+                .orElseThrow(() -> new ResourceNotFoundException("Aula", avisoDto.getId_aula()));
+
+        Usuario usuario = usuarioRepository.findByEmail(emailUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", 0));
+
         aviso.setAula(aula);
+        aviso.setUsuario(usuario);
+        aviso.setMensaje(avisoDto.getMensaje());
+        aviso.setFecha(LocalDate.now());
+        aviso.setEstado(Estado.PENDIENTE);
+
         return avisoRepository.save(aviso);
     }
 
@@ -47,21 +55,10 @@ public class AvisoService {
         avisoRepository.delete(borrado);
     }
 
-    public Aviso modificarAviso(Integer id, AvisoResponseDTO nuevo){
-        Aviso modificado= avisoXid(id);
-        Aula aula= aulaRepository.findById(nuevo.getIdAula())
-                .orElseThrow(()-> new ResourceNotFoundException("Aula", id));
-
-        Usuario usuario = usuarioRepository.findById(nuevo.getIdUsuario())
-                .orElseThrow(()-> new ResourceNotFoundException("Usuario", id));
-
-        modificado.setAula(aula);
-        modificado.setUsuario(usuario);
-        modificado.setFecha(nuevo.getFecha());
-        modificado.setMensaje(nuevo.getMensaje());
-        modificado.setEstado(nuevo.getEstado());
-
-        return avisoRepository.save(modificado);
+    public Aviso cambiarEstado(Integer id, Estado estado) {
+        Aviso aviso = avisoXid(id);
+        aviso.setEstado(estado);
+        return avisoRepository.save(aviso);
     }
 }
 
