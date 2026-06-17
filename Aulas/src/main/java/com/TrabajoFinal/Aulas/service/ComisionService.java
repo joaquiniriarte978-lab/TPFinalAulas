@@ -1,6 +1,5 @@
 package com.TrabajoFinal.Aulas.service;
 
-
 import com.TrabajoFinal.Aulas.Dtos.comisionDTO.ComisionResponseDTO;
 import com.TrabajoFinal.Aulas.Repository.MateriaRepository;
 import com.TrabajoFinal.Aulas.Repository.ComisionRepository;
@@ -46,6 +45,10 @@ public class ComisionService {
 
     public List<Comision> listarPorProfesorEmail(String email) {
         return comisionRepository.findByProfesorUsuarioEmail(email);
+    }
+
+    public List<Comision> listarPorMateria(Integer idMateria) {
+        return comisionRepository.findByMateriaId(idMateria);
     }
 
     public void borrar(Integer id){

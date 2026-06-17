@@ -481,31 +481,17 @@ async _editarMiPerfil(u) {
         `, null);
 
         try {
-          // 2. Traemos todas las comisiones del backend
-          const todasLasComisiones = await ComisionService.listar();
           const session = AuthService.getSession();
-
-          // Variable para guardar el NOMBRE en lugar del ID
           let nombreProfesorLogueado = null;
-
-          // 3. Si es PROFESOR, sacamos su nombre del perfil
           if (session && session.role === 'PROFESOR') {
             const perfil = await UsuarioService.miPerfil();
             nombreProfesorLogueado = perfil.nombre;
           }
-
-          // 4. Filtramos
-          const comisionesFiltradas = todasLasComisiones.filter(c => {
-            const coincideMateria = (c.id_materia === idMateria || (c.materia && c.materia.id === idMateria));
-            if (!coincideMateria) return false;
-
-            // Si es profesor, comparamos el nombre en lugar de los IDs que son de tablas distintas
-            if (session && session.role === 'PROFESOR') {
-              return c.profesorNombre === nombreProfesorLogueado;
-            }
-
-            return true; // Si es ADMIN, pasa de largo
-          });
+          const comisiones = await ComisionService.listarPorMateria(idMateria);
+          let comisionesFiltradas = comisiones;
+          if (session && session.role === 'PROFESOR') {
+            comisionesFiltradas = comisiones.filter(c => c.profesorNombre === nombreProfesorLogueado);
+          }
 
           const modalBody = document.getElementById('modal-comisiones-body');
           if (!modalBody) return;

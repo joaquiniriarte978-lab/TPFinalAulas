@@ -1,5 +1,3 @@
-
-
 const AulaService = {
   listar:    ()         => http.get(ENDPOINTS.aulas),
   buscarId:  (id)       => http.get(`${ENDPOINTS.aulas}/${id}`),
@@ -32,6 +30,7 @@ const ComisionService = {
     crear:         (dto)     => http.post(ENDPOINTS.comisiones, dto),
     modificar:     (id, dto) => http.put(`${ENDPOINTS.comisiones}/${id}`, dto),
     eliminar:      (id)      => http.delete(`${ENDPOINTS.comisiones}/${id}`),
+    listarPorMateria: (idMateria) => http.get(`${ENDPOINTS.comisiones}/materia/${idMateria}`),
 };
 
 const ReservaService = {
@@ -52,7 +51,6 @@ const UsuarioService = {
   miPerfil: () => http.get(`${ENDPOINTS.usuarios}/me`),
   modificarPerfil: (dto)   => http.put(`${ENDPOINTS.usuarios}/me`, dto),
 };
-
 
 const ProfesorService = {
   listar: () =>
