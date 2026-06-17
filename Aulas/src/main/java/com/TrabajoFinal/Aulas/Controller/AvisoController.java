@@ -47,4 +47,10 @@ public class AvisoController {
                                @RequestBody AvisoEstadoDTO dto) {
         return avisoService.cambiarEstado(id_aviso, dto.getEstado());
     }
+    @PutMapping("/{id_aviso}")
+    public Aviso modificarAviso(@PathVariable Integer id_aviso,
+                                @Valid @RequestBody AvisoRequestDTO dto,
+                                Authentication authentication) {
+        return avisoService.modificarAvisoProfesor(id_aviso, dto, authentication.getName());
+    }
 }

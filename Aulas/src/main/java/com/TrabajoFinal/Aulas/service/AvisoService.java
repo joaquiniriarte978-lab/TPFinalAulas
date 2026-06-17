@@ -60,5 +60,20 @@ public class AvisoService {
         aviso.setEstado(estado);
         return avisoRepository.save(aviso);
     }
+    public Aviso modificarAvisoProfesor(Integer id, AvisoRequestDTO dto, String emailUsuario) {
+        Aviso aviso = avisoXid(id);
+
+        if (!aviso.getUsuario().getEmail().equals(emailUsuario)) {
+            throw new RuntimeException("Solo podés modificar tus propios avisos.");
+        }
+
+        Aula aula = aulaRepository.findById(dto.getId_aula())
+                .orElseThrow(() -> new ResourceNotFoundException("Aula", dto.getId_aula()));
+
+        aviso.setAula(aula);
+        aviso.setMensaje(dto.getMensaje());
+
+        return avisoRepository.save(aviso);
+    }
 }
 
