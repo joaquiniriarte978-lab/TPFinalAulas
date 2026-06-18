@@ -1,9 +1,12 @@
 package com.TrabajoFinal.Aulas.Dtos.comisionDTO;
 
+import com.TrabajoFinal.Aulas.model.enums.Horario;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+
+import java.time.LocalDate;
 
 @Data
 public class ComisionResponseDTO {
@@ -22,4 +25,8 @@ public class ComisionResponseDTO {
 
     private String materiaNombre;
     private String profesorNombre;
+    private Horario horario;
+    private LocalDate fechaInicio;
+    private LocalDate fechaFin;
+    private ClaseFijaDTO claseFija;
 }

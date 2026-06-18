@@ -27,6 +27,10 @@ public class AvisoService {
         return avisoRepository.findAll();
     }
 
+    public List<Aviso> listarAvisosPendientes(){
+        return avisoRepository.findByEstado(Estado.PENDIENTE);
+    }
+
     public Aviso avisoXid(Integer id){
         return avisoRepository.findById(id)
                 .orElseThrow(()->new ResourceNotFoundException("Aviso", id));

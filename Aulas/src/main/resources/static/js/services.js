@@ -52,6 +52,11 @@ const UsuarioService = {
   modificarPerfil: (dto)   => http.put(`${ENDPOINTS.usuarios}/me`, dto),
 };
 
+const ClaseFijaService = {
+  guardar:             (dto) => http.post(ENDPOINTS.claseFija, dto),
+  eliminarPorComision: (id)  => http.delete(`${ENDPOINTS.claseFija}/comision/${id}`),
+};
+
 const ProfesorService = {
   listar: () =>
     http.get(`${API_BASE_URL}/api/profesores`),
