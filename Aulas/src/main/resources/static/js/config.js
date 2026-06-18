@@ -8,6 +8,7 @@ const ENDPOINTS = {
     comisiones: `${API_BASE_URL}/api/comision`,
     reservas:   `${API_BASE_URL}/api/reservas`,
     usuarios:   `${API_BASE_URL}/api/usuarios`,
+    claseFija:  `${API_BASE_URL}/api/clase-fija`,
 };
 
 const AuthService = {

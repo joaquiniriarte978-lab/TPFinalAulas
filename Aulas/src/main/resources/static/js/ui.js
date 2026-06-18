@@ -139,6 +139,12 @@ const App = {
     if (!username || !password) {
       errorEl.textContent = 'Completá usuario y contraseña.'; errorEl.style.display = 'block'; return;
     }
+    if (password.length < 8) {
+      errorEl.textContent = 'La contraseña debe tener al menos 8 caracteres.'; errorEl.style.display = 'block'; return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      errorEl.textContent = 'La contraseña debe contener al menos una mayúscula.'; errorEl.style.display = 'block'; return;
+    }
     btnLogin.disabled = true; btnLogin.textContent = 'Verificando…';
     try {
       await AuthService.login(username, password);
@@ -653,14 +659,14 @@ async _editarMiPerfil(u) {
       <div class="form-group"><label class="form-label">Comisión *</label>
         <select class="form-select" id="f-comision">
           <option value="">— Seleccionar —</option>
-${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected':''}>${c.materiaNombre||'—'} · ${c.profesorNombre||'—'}</option>`).join('')}        </select></div>
+${comisiones.map(c => `<option value="${c.id}" data-horario="${c.horario||''}" ${r.comision?.id===c.id?'selected':''}>${c.materiaNombre||'—'} · ${c.profesorNombre||'—'} · ${c.horario||'—'}</option>`).join('')}        </select></div>
       <div class="form-group"><label class="form-label">Fecha *</label>
         <input class="form-input" type="date" id="f-fecha" value="${r.fecha||''}"></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Hora inicio *</label>
-          <input class="form-input" type="time" id="f-hinicio" value="${r.horaInicio||''}"></div>
+          <input class="form-input" type="time" id="f-hinicio" min="07:00" max="22:00" value="${r.horaInicio||''}"></div>
         <div class="form-group"><label class="form-label">Hora fin *</label>
-          <input class="form-input" type="time" id="f-hfin" value="${r.horaFin||''}"></div>
+          <input class="form-input" type="time" id="f-hfin" min="07:00" max="22:00" value="${r.horaFin||''}"></div>
       </div>`;
   },
 
@@ -677,12 +683,41 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
         horaFin:      document.getElementById('f-hfin').value,
       };
       if (!dto.id_aula||!dto.id_comision||!dto.fecha||!dto.horaInicio||!dto.horaFin) { Toast.warning('Completá todos los campos.'); return; }
+      const horarioLimites = { MAÑANA:['07:00','13:00'], TARDE:['13:00','18:00'], NOCHE:['18:00','22:00'] };
+      const selOpt = document.getElementById('f-comision').selectedOptions[0];
+      const horario = selOpt?.dataset?.horario;
+      if (horario && horarioLimites[horario]) {
+        const [min, max] = horarioLimites[horario];
+        if (dto.horaInicio < min || dto.horaFin > max) {
+          Toast.warning(`El horario de la comisión es ${horario.toLowerCase()} (${min}–${max}). La reserva debe estar dentro de ese rango.`);
+          return;
+        }
+      }
       try {
         if (id) await ReservaService.modificar(id, dto); else await ReservaService.crear(dto);
         Toast.success(id?'Reserva actualizada.':'Reserva creada.');
         Modal.hide(); Views.reservas(document.getElementById('page-body'));
       } catch(e) { Toast.error(e.message); }
     });
+
+    setTimeout(() => {
+      const fComision = document.getElementById('f-comision');
+      if (!fComision) return;
+      const horarioLimites = { MAÑANA:['07:00','13:00'], TARDE:['13:00','18:00'], NOCHE:['18:00','22:00'] };
+      const actualizarLimites = () => {
+        const opt = fComision.selectedOptions[0];
+        const horario = opt?.dataset?.horario;
+        const limites = horario ? horarioLimites[horario] : ['07:00','22:00'];
+        if (limites) {
+          document.getElementById('f-hinicio').min = limites[0];
+          document.getElementById('f-hinicio').max = limites[1];
+          document.getElementById('f-hfin').min    = limites[0];
+          document.getElementById('f-hfin').max    = limites[1];
+        }
+      };
+      fComision.addEventListener('change', actualizarLimites);
+      actualizarLimites();
+    }, 0);
   },
 
   async _cancelarReserva(id) {
@@ -712,21 +747,23 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
       ]);
     } catch(e) { container.innerHTML=`<p style="color:var(--clr-danger)">Error: ${e.message}</p>`; return; }
 
+    if (isProfe) data = data.filter(a => a.estado === 'PENDIENTE');
+
     const estadoBadge = { PENDIENTE:'badge-pendiente', RESUELTO:'badge-resuelto', EN_REVISION:'badge-revision' };
 
     container.innerHTML = `
       <div class="page-header">
-        <div class="page-header-text"><h2>Avisos</h2><p>${data.length} avisos registrados</p></div>
+        <div class="page-header-text"><h2>Avisos</h2><p>${data.length} avisos ${isProfe ? 'pendientes' : 'registrados'}</p></div>
         ${isProfe ? `<button class="btn btn-primary" id="btn-nuevo-aviso">+ Nuevo Aviso</button>` : ''}
       </div>
       <div class="filters-bar">
         <div class="search-input-wrap">
           <input class="form-input" id="search-avisos" placeholder="Buscar por mensaje o aula…">
         </div>
-        <select class="form-select" id="filter-estado-a" style="width:160px">
+        ${!isProfe ? `<select class="form-select" id="filter-estado-a" style="width:160px">
           <option value="">Todos los estados</option>
           <option>PENDIENTE</option><option>RESUELTO</option><option>EN_REVISION</option>
-        </select>
+        </select>` : ''}
       </div>
       <div class="table-wrap">
         <table>
@@ -760,13 +797,14 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
     render(data);
     const filter = () => {
       const q = document.getElementById('search-avisos').value.toLowerCase();
-      const e = document.getElementById('filter-estado-a').value;
+      const estadoEl = document.getElementById('filter-estado-a');
+      const e = estadoEl ? estadoEl.value : '';
       render(data.filter(a =>
         (!q || (a.mensaje||'').toLowerCase().includes(q) || (a.aula?.nombre||'').toLowerCase().includes(q)) &&
         (!e || a.estado === e)));
     };
     document.getElementById('search-avisos').addEventListener('input', filter);
-    document.getElementById('filter-estado-a').addEventListener('change', filter);
+    if (document.getElementById('filter-estado-a')) document.getElementById('filter-estado-a').addEventListener('change', filter);
     Views._avisoCache = { aulas, usuarios };
     if (isProfe) document.getElementById('btn-nuevo-aviso').addEventListener('click', () => Views._editAviso(null));
   },
@@ -1007,6 +1045,16 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
         return;
       }
 
+      if (pass && pass.length < 8) {
+        Toast.warning('La contraseña debe tener al menos 8 caracteres.');
+        return;
+      }
+
+      if (pass && !/[A-Z]/.test(pass)) {
+        Toast.warning('La contraseña debe contener al menos una mayúscula.');
+        return;
+      }
+
       if (dto.rol === 'PROFESOR' && dto.materiasIds.length === 0) {
         Toast.warning('Seleccioná al menos una materia para el profesor.');
         return;
@@ -1047,14 +1095,15 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
   async comision(container) {
     setLoading(container);
     if (!AuthService.isAdmin()) { container.innerHTML = emptyState('Acceso denegado','Solo administradores.'); return; }
-    let data = [], materias = [], usuarios = [];
+    let data = [], materias = [], usuarios = [], aulas = [];
     try {
-        [data, materias, usuarios] = await Promise.all([
-            ComisionService.listar(), MateriaService.listar(), UsuarioService.listar()
+        [data, materias, usuarios, aulas] = await Promise.all([
+            ComisionService.listar(), MateriaService.listar(), UsuarioService.listar(), AulaService.listar()
         ]);
     } catch(e) { container.innerHTML=`<p style="color:var(--clr-danger)">Error: ${e.message}</p>`; return; }
 
     const profesores = usuarios.filter(u => u.rol === 'PROFESOR' || u.rol === 'ADMIN');
+    const diasLabel = { LUNES:'Lunes', MARTES:'Martes', MIERCOLES:'Miércoles', JUEVES:'Jueves', VIERNES:'Viernes', SABADO:'Sábado' };
 
     container.innerHTML = `
       <div class="page-header">
@@ -1069,7 +1118,7 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>ID</th><th>Materia</th><th>Profesor</th><th>Cant. Alumnos</th><th>Acciones</th>
+            <th>ID</th><th>Materia</th><th>Profesor</th><th>Cant. Alumnos</th><th>Horario</th><th>Inicio</th><th>Fin</th><th>Clase Fija</th><th>Acciones</th>
           </tr></thead>
           <tbody id="tbody-comisiones"></tbody>
         </table>
@@ -1077,18 +1126,28 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
 
     const render = (rows) => {
       const tbody = document.getElementById('tbody-comisiones');
-      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="5">${emptyState('Sin comisiones')}</td></tr>`; return; }
-      tbody.innerHTML = rows.map(c => `
+      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="9">${emptyState('Sin comisiones')}</td></tr>`; return; }
+      tbody.innerHTML = rows.map(c => {
+        const cf = c.claseFija;
+        const cfTexto = cf
+          ? `${diasLabel[cf.diaSemana]||cf.diaSemana} ${cf.horaInicio}–${cf.horaFin} · ${cf.aulaNombre}`
+          : '—';
+        return `
         <tr>
           <td><code>#${c.id}</code></td>
           <td><strong>${c.materiaNombre||'—'}</strong></td>
           <td>${c.profesorNombre||'—'}</td>
           <td>${c.cantAlumnos||'—'}</td>
+          <td>${c.horario||'—'}</td>
+          <td style="font-size:.8rem">${c.fechaInicio||'—'}</td>
+          <td style="font-size:.8rem">${c.fechaFin||'—'}</td>
+          <td style="font-size:.8rem">${cfTexto}</td>
           <td class="td-actions">
             <button class="btn btn-secondary btn-sm" onclick="Views._editComision(${c.id})">Editar</button>
             <button class="btn btn-danger btn-sm" onclick="Views._deleteComision(${c.id})">Eliminar</button>
           </td>
-        </tr>`).join('');
+        </tr>`;
+      }).join('');
     };
 
     render(data);
@@ -1099,13 +1158,15 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
         (c.profesorNombre||'').toLowerCase().includes(q)
       ));
     });
-    Views._comisionCache = { materias, profesores };
+    Views._comisionCache = { materias, profesores, aulas };
     document.getElementById('btn-nueva-comision').addEventListener('click', () => Views._editComision(null));
   },
 
-  _comisionCache: { materias:[], profesores:[] },
+  _comisionCache: { materias:[], profesores:[], aulas:[] },
 
-  _comisionForm(c = {}, materias = [], profesores = []) {
+  _comisionForm(c = {}, materias = [], profesores = [], aulas = []) {
+    const cf = c.claseFija;
+    const tieneCF = !!cf;
     return `
       <div class="form-group"><label class="form-label">Materia *</label>
         <select class="form-select" id="f-materia">
@@ -1118,33 +1179,115 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
           ${profesores.map(p=>`<option value="${p.id}" ${c.profesor?.id===p.id?'selected':''}>${p.nombre}</option>`).join('')}
         </select></div>
       <div class="form-group"><label class="form-label">Cantidad de Alumnos *</label>
-        <input class="form-input" type="number" id="f-cant" value="${c.cantAlumnos||''}" min="1" placeholder="30"></div>`;
+        <input class="form-input" type="number" id="f-cant" value="${c.cantAlumnos||''}" min="1" placeholder="30"></div>
+      <div class="form-group"><label class="form-label">Horario *</label>
+        <select class="form-select" id="f-horario">
+          <option value="">— Seleccionar —</option>
+          <option value="MAÑANA" ${c.horario==='MAÑANA'?'selected':''}>Mañana (07:00–13:00)</option>
+          <option value="TARDE"  ${c.horario==='TARDE' ?'selected':''}>Tarde (13:00–18:00)</option>
+          <option value="NOCHE"  ${c.horario==='NOCHE' ?'selected':''}>Noche (18:00–22:00)</option>
+        </select></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Fecha inicio cursada *</label>
+          <input class="form-input" type="date" id="f-finicio" value="${c.fechaInicio||''}"></div>
+        <div class="form-group"><label class="form-label">Fecha fin cursada *</label>
+          <input class="form-input" type="date" id="f-ffin" value="${c.fechaFin||''}"></div>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:.5rem">
+        <input type="checkbox" id="f-clase-fija" ${tieneCF?'checked':''}>
+        <label class="form-label" for="f-clase-fija" style="margin:0">Confirmar clase fija</label>
+      </div>
+      <div id="clase-fija-fields" style="display:${tieneCF?'block':'none'};border:1px solid var(--clr-border);border-radius:8px;padding:1rem;margin-top:.5rem">
+        <div class="form-group"><label class="form-label">Aula *</label>
+          <select class="form-select" id="f-cf-aula">
+            <option value="">— Seleccionar —</option>
+            ${aulas.map(a=>`<option value="${a.id}" ${cf?.id_aula===a.id?'selected':''}>${a.nombre}</option>`).join('')}
+          </select></div>
+        <div class="form-group"><label class="form-label">Día *</label>
+          <select class="form-select" id="f-cf-dia">
+            <option value="">— Seleccionar —</option>
+            <option value="LUNES"    ${cf?.diaSemana==='LUNES'    ?'selected':''}>Lunes</option>
+            <option value="MARTES"   ${cf?.diaSemana==='MARTES'   ?'selected':''}>Martes</option>
+            <option value="MIERCOLES"${cf?.diaSemana==='MIERCOLES'?'selected':''}>Miércoles</option>
+            <option value="JUEVES"   ${cf?.diaSemana==='JUEVES'   ?'selected':''}>Jueves</option>
+            <option value="VIERNES"  ${cf?.diaSemana==='VIERNES'  ?'selected':''}>Viernes</option>
+            <option value="SABADO"   ${cf?.diaSemana==='SABADO'   ?'selected':''}>Sábado</option>
+          </select></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Hora inicio *</label>
+            <input class="form-input" type="time" id="f-cf-hinicio" value="${cf?.horaInicio||''}"></div>
+          <div class="form-group"><label class="form-label">Hora fin *</label>
+            <input class="form-input" type="time" id="f-cf-hfin" value="${cf?.horaFin||''}"></div>
+        </div>
+      </div>`;
   },
 
    async _editComision(id) {
-           const { materias, profesores } = Views._comisionCache;
+           const { materias, profesores, aulas } = Views._comisionCache;
            let c = {};
            if (id) { try { c = await ComisionService.buscarId(id); } catch(e) { Toast.error(e.message); return; } }
 
-           Modal.show(id ? 'Editar Comisión' : 'Nueva Comisión', this._comisionForm(c, materias, profesores), async () => {
+           Modal.show(id ? 'Editar Comisión' : 'Nueva Comisión', this._comisionForm(c, materias, profesores, aulas), async () => {
 
-               const idMateria = document.getElementById('f-materia').value;
-               const idProfesor = document.getElementById('f-profesor').value;
+               const idMateria   = document.getElementById('f-materia').value;
+               const idProfesor  = document.getElementById('f-profesor').value;
                const cantAlumnos = document.getElementById('f-cant').value;
+               const horario     = document.getElementById('f-horario').value;
+               const fechaInicio = document.getElementById('f-finicio').value;
+               const fechaFin    = document.getElementById('f-ffin').value;
 
-               if (!idMateria || !idProfesor || !cantAlumnos) {
+               if (!idMateria || !idProfesor || !cantAlumnos || !horario || !fechaInicio || !fechaFin) {
                    Toast.error("Por favor, completa todos los campos obligatorios (*)");
                    return;
                }
 
+               const fi = new Date(fechaInicio), ff = new Date(fechaFin);
+               const meses = (ff.getFullYear() - fi.getFullYear()) * 12 + (ff.getMonth() - fi.getMonth());
+               if (meses < 2) { Toast.warning('La cursada debe durar al menos 2 meses.'); return; }
+               if (meses > 6) { Toast.warning('La cursada no puede durar más de 6 meses.'); return; }
+
+               const cfChecked = document.getElementById('f-clase-fija').checked;
+               if (cfChecked) {
+                   const cfAula    = document.getElementById('f-cf-aula').value;
+                   const cfDia     = document.getElementById('f-cf-dia').value;
+                   const cfHinicio = document.getElementById('f-cf-hinicio').value;
+                   const cfHfin    = document.getElementById('f-cf-hfin').value;
+                   if (!cfAula || !cfDia || !cfHinicio || !cfHfin) {
+                       Toast.warning('Completá todos los campos de clase fija.');
+                       return;
+                   }
+               }
+
                const dto = {
-                   id_materia: parseInt(idMateria),
+                   id_materia:  parseInt(idMateria),
                    id_profesor: parseInt(idProfesor),
-                   cantAlumnos: parseInt(cantAlumnos)
+                   cantAlumnos: parseInt(cantAlumnos),
+                   horario,
+                   fechaInicio,
+                   fechaFin,
                };
 
                try {
-                   if (id) await ComisionService.modificar(id, dto); else await ComisionService.crear(dto);
+                   let comisionId = id;
+                   if (id) {
+                       await ComisionService.modificar(id, dto);
+                   } else {
+                       const saved = await ComisionService.crear(dto);
+                       comisionId = saved.id;
+                   }
+
+                   if (cfChecked) {
+                       await ClaseFijaService.guardar({
+                           id_comision: comisionId,
+                           id_aula:     parseInt(document.getElementById('f-cf-aula').value),
+                           diaSemana:   document.getElementById('f-cf-dia').value,
+                           horaInicio:  document.getElementById('f-cf-hinicio').value,
+                           horaFin:     document.getElementById('f-cf-hfin').value,
+                       });
+                   } else if (c.claseFija) {
+                       await ClaseFijaService.eliminarPorComision(comisionId);
+                   }
+
                    Toast.success(id ? 'Comisión actualizada.' : 'Comisión creada.');
                    Modal.hide();
                    Views.comision(document.getElementById('page-body'));
@@ -1155,6 +1298,12 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
 
            const fMateria = document.getElementById('f-materia');
            const fProfesor = document.getElementById('f-profesor');
+           const fClaseFija = document.getElementById('f-clase-fija');
+           const claseFijaFields = document.getElementById('clase-fija-fields');
+
+           fClaseFija.addEventListener('change', () => {
+               claseFijaFields.style.display = fClaseFija.checked ? 'block' : 'none';
+           });
 
            const filtrarProfesores = () => {
                const idMateria = parseInt(fMateria.value);
@@ -1173,7 +1322,7 @@ ${comisiones.map(c => `<option value="${c.id}" ${r.comision?.id===c.id?'selected
            fMateria.addEventListener('change', filtrarProfesores);
 
            if (c.id_materia) {
-               fMateria.value = c.id_materia; // Nos aseguramos de forzar la selección
+               fMateria.value = c.id_materia;
                filtrarProfesores();
                fProfesor.value = c.id_profesor || '';
            } else {

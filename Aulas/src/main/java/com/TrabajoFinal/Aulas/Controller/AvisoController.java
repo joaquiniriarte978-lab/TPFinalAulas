@@ -25,8 +25,10 @@ public class AvisoController {
     private final AvisoService avisoService;
 
     @GetMapping
-    public List<Aviso> Avisos() {
-        return avisoService.listarAvisos();
+    public List<Aviso> Avisos(Authentication authentication) {
+        boolean isProfesor = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_PROFESOR"));
+        return isProfesor ? avisoService.listarAvisosPendientes() : avisoService.listarAvisos();
     }
     @PostMapping
     public Aviso crear(@Valid @RequestBody AvisoRequestDTO avisoDto,

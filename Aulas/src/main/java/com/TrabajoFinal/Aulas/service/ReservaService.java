@@ -4,11 +4,14 @@ import com.TrabajoFinal.Aulas.Dtos.reservaDTO.ReservaResponseDTO;
 import com.TrabajoFinal.Aulas.Repository.*;
 import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.*;
+import com.TrabajoFinal.Aulas.model.enums.DiaSemana;
 import com.TrabajoFinal.Aulas.model.enums.EstadoReserva;
+import com.TrabajoFinal.Aulas.model.enums.Horario;
 import com.TrabajoFinal.Aulas.model.enums.Tipo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -19,6 +22,7 @@ public class ReservaService {
     private final ReservaRepository reservaRepository;
     private final ComisionRepository comisionRepository;
     private final AulaRepository aulaRepository;
+    private final ClaseFijaRepository claseFijaRepository;
 
     public Reserva hacerReserva(ReservaResponseDTO dto, String emailUsuario, boolean esAdmin){
         Comision comision = comisionRepository.findById(dto.getId_comision())
@@ -40,6 +44,8 @@ public class ReservaService {
         }else if (dto.getFecha().isEqual(LocalDate.now()) && dto.getHoraInicio().isBefore(LocalTime.now())){
             throw new RuntimeException("La hora de inicio de la reserva debe ser posterior a la hora actual");
         }
+
+        validarHorarioComision(comision.getHorario(), dto.getHoraInicio(), dto.getHoraFin());
 
         boolean materiaRequiereLab = comision.getMateria().isRequiereLaboratorio();
         boolean aulaEsLaboratorio  = aula.getTipo() == Tipo.LABORATORIO
@@ -63,6 +69,13 @@ public class ReservaService {
                 dto.getId_aula(), dto.getFecha(), dto.getHoraInicio(), dto.getHoraFin())) {
             throw new RuntimeException(
                     "El aula ya tiene una reserva activa en ese horario.");
+        }
+
+        DiaSemana diaSemana = toDiaSemana(dto.getFecha().getDayOfWeek());
+        if (claseFijaRepository.existeConflicto(
+                dto.getId_aula(), diaSemana, dto.getHoraInicio(), dto.getHoraFin())) {
+            throw new RuntimeException(
+                    "El aula tiene una clase fija los " + diaSemana.name().toLowerCase() + " en ese horario.");
         }
 
         Reserva reserva = new Reserva();
@@ -118,6 +131,8 @@ public class ReservaService {
             throw new RuntimeException("La hora de inicio de la reserva debe ser posterior a la hora actual");
         }
 
+        validarHorarioComision(comision.getHorario(), reservaNueva.getHoraInicio(), reservaNueva.getHoraFin());
+
         boolean materiaRequiereLab = comision.getMateria().isRequiereLaboratorio();
         boolean aulaEsLaboratorio  = aula.getTipo() == Tipo.LABORATORIO
                 || aula.getTipo() == Tipo.LABORATORIO_TEXTIL
@@ -154,6 +169,13 @@ public class ReservaService {
                 throw new RuntimeException(
                         "El aula ya tiene una reserva activa en ese horario.");
             }
+        }
+
+        DiaSemana diaSemana = toDiaSemana(reservaNueva.getFecha().getDayOfWeek());
+        if (claseFijaRepository.existeConflicto(
+                reservaNueva.getId_aula(), diaSemana, reservaNueva.getHoraInicio(), reservaNueva.getHoraFin())) {
+            throw new RuntimeException(
+                    "El aula tiene una clase fija los " + diaSemana.name().toLowerCase() + " en ese horario.");
         }
         Reserva reservaVieja = listarXId(id);
         reservaVieja.setFecha(reservaNueva.getFecha());
@@ -199,4 +221,34 @@ public class ReservaService {
         return reservaRepository.findReservasByMateria(idMateria);
     }
 
+    private DiaSemana toDiaSemana(DayOfWeek day) {
+        return switch (day) {
+            case MONDAY    -> DiaSemana.LUNES;
+            case TUESDAY   -> DiaSemana.MARTES;
+            case WEDNESDAY -> DiaSemana.MIERCOLES;
+            case THURSDAY  -> DiaSemana.JUEVES;
+            case FRIDAY    -> DiaSemana.VIERNES;
+            case SATURDAY  -> DiaSemana.SABADO;
+            default -> throw new RuntimeException("No se pueden hacer reservas los domingos.");
+        };
+    }
+
+    private void validarHorarioComision(Horario horario, LocalTime inicio, LocalTime fin) {
+        LocalTime apertura;
+        LocalTime cierre;
+        String nombreHorario;
+
+        switch (horario) {
+            case MAÑANA -> { apertura = LocalTime.of(7, 0);  cierre = LocalTime.of(13, 0); nombreHorario = "mañana (07:00–13:00)"; }
+            case TARDE  -> { apertura = LocalTime.of(13, 0); cierre = LocalTime.of(18, 0); nombreHorario = "tarde (13:00–18:00)"; }
+            case NOCHE  -> { apertura = LocalTime.of(18, 0); cierre = LocalTime.of(22, 0); nombreHorario = "noche (18:00–22:00)"; }
+            default     -> throw new RuntimeException("Horario de comisión no reconocido.");
+        }
+
+        if (inicio.isBefore(apertura) || fin.isAfter(cierre)) {
+            throw new RuntimeException(
+                "El horario de la comisión es " + nombreHorario +
+                ". La reserva debe estar dentro de ese rango.");
+        }
+    }
 }
