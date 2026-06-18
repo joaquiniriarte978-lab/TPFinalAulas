@@ -12,5 +12,5 @@ import java.util.Optional;
 
 public interface AvisoRepository extends JpaRepository<Aviso,Integer> {
 
-
+    boolean existsByAulaId(Integer aulaId);
 }
