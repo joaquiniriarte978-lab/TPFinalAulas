@@ -58,8 +58,8 @@ public class ComisionService {
     public Comision actualizar(Integer id, ComisionResponseDTO dto){
         Comision com = comisionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Comision", id));
-        Profesor profesor=profesorRepository.findById(dto.getId_profesor())
-                .orElseThrow(()-> new ResourceNotFoundException("Usuario", id));
+        Profesor profesor=profesorRepository.findByUsuarioId(dto.getId_profesor())
+                .orElseThrow(()-> new ResourceNotFoundException("Profesor", dto.getId_profesor()));
         Materia materia=materiaRepository.findById(dto.getId_materia()).orElseThrow(()-> new ResourceNotFoundException("Materia", dto.getId_materia()));
         com.setMateria(materia);
         com.setProfesor(profesor);
