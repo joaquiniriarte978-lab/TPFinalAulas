@@ -21,8 +21,8 @@ public class UsuarioRequestDTO {
     private String email;
 
 
-    @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
-    @Pattern(regexp = "^(?=.*[A-Z]).+$", message = "La contraseña debe contener al menos una mayúscula")
+    // Permite vacío (edición sin cambiar contraseña) o mínimo 8 chars con al menos una mayúscula
+    @Pattern(regexp = "^$|^(?=.*[A-Z]).{8,}$", message = "La contraseña debe tener al menos 8 caracteres y una mayúscula")
     private String password;
 
     @NotBlank(message = "El rol es obligatorio")

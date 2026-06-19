@@ -21,19 +21,19 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         if ("admin".equals(username)) {
             return User.withUsername("admin")
-                    .password(passwordEncoder.encode("1234"))
+                    .password(passwordEncoder.encode("Usuario1"))
                     .roles("ADMIN")
                     .build();
         }
         if ("profesor".equals(username)) {
             return User.withUsername("profesor")
-                    .password(passwordEncoder.encode("1234"))
+                    .password(passwordEncoder.encode("Usuario1"))
                     .roles("PROFESOR")
                     .build();
         }
         if ("alumno".equals(username)) {
             return User.withUsername("alumno")
-                    .password(passwordEncoder.encode("1234"))
+                    .password(passwordEncoder.encode("Usuario1"))
                     .roles("ALUMNO")
                     .build();
         }

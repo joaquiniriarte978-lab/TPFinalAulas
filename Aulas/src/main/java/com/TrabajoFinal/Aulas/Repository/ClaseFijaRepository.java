@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Optional;
 
@@ -22,4 +23,21 @@ public interface ClaseFijaRepository extends JpaRepository<ClaseFija, Integer> {
                             @Param("diaSemana") DiaSemana diaSemana,
                             @Param("horaInicio") LocalTime horaInicio,
                             @Param("horaFin") LocalTime horaFin);
+
+    @Query("""
+        SELECT COUNT(cf) > 0 FROM ClaseFija cf
+        WHERE cf.comision.profesor.usuario.email = :emailProfesor
+          AND cf.aula.id = :idAula
+          AND cf.diaSemana = :diaSemana
+          AND cf.horaFin <= :ahora
+          AND cf.comision.fechaInicio <= :hoy
+          AND cf.comision.fechaFin >= :hoy
+    """)
+    boolean existeClaseFijaTerminadaHoy(
+            @Param("emailProfesor") String emailProfesor,
+            @Param("idAula")        Integer idAula,
+            @Param("diaSemana")     DiaSemana diaSemana,
+            @Param("hoy")           LocalDate hoy,
+            @Param("ahora")         LocalTime ahora
+    );
 }

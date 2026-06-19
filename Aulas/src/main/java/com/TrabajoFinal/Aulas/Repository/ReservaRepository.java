@@ -35,4 +35,18 @@ public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
     boolean existsByAulaId(Integer aulaId);
 
     void deleteByComisionProfesorId(Integer profesorId);
+
+    @Query("""
+        SELECT COUNT(r) > 0 FROM Reserva r
+        WHERE r.comision.profesor.usuario.email = :emailProfesor
+          AND r.aula.id = :idAula
+          AND r.estadoReserva = 'RESERVADA'
+          AND (r.fecha < :hoy OR (r.fecha = :hoy AND r.horaFin <= :ahora))
+    """)
+    boolean existeReservaTerminadaEnAula(
+            @Param("emailProfesor") String emailProfesor,
+            @Param("idAula")        Integer idAula,
+            @Param("hoy")           LocalDate hoy,
+            @Param("ahora")         LocalTime ahora
+    );
 }

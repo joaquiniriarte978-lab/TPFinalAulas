@@ -285,6 +285,8 @@ code { font-family: var(--font-mono); font-size: .85em; background: var(--clr-su
 .btn-secondary:hover { border-color: var(--clr-accent); color: var(--clr-accent); }
 .btn-danger { background: transparent; color: var(--clr-danger); border: 1px solid rgba(220,38,38,.3); }
 .btn-danger:hover { background: rgba(220,38,38,.06); border-color: var(--clr-danger); }
+.btn-info { background: transparent; color: var(--clr-accent); border: 1px solid rgba(29,78,216,.3); }
+.btn-info:hover { background: rgba(29,78,216,.06); border-color: var(--clr-accent); }
 .btn-success { background: var(--clr-success); color: #fff; }
 .btn-success:hover { background: #166534; }
 .btn-full { width: 100%; padding: 12px; font-size: .95rem; }
