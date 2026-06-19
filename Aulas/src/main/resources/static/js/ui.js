@@ -287,12 +287,14 @@ async _editarMiPerfil(u) {
 },
   async aulas(container) {
     setLoading(container);
-    const isAdmin = AuthService.isAdmin();
+    const isAdmin    = AuthService.isAdmin();
+    const isProfesor = AuthService.isProfesor();
     let data = [];
     try { data = await AulaService.listar(); } catch(e) { container.innerHTML=`<p style="color:var(--clr-danger)">Error: ${e.message}</p>`; return; }
 
     const tiposBadge = { AULA:'badge-aula', LABORATORIO:'badge-laboratorio', SUM:'badge-sum',
                          LABORATORIO_TEXTIL:'badge-aula', LABORATORIO_IDIOMAS:'badge-aula' };
+    const totalCols = isProfesor ? 6 : 5;
 
     container.innerHTML = `
       <div class="page-header">
@@ -313,7 +315,7 @@ async _editarMiPerfil(u) {
         <table>
           <thead><tr>
             <th>ID</th><th>Nombre</th><th>Capacidad</th><th>Tipo</th><th>Equipamiento</th>
-            ${isAdmin ? '<th>Acciones</th>' : ''}
+            ${isProfesor ? '<th>Acciones</th>' : ''}
           </tr></thead>
           <tbody id="tbody-aulas"></tbody>
         </table>
@@ -321,7 +323,7 @@ async _editarMiPerfil(u) {
 
     const render = (rows) => {
       const tbody = document.getElementById('tbody-aulas');
-      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="6">${emptyState('Sin resultados')}</td></tr>`; return; }
+      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="${totalCols}">${emptyState('Sin resultados')}</td></tr>`; return; }
       tbody.innerHTML = rows.map(a => `
         <tr>
           <td><code>#${a.id}</code></td>
@@ -329,9 +331,11 @@ async _editarMiPerfil(u) {
           <td>${a.capacidad} personas</td>
           <td><span class="badge ${tiposBadge[a.tipo]||'badge-aula'}">${a.tipo||'—'}</span></td>
           <td style="color:var(--clr-subtle)">${a.equipamiento||'—'}</td>
-          ${isAdmin ? `<td class="td-actions">
+          ${isProfesor ? `<td class="td-actions">
+            ${isAdmin ? `
             <button class="btn btn-secondary btn-sm" onclick="Views._editAula(${a.id})">Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="Views._deleteAula(${a.id},'${a.nombre}')">Eliminar</button>
+            <button class="btn btn-danger btn-sm" onclick="Views._deleteAula(${a.id},'${a.nombre}')">Eliminar</button>` : ''}
+            <button class="btn btn-info btn-sm" onclick="Views._verAvisosAula(${a.id},'${a.nombre.replace(/'/g, "\\'")}')">Avisos</button>
           </td>` : ''}
         </tr>`).join('');
     };
@@ -393,6 +397,38 @@ async _editarMiPerfil(u) {
       try { await AulaService.eliminar(id); Toast.success('Aula eliminada.'); Modal.hide(); Views.aulas(document.getElementById('page-body')); }
       catch(e) { Toast.error(e.message); }
     });
+  },
+
+  async _verAvisosAula(aulaId, aulaNombre) {
+    let avisos = [];
+    try {
+      const todos = await AvisoService.listar();
+      avisos = todos.filter(av => av.aula?.id === aulaId && av.estado !== 'RESUELTO');
+    } catch(e) {
+      Toast.error(e.message);
+      return;
+    }
+
+    const estadoBadge = { PENDIENTE: 'badge-pendiente', EN_REVISION: 'badge-revision' };
+
+    const body = avisos.length
+      ? `<div class="table-wrap">
+           <table>
+             <thead><tr><th>Fecha</th><th>Mensaje</th><th>Estado</th><th>Reportado por</th></tr></thead>
+             <tbody>
+               ${avisos.map(av => `
+                 <tr>
+                   <td>${av.fecha || '—'}</td>
+                   <td>${av.mensaje || '—'}</td>
+                   <td><span class="badge ${estadoBadge[av.estado] || ''}">${av.estado}</span></td>
+                   <td>${av.usuario?.nombre || '—'}</td>
+                 </tr>`).join('')}
+             </tbody>
+           </table>
+         </div>`
+      : `<p style="text-align:center;color:var(--clr-subtle);padding:2rem 0">No hay avisos pendientes para esta aula.</p>`;
+
+    Modal.show(`Avisos — ${aulaNombre}`, body, () => Modal.hide(), 'Cerrar', 'btn-secondary');
   },
 
   async materias(container) {

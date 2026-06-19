@@ -4,16 +4,22 @@ import com.TrabajoFinal.Aulas.Dtos.avisoDTO.AvisoRequestDTO;
 import com.TrabajoFinal.Aulas.Dtos.avisoDTO.AvisoResponseDTO;
 import com.TrabajoFinal.Aulas.Repository.AulaRepository;
 import com.TrabajoFinal.Aulas.Repository.AvisoRepository;
+import com.TrabajoFinal.Aulas.Repository.ClaseFijaRepository;
+import com.TrabajoFinal.Aulas.Repository.ReservaRepository;
 import com.TrabajoFinal.Aulas.Repository.UsuarioRepository;
 import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.Aula;
 import com.TrabajoFinal.Aulas.model.Aviso;
 import com.TrabajoFinal.Aulas.model.Usuario;
+import com.TrabajoFinal.Aulas.model.enums.DiaSemana;
 import com.TrabajoFinal.Aulas.model.enums.Estado;
+import com.TrabajoFinal.Aulas.model.enums.Rol;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -22,6 +28,8 @@ public class AvisoService {
     private final AvisoRepository avisoRepository;
     private final AulaRepository aulaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ReservaRepository reservaRepository;
+    private final ClaseFijaRepository claseFijaRepository;
 
     public List<Aviso> listarAvisos(){
         return avisoRepository.findAll();
@@ -44,6 +52,10 @@ public class AvisoService {
 
         Usuario usuario = usuarioRepository.findByEmail(emailUsuario)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", 0));
+
+        if (usuario.getRol() == Rol.PROFESOR) {
+            validarClaseTerminada(emailUsuario, avisoDto.getId_aula());
+        }
 
         aviso.setAula(aula);
         aviso.setUsuario(usuario);
@@ -71,6 +83,10 @@ public class AvisoService {
             throw new RuntimeException("Solo podés modificar tus propios avisos.");
         }
 
+        if (aviso.getUsuario().getRol() == Rol.PROFESOR) {
+            validarClaseTerminada(emailUsuario, dto.getId_aula());
+        }
+
         Aula aula = aulaRepository.findById(dto.getId_aula())
                 .orElseThrow(() -> new ResourceNotFoundException("Aula", dto.getId_aula()));
 
@@ -78,6 +94,35 @@ public class AvisoService {
         aviso.setMensaje(dto.getMensaje());
 
         return avisoRepository.save(aviso);
+    }
+
+    private void validarClaseTerminada(String emailProfesor, Integer idAula) {
+        LocalDate hoy = LocalDate.now();
+        LocalTime ahora = LocalTime.now();
+
+        boolean tuvoReserva = reservaRepository.existeReservaTerminadaEnAula(emailProfesor, idAula, hoy, ahora);
+        if (tuvoReserva) return;
+
+        DiaSemana diaHoy = toDiaSemana(hoy.getDayOfWeek());
+        boolean tuvoClaseFija = diaHoy != null &&
+                claseFijaRepository.existeClaseFijaTerminadaHoy(emailProfesor, idAula, diaHoy, hoy, ahora);
+        if (tuvoClaseFija) return;
+
+        throw new RuntimeException(
+            "Solo podés hacer un aviso de un aula en la que hayas dado clase y cuya clase ya haya terminado."
+        );
+    }
+
+    private DiaSemana toDiaSemana(DayOfWeek dow) {
+        return switch (dow) {
+            case MONDAY    -> DiaSemana.LUNES;
+            case TUESDAY   -> DiaSemana.MARTES;
+            case WEDNESDAY -> DiaSemana.MIERCOLES;
+            case THURSDAY  -> DiaSemana.JUEVES;
+            case FRIDAY    -> DiaSemana.VIERNES;
+            case SATURDAY  -> DiaSemana.SABADO;
+            default        -> null; // domingo: sin clases
+        };
     }
 }
 

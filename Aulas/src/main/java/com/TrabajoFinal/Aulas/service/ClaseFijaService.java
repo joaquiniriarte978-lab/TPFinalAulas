@@ -8,9 +8,11 @@ import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.Aula;
 import com.TrabajoFinal.Aulas.model.ClaseFija;
 import com.TrabajoFinal.Aulas.model.Comision;
+import com.TrabajoFinal.Aulas.model.enums.Horario;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalTime;
 import java.util.Optional;
 
 @Service
@@ -30,6 +32,8 @@ public class ClaseFijaService {
         Aula aula = aulaRepository.findById(dto.getId_aula())
                 .orElseThrow(() -> new ResourceNotFoundException("Aula", dto.getId_aula()));
 
+        validarHorarioTurno(dto.getHoraInicio(), dto.getHoraFin(), comision.getHorario());
+
         cf.setComision(comision);
         cf.setAula(aula);
         cf.setDiaSemana(dto.getDiaSemana());
@@ -37,6 +41,31 @@ public class ClaseFijaService {
         cf.setHoraFin(dto.getHoraFin());
 
         return claseFijaRepository.save(cf);
+    }
+
+    private void validarHorarioTurno(LocalTime horaInicio, LocalTime horaFin, Horario turno) {
+        LocalTime inicioTurno;
+        LocalTime finTurno;
+
+        switch (turno) {
+            case MAÑANA -> { inicioTurno = LocalTime.of(6,  0); finTurno = LocalTime.of(13, 0); }
+            case TARDE  -> { inicioTurno = LocalTime.of(13, 0); finTurno = LocalTime.of(19, 0); }
+            case NOCHE  -> { inicioTurno = LocalTime.of(19, 0); finTurno = LocalTime.of(23, 59); }
+            default     -> throw new RuntimeException("Turno desconocido: " + turno);
+        }
+
+        if (horaInicio.isBefore(inicioTurno) || horaInicio.isAfter(finTurno)) {
+            throw new RuntimeException(
+                "El horario de inicio (" + horaInicio + ") no corresponde al turno " + turno +
+                ". Rango permitido: " + inicioTurno + " - " + finTurno + "."
+            );
+        }
+        if (horaFin.isBefore(horaInicio) || horaFin.isAfter(finTurno)) {
+            throw new RuntimeException(
+                "El horario de fin (" + horaFin + ") no corresponde al turno " + turno +
+                ". Rango permitido: " + inicioTurno + " - " + finTurno + "."
+            );
+        }
     }
 
     public Optional<ClaseFija> buscarPorComision(Integer idComision) {
