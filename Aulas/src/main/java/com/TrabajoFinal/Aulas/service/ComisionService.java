@@ -1,17 +1,13 @@
 package com.TrabajoFinal.Aulas.service;
 
 import com.TrabajoFinal.Aulas.Dtos.comisionDTO.ComisionResponseDTO;
-import com.TrabajoFinal.Aulas.Repository.MateriaRepository;
-import com.TrabajoFinal.Aulas.Repository.ComisionRepository;
-import com.TrabajoFinal.Aulas.Repository.ProfesorRepository;
-import com.TrabajoFinal.Aulas.Repository.UsuarioRepository;
+import com.TrabajoFinal.Aulas.Dtos.comisionDTO.ClaseFijaDTO;
+import com.TrabajoFinal.Aulas.Repository.*;
 import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
-import com.TrabajoFinal.Aulas.model.Comision;
-import com.TrabajoFinal.Aulas.model.Materia;
-import com.TrabajoFinal.Aulas.model.Profesor;
-import com.TrabajoFinal.Aulas.model.Usuario;
+import com.TrabajoFinal.Aulas.model.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -25,6 +21,8 @@ public class ComisionService {
     private final UsuarioRepository usuarioRepository;
     private final MateriaRepository materiaRepository;
     private final ProfesorRepository profesorRepository;
+    private final ClaseFijaRepository claseFijaRepository;
+    private final AulaRepository aulaRepository;
 
     public List<Comision> listar(){
         return comisionRepository.findAll();
@@ -34,6 +32,7 @@ public class ComisionService {
         return comisionRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Comision", id));
     }
 
+    @Transactional
     public Comision guardar(ComisionResponseDTO dto){
         Comision comision = new Comision();
         Profesor profesor = profesorRepository.findByUsuarioId(dto.getId_profesor())
@@ -46,7 +45,9 @@ public class ComisionService {
         comision.setHorario(dto.getHorario());
         comision.setFechaInicio(dto.getFechaInicio());
         comision.setFechaFin(dto.getFechaFin());
-        return comisionRepository.save(comision);
+        Comision saved = comisionRepository.save(comision);
+        procesarClaseFija(dto.getClaseFija(), saved.getId());
+        return saved;
     }
 
     public List<Comision> listarPorProfesorEmail(String email) {
@@ -61,6 +62,7 @@ public class ComisionService {
         comisionRepository.deleteById(id);
     }
 
+    @Transactional
     public Comision actualizar(Integer id, ComisionResponseDTO dto){
         Comision com = comisionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Comision", id));
@@ -74,7 +76,38 @@ public class ComisionService {
         com.setHorario(dto.getHorario());
         com.setFechaInicio(dto.getFechaInicio());
         com.setFechaFin(dto.getFechaFin());
-        return comisionRepository.save(com);
+        Comision updated = comisionRepository.save(com);
+        procesarClaseFija(dto.getClaseFija(), updated.getId());
+        return updated;
+    }
+
+    private void procesarClaseFija(ClaseFijaDTO claseFijaDTO, Integer comisionId) {
+        if (claseFijaDTO == null) {
+            // No clase fija desired: delete any existing
+            claseFijaRepository.findByComisionId(comisionId).ifPresent(claseFijaRepository::delete);
+            return;
+        }
+
+        // There is a clase fija to save/update
+        ClaseFija cf = claseFijaRepository.findByComisionId(comisionId)
+                .orElse(new ClaseFija());
+
+        // Set comision (ensures the FK)
+        Comision comision = comisionRepository.findById(comisionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comision", comisionId));
+        cf.setComision(comision);
+
+
+        Aula aula = aulaRepository.findById(claseFijaDTO.getId_aula())
+                .orElseThrow(() -> new ResourceNotFoundException("Aula", claseFijaDTO.getId_aula()));
+
+        cf.setAula(aula); // Asignar el objeto Aula completo en lugar del ID
+        // ---------------------
+
+        cf.setDiaSemana(claseFijaDTO.getDiaSemana());
+        cf.setHoraInicio(claseFijaDTO.getHoraInicio());
+        cf.setHoraFin(claseFijaDTO.getHoraFin());
+        claseFijaRepository.save(cf);
     }
 
     private void validarFechasCursada(LocalDate inicio, LocalDate fin) {
