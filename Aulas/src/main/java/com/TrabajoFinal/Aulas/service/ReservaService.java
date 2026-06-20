@@ -10,6 +10,8 @@ import com.TrabajoFinal.Aulas.model.enums.Horario;
 import com.TrabajoFinal.Aulas.model.enums.Tipo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -89,6 +91,7 @@ public class ReservaService {
     }
 
     public List<Reserva>listarReservas(){
+        finalizarReservasVencidas();
         return reservaRepository.findAll();
     }
     public Reserva listarXId(Integer id){
@@ -105,7 +108,6 @@ public class ReservaService {
                 throw new RuntimeException("No tienes permiso para modificar reservas de una comisión que no dictas.");
             }
         }
-        // If commission is being changed, also validate new commission ownership
         if (!reservaNueva.getId_comision().equals(existente.getComision().getId())) {
             Comision comisionNueva = comisionRepository.findById(reservaNueva.getId_comision())
                     .orElseThrow(() -> new ResourceNotFoundException("Comision", reservaNueva.getId_comision()));
@@ -207,6 +209,9 @@ public class ReservaService {
 
     public void eliminarReserva(Integer id, String emailUsuario, boolean esAdmin){
         Reserva reserva = listarXId(id);
+        if (!reserva.getEstadoReserva().equals(EstadoReserva.FINALIZADA)) {
+            throw new RuntimeException("Solo se pueden eliminar reservas finalizadas.");
+        }
         if (!esAdmin) {
             String emailProfesorReserva = reserva.getComision()
                     .getProfesor().getUsuario().getEmail();
@@ -249,6 +254,17 @@ public class ReservaService {
             throw new RuntimeException(
                 "El horario de la comisión es " + nombreHorario +
                 ". La reserva debe estar dentro de ese rango.");
+        }
+    }
+    @Scheduled(fixedRate = 60000)
+    @Transactional
+    public void finalizarReservasVencidas() {
+        List<Reserva> vencidas = reservaRepository.findReservasVencidas(LocalDate.now(), LocalTime.now());
+
+        vencidas.forEach(reserva -> reserva.setEstadoReserva(EstadoReserva.FINALIZADA));
+
+        if (!vencidas.isEmpty()) {
+            reservaRepository.saveAll(vencidas);
         }
     }
 }
