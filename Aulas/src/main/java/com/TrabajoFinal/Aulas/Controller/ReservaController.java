@@ -26,8 +26,13 @@ public class ReservaController {
         return reservaService.listarPorMateria(id_materia);
     }
     @GetMapping
-    public List<Reserva> Reservas() {
-        return reservaService.listarReservas();
+    public List<Reserva> Reservas(Authentication authentication) {
+        String email = authentication.getName();
+
+        boolean esAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        return reservaService.listarReservas(email, esAdmin);
     }
     @PostMapping
     public Reserva crear(@RequestBody ReservaResponseDTO reserva, Authentication authentication) {
