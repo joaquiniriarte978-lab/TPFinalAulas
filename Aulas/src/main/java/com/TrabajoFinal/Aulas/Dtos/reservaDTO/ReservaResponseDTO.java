@@ -12,4 +12,5 @@ public class ReservaResponseDTO {
     private LocalDate fecha;
     private LocalTime horaInicio;
     private LocalTime horaFin;
+    private Boolean liberarClaseFija;
 }

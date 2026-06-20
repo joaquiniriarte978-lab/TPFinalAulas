@@ -24,6 +24,18 @@ public interface ClaseFijaRepository extends JpaRepository<ClaseFija, Integer> {
                             @Param("horaInicio") LocalTime horaInicio,
                             @Param("horaFin") LocalTime horaFin);
 
+    @Query("SELECT COUNT(cf) > 0 FROM ClaseFija cf " +
+           "WHERE cf.aula.id = :idAula " +
+           "AND cf.diaSemana = :diaSemana " +
+           "AND cf.horaInicio < :horaFin " +
+           "AND cf.horaFin > :horaInicio " +
+           "AND (:excluirClaseFijaId IS NULL OR cf.id <> :excluirClaseFijaId)")
+    boolean existeConflictoExcluyendo(@Param("idAula") Integer idAula,
+                                      @Param("diaSemana") DiaSemana diaSemana,
+                                      @Param("horaInicio") LocalTime horaInicio,
+                                      @Param("horaFin") LocalTime horaFin,
+                                      @Param("excluirClaseFijaId") Integer excluirClaseFijaId);
+
     @Query("""
         SELECT COUNT(cf) > 0 FROM ClaseFija cf
         WHERE cf.comision.profesor.usuario.email = :emailProfesor

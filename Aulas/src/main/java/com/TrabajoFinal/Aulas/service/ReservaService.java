@@ -25,6 +25,7 @@ public class ReservaService {
     private final ComisionRepository comisionRepository;
     private final AulaRepository aulaRepository;
     private final ClaseFijaRepository claseFijaRepository;
+    private final ClaseFijaLiberadaRepository claseFijaLiberadaRepository;
 
     public Reserva hacerReserva(ReservaResponseDTO dto, String emailUsuario, boolean esAdmin){
         Comision comision = comisionRepository.findById(dto.getId_comision())
@@ -74,8 +75,33 @@ public class ReservaService {
         }
 
         DiaSemana diaSemana = toDiaSemana(dto.getFecha().getDayOfWeek());
-        if (claseFijaRepository.existeConflicto(
-                dto.getId_aula(), diaSemana, dto.getHoraInicio(), dto.getHoraFin())) {
+        Integer excluidoClaseFijaId = null;
+        ClaseFija claseFijaDeComision = claseFijaRepository.findByComisionId(dto.getId_comision()).orElse(null);
+        boolean yaLiberada = false;
+        if (claseFijaDeComision != null && claseFijaDeComision.getDiaSemana() == diaSemana) {
+            yaLiberada = claseFijaLiberadaRepository.findByClaseFijaIdAndFecha(
+                    claseFijaDeComision.getId(), dto.getFecha()).isPresent();
+            if (dto.getLiberarClaseFija() != null && dto.getLiberarClaseFija()) {
+                // User wants to liberate the class fixed for this day
+                if (!yaLiberada) {
+                    // Create the liberation record
+                    ClaseFijaLiberada liberacion = new ClaseFijaLiberada();
+                    liberacion.setClaseFija(claseFijaDeComision);
+                    liberacion.setFecha(dto.getFecha());
+                    claseFijaLiberadaRepository.save(liberacion);
+                }
+                excluidoClaseFijaId = claseFijaDeComision.getId();
+            } else if (!yaLiberada) {
+                // Class fixed exists for this day, not liberated, and user did not ask to liberate
+                throw new RuntimeException("CONFIRMACION_LIBERAR_AULA: Esta comisión ya tiene una clase fija hoy. ¿Deseas liberar tu aula fija por este día?");
+            } else {
+                // It is already liberated, so exclude it from conflict check
+                excluidoClaseFijaId = claseFijaDeComision.getId();
+            }
+        }
+        boolean conflictoo = claseFijaRepository.existeConflictoExcluyendo(
+                dto.getId_aula(), diaSemana, dto.getHoraInicio(), dto.getHoraFin(), excluidoClaseFijaId);
+        if (conflictoo) {
             throw new RuntimeException(
                     "El aula tiene una clase fija los " + diaSemana.name().toLowerCase() + " en ese horario.");
         }
@@ -174,8 +200,31 @@ public class ReservaService {
         }
 
         DiaSemana diaSemana = toDiaSemana(reservaNueva.getFecha().getDayOfWeek());
-        if (claseFijaRepository.existeConflicto(
-                reservaNueva.getId_aula(), diaSemana, reservaNueva.getHoraInicio(), reservaNueva.getHoraFin())) {
+        Integer excluidoClaseFijaId = null;
+        ClaseFija claseFijaDeComision = claseFijaRepository.findByComisionId(reservaNueva.getId_comision()).orElse(null);
+        boolean yaLiberada = false;
+        if (claseFijaDeComision != null && claseFijaDeComision.getDiaSemana() == diaSemana) {
+            yaLiberada = claseFijaLiberadaRepository.findByClaseFijaIdAndFecha(
+                    claseFijaDeComision.getId(), reservaNueva.getFecha()).isPresent();
+            if (reservaNueva.getLiberarClaseFija() != null && reservaNueva.getLiberarClaseFija()) {
+                // User wants to liberate the class fixed for this day
+                if (!yaLiberada) {
+                    // Create the liberation record
+                    ClaseFijaLiberada liberacion = new ClaseFijaLiberada();
+                    liberacion.setClaseFija(claseFijaDeComision);
+                    liberacion.setFecha(reservaNueva.getFecha());
+                    claseFijaLiberadaRepository.save(liberacion);
+                }
+                excluidoClaseFijaId = claseFijaDeComision.getId();
+            } else if (!yaLiberada) {
+                throw new RuntimeException("CONFIRMACION_LIBERAR_AULA: Esta comisión ya tiene una clase fija hoy. ¿Deseas liberar tu aula fija por este día?");
+            } else {
+                excluidoClaseFijaId = claseFijaDeComision.getId();
+            }
+        }
+        boolean conflictoo = claseFijaRepository.existeConflictoExcluyendo(
+                reservaNueva.getId_aula(), diaSemana, reservaNueva.getHoraInicio(), reservaNueva.getHoraFin(), excluidoClaseFijaId);
+        if (conflictoo) {
             throw new RuntimeException(
                     "El aula tiene una clase fija los " + diaSemana.name().toLowerCase() + " en ese horario.");
         }
