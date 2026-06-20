@@ -29,7 +29,7 @@ function emptyState(title, sub = '') {
 
 
 const Modal = {
-  show(title, bodyHTML, onConfirm, confirmLabel = 'Guardar', confirmClass = 'btn-primary') {
+  show(title, bodyHTML, onConfirm, confirmLabel = 'Guardar', confirmClass = 'btn-primary', cancelLabel = 'Cancelar') {
     document.getElementById('modal-overlay')?.remove();
     const overlay = document.createElement('div');
     overlay.id = 'modal-overlay';
@@ -42,7 +42,7 @@ const Modal = {
         </div>
         <div class="modal-body">${bodyHTML}</div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" id="modal-cancel">Cancelar</button>
+<button class="btn btn-secondary" id="modal-cancel">${cancelLabel}</button>
           <button class="btn ${confirmClass}" id="modal-confirm">${confirmLabel}</button>
         </div>
       </div>`;
@@ -733,7 +733,33 @@ ${comisiones.map(c => `<option value="${c.id}" data-horario="${c.horario||''}" $
         if (id) await ReservaService.modificar(id, dto); else await ReservaService.crear(dto);
         Toast.success(id?'Reserva actualizada.':'Reserva creada.');
         Modal.hide(); Views.reservas(document.getElementById('page-body'));
-      } catch(e) { Toast.error(e.message); }
+      } catch(e) {
+        if (e.message && e.message.startsWith('CONFIRMACION_LIBERAR_AULA')) {
+          Modal.show(
+              'Conflicto con clase fija',
+              `<p style="color:var(--clr-subtle)">Esta comisión tiene una clase fija registrada para este día.</p>
+   <ul style="margin:14px 0 0 18px;color:var(--clr-subtle);line-height:2">
+     <li><strong>Liberar</strong>: se libera el aula fija por este día y se registra la nueva reserva.</li>
+     <li><strong>Mantener</strong>: no se realiza la nueva reserva; el aula fija queda sin cambios.</li>
+   </ul>`,
+              async () => {
+                dto.liberarClaseFija = true;
+                try {
+                  if (id) await ReservaService.modificar(id, dto); else await ReservaService.crear(dto);
+                  Toast.success(id ? 'Reserva actualizada.' : 'Reserva creada.');
+                  Modal.hide(); Views.reservas(document.getElementById('page-body'));
+                } catch (e2) {
+                  Toast.error(e2.message);
+                }
+              },
+              'Liberar clase fija',
+              'btn-primary',
+              'Mantener clase fija'
+          );
+        } else {
+          Toast.error(e.message);
+        }
+      }
     });
 
     setTimeout(() => {
