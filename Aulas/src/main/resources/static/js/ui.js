@@ -827,14 +827,15 @@ ${comisiones.map(c => `<option value="${c.id}" data-horario="${c.horario||''}" $
       ]);
     } catch(e) { container.innerHTML=`<p style="color:var(--clr-danger)">Error: ${e.message}</p>`; return; }
 
-    if (isProfe) data = data.filter(a => a.estado === 'PENDIENTE');
+const isSoloProfe = isProfe && !isAdmin;
 
+if (isSoloProfe) data = data.filter(a => a.estado === 'PENDIENTE');
     const estadoBadge = { PENDIENTE:'badge-pendiente', RESUELTO:'badge-resuelto', EN_REVISION:'badge-revision' };
 
     container.innerHTML = `
       <div class="page-header">
-        <div class="page-header-text"><h2>Avisos</h2><p>${data.length} avisos ${isProfe ? 'pendientes' : 'registrados'}</p></div>
-        ${isProfe ? `<button class="btn btn-primary" id="btn-nuevo-aviso">+ Nuevo Aviso</button>` : ''}
+        <div class="page-header-text"><h2>Avisos</h2><p>${data.length} avisos ${isSoloProfe ? 'pendientes' : 'registrados'}</p></div>
+        ${isSoloProfe ? `<button class="btn btn-primary" id="btn-nuevo-aviso">+ Nuevo Aviso</button>` : ''}
       </div>
       <div class="filters-bar">
         <div class="search-input-wrap">
@@ -869,8 +870,9 @@ ${comisiones.map(c => `<option value="${c.id}" data-horario="${c.horario||''}" $
           ${isAdmin || isProfe ? `<td class="td-actions">
             ${isProfe ? `<button class="btn btn-secondary btn-sm" onclick="Views._editAviso(${a.id})">Editar</button>` : ''}
             ${isAdmin ? `<button class="btn btn-secondary btn-sm" onclick="Views._editEstadoAviso(${a.id})">Estado</button>` : ''}
-            ${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="Views._deleteAviso(${a.id})">Eliminar</button>` : ''}
-          </td>` : ''}
+${isAdmin && a.estado === 'RESUELTO'
+  ? `<button class="btn btn-danger btn-sm" onclick="Views._deleteAviso(${a.id})">Eliminar</button>`
+  : ''}          </td>` : ''}
         </tr>`).join('');
     };
 
