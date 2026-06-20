@@ -644,7 +644,9 @@ async _editarMiPerfil(u) {
         </div>
         <select class="form-select" id="filter-estado-r" style="width:160px">
           <option value="">Todos los estados</option>
-          <option>RESERVADA</option><option>CANCELADA</option>
+          <option>RESERVADA</option>
+          <option>FINALIZADA</option>
+          <option>CANCELADA</option>
         </select>
       </div>
       <div class="table-wrap">
@@ -670,8 +672,13 @@ async _editarMiPerfil(u) {
           <td><span class="badge ${r.estadoReserva==='RESERVADA'?'badge-resuelto':'badge-pendiente'}">${r.estadoReserva||'—'}</span></td>
           ${isProfe||isAdmin ? `<td class="td-actions">
             ${isProfe&&r.estadoReserva==='RESERVADA'?`<button class="btn btn-danger btn-sm" onclick="Views._cancelarReserva(${r.id})">Cancelar</button>`:''}
-            ${isAdmin?`<button class="btn btn-secondary btn-sm" onclick="Views._editReserva(${r.id})">Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="Views._deleteReserva(${r.id})">Eliminar</button>`:''}
+            ${isAdmin && r.estadoReserva === 'RESERVADA'
+              ? `<button class="btn btn-secondary btn-sm" onclick="Views._editReserva(${r.id})">Editar</button>`
+              : ''}
+
+            ${r.estadoReserva === 'FINALIZADA'
+              ? `<button class="btn btn-danger btn-sm" onclick="Views._deleteReserva(${r.id})">Eliminar</button>`
+              : ''}
           </td>` : ''}
         </tr>`).join('');
     };
