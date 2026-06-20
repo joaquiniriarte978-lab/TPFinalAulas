@@ -1172,29 +1172,47 @@ ${comisiones.map(c => `<option value="${c.id}" data-horario="${c.horario||''}" $
       </div>`;
 
     const render = (rows) => {
-      const tbody = document.getElementById('tbody-comisiones');
-      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="9">${emptyState('Sin comisiones')}</td></tr>`; return; }
-      tbody.innerHTML = rows.map(c => {
-        const cf = c.claseFija;
-        const cfTexto = cf
-          ? `${diasLabel[cf.diaSemana]||cf.diaSemana} ${cf.horaInicio}–${cf.horaFin} · ${cf.aulaNombre}`
-          : '—';
-        return `
-        <tr>
-          <td><code>#${c.id}</code></td>
-          <td><strong>${c.materiaNombre||'—'}</strong></td>
-          <td>${c.profesorNombre||'—'}</td>
-          <td>${c.cantAlumnos||'—'}</td>
-          <td>${c.horario||'—'}</td>
-          <td style="font-size:.8rem">${c.fechaInicio||'—'}</td>
-          <td style="font-size:.8rem">${c.fechaFin||'—'}</td>
-          <td style="font-size:.8rem">${cfTexto}</td>
-          <td class="td-actions">
-            <button class="btn btn-secondary btn-sm" onclick="Views._editComision(${c.id})">Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="Views._deleteComision(${c.id})">Eliminar</button>
-          </td>
-        </tr>`;
-      }).join('');
+        const tbody = document.getElementById('tbody-comisiones');
+        if (!rows.length) { tbody.innerHTML=`<tr><td colspan="9">${emptyState('Sin comisiones')}</td></tr>`; return; }
+
+        const contadorPorMateria = {};
+        rows.forEach(c => {
+            const nombre = c.materiaNombre || '—';
+            contadorPorMateria[nombre] = (contadorPorMateria[nombre] || 0) + 1;
+        });
+
+        const numeroPorMateria = {};
+        const rowsConNumero = rows.map(c => {
+            const nombre = c.materiaNombre || '—';
+            numeroPorMateria[nombre] = (numeroPorMateria[nombre] || 0) + 1;
+            const numero = contadorPorMateria[nombre] > 1 ? numeroPorMateria[nombre] : null;
+            return { ...c, _numero: numero };
+        });
+
+        tbody.innerHTML = rowsConNumero.map(c => {
+            const cf = c.claseFija;
+            const cfTexto = cf
+                ? (diasLabel[cf.diaSemana] || cf.diaSemana) + ' ' + cf.horaInicio + '–' + cf.horaFin + ' · ' + cf.aulaNombre
+                : '—';
+            const nombreMateria = c._numero
+                ? (c.materiaNombre || '—') + ' <span class="badge badge-user">C' + c._numero + '</span>'
+                : (c.materiaNombre || '—');
+            return `
+            <tr>
+              <td><code>#${c.id}</code></td>
+              <td><strong>${nombreMateria}</strong></td>
+              <td>${c.profesorNombre||'—'}</td>
+              <td>${c.cantAlumnos||'—'}</td>
+              <td>${c.horario||'—'}</td>
+              <td style="font-size:.8rem">${c.fechaInicio||'—'}</td>
+              <td style="font-size:.8rem">${c.fechaFin||'—'}</td>
+              <td style="font-size:.8rem">${cfTexto}</td>
+              <td class="td-actions">
+                <button class="btn btn-secondary btn-sm" onclick="Views._editComision(${c.id})">Editar</button>
+                <button class="btn btn-danger btn-sm" onclick="Views._deleteComision(${c.id})">Eliminar</button>
+              </td>
+            </tr>`;
+        }).join('');
     };
 
     render(data);
