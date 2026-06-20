@@ -515,7 +515,6 @@ async _editarMiPerfil(u) {
       if (isAdmin) document.getElementById('btn-nueva-materia').addEventListener('click', () => Views._editMateria(null));
     },
     async _verComisionesMateria(idMateria, nombreMateria) {
-        // 1. Abrimos el modal inmediatamente con un spinner
         Modal.show(`Comisiones - ${nombreMateria}`, `
           <div id="modal-comisiones-body" class="spinner-wrap" style="padding:30px;">
             <div class="spinner"></div>
@@ -523,52 +522,64 @@ async _editarMiPerfil(u) {
         `, null);
 
         try {
-          const session = AuthService.getSession();
-          let nombreProfesorLogueado = null;
-          if (session && session.role === 'PROFESOR') {
-            const perfil = await UsuarioService.miPerfil();
-            nombreProfesorLogueado = perfil.nombre;
-          }
-          const comisiones = await ComisionService.listarPorMateria(idMateria);
-          let comisionesFiltradas = comisiones;
-          if (session && session.role === 'PROFESOR') {
-            comisionesFiltradas = comisiones.filter(c => c.profesorNombre === nombreProfesorLogueado);
-          }
+            const session = AuthService.getSession();
+            let nombreProfesorLogueado = null;
+            if (session && session.role === 'PROFESOR') {
+                const perfil = await UsuarioService.miPerfil();
+                nombreProfesorLogueado = perfil.nombre;
+            }
+            const comisiones = await ComisionService.listarPorMateria(idMateria);
+            let comisionesFiltradas = comisiones;
+            if (session && session.role === 'PROFESOR') {
+                comisionesFiltradas = comisiones.filter(c => c.profesorNombre === nombreProfesorLogueado);
+            }
 
-          const modalBody = document.getElementById('modal-comisiones-body');
-          if (!modalBody) return;
+            const modalBody = document.getElementById('modal-comisiones-body');
+            if (!modalBody) return;
 
-          // 5. Dibujamos la tabla
-          modalBody.className = "table-wrap";
-          modalBody.style = "margin-top: 0; max-height: 350px; overflow-y: auto;";
-          modalBody.innerHTML = `
-            <table>
-              <thead>
-                <tr>
-                  <th>ID Comisión</th>
-                  <th>Profesor Asignado</th>
-                  <th>Cantidad Alumnos</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${comisionesFiltradas.length === 0 ?
-                  `<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--clr-muted);">No se encontraron comisiones para esta materia.</td></tr>` :
-                  comisionesFiltradas.map(com => `
-                    <tr>
-                      <td><code>#${com.id}</code></td>
-                      <td><strong>${com.profesorNombre || '—'}</strong></td>
-                      <td><span class="badge badge-laboratorio">${com.cantAlumnos} alumnos</span></td>
-                    </tr>
-                  `).join('')
-                }
-              </tbody>
-            </table>
-          `;
+            const diasLabel = {
+                LUNES:'Lunes', MARTES:'Martes', MIERCOLES:'Miércoles',
+                JUEVES:'Jueves', VIERNES:'Viernes', SABADO:'Sábado'
+            };
+
+            // Construimos las filas por separado para evitar anidamiento de backticks
+            let filas = '';
+            if (comisionesFiltradas.length === 0) {
+                filas = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--clr-muted);">No se encontraron comisiones para esta materia.</td></tr>';
+            } else {
+                comisionesFiltradas.forEach((com, i) => {
+                    const cf = com.claseFija;
+                    const cfTexto = cf
+                        ? (diasLabel[cf.diaSemana] || cf.diaSemana) + ' ' + cf.horaInicio + '–' + cf.horaFin + ' · ' + cf.aulaNombre
+                        : '—';
+                    filas += '<tr>'
+                        + '<td><strong>Comisión ' + (i + 1) + '</strong></td>'
+                        + '<td>' + (com.profesorNombre || '—') + '</td>'
+                        + '<td><span class="badge badge-laboratorio">' + com.cantAlumnos + ' alumnos</span></td>'
+                        + '<td>' + (com.horario || '—') + '</td>'
+                        + '<td style="font-size:.8rem">' + cfTexto + '</td>'
+                        + '</tr>';
+                });
+            }
+
+            modalBody.className = 'table-wrap';
+            modalBody.style = 'margin-top:0;max-height:350px;overflow-y:auto;';
+            modalBody.innerHTML = '<table>'
+                + '<thead><tr>'
+                + '<th>Comisión</th>'
+                + '<th>Profesor</th>'
+                + '<th>Alumnos</th>'
+                + '<th>Horario</th>'
+                + '<th>Clase Fija</th>'
+                + '</tr></thead>'
+                + '<tbody>' + filas + '</tbody>'
+                + '</table>';
+
         } catch (e) {
-          Modal.hide();
-          Toast.error("Error al obtener las comisiones: " + e.message);
+            Modal.hide();
+            Toast.error('Error al obtener las comisiones: ' + e.message);
         }
-      },
+    },
 
   _materiaForm(m = {}) {
     return `
