@@ -68,6 +68,11 @@ public class AvisoService {
 
     public void borrarAviso(Integer id){
         Aviso borrado = avisoXid(id);
+
+        if (!borrado.getEstado().equals(Estado.RESUELTO)) {
+            throw new RuntimeException("Solo se pueden eliminar avisos resueltos.");
+        }
+
         avisoRepository.delete(borrado);
     }
 
