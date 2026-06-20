@@ -34,6 +34,41 @@ public class ClaseFijaService {
 
         validarHorarioTurno(dto.getHoraInicio(), dto.getHoraFin(), comision.getHorario());
 
+        // ── Verificar conflicto con otras clases fijas en ese aula/día/horario ──
+        boolean hayConflicto = claseFijaRepository.existeConflicto(
+                dto.getId_aula(),
+                dto.getDiaSemana(),
+                dto.getHoraInicio(),
+                dto.getHoraFin()
+        );
+
+        if (hayConflicto) {
+            // Si es una clase fija existente, verificar que el conflicto no sea consigo misma
+            if (cf.getId() == null) {
+                // Es nueva, cualquier conflicto es inválido
+                throw new RuntimeException(
+                        "El aula '" + aula.getNombre() + "' ya tiene una clase fija los " +
+                                dto.getDiaSemana().name().toLowerCase() +
+                                " en ese horario."
+                );
+            } else {
+                // Es una actualización, verificar si el conflicto es con otra clase fija distinta
+                boolean esConsigoMisma =
+                        cf.getAula().getId().equals(dto.getId_aula()) &&
+                                cf.getDiaSemana() == dto.getDiaSemana() &&
+                                cf.getHoraInicio().equals(dto.getHoraInicio()) &&
+                                cf.getHoraFin().equals(dto.getHoraFin());
+
+                if (!esConsigoMisma) {
+                    throw new RuntimeException(
+                            "El aula '" + aula.getNombre() + "' ya tiene una clase fija los " +
+                                    dto.getDiaSemana().name().toLowerCase() +
+                                    " en ese horario."
+                    );
+                }
+            }
+        }
+
         cf.setComision(comision);
         cf.setAula(aula);
         cf.setDiaSemana(dto.getDiaSemana());

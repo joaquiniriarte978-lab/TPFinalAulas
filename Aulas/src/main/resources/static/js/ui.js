@@ -515,7 +515,6 @@ async _editarMiPerfil(u) {
       if (isAdmin) document.getElementById('btn-nueva-materia').addEventListener('click', () => Views._editMateria(null));
     },
     async _verComisionesMateria(idMateria, nombreMateria) {
-        // 1. Abrimos el modal inmediatamente con un spinner
         Modal.show(`Comisiones - ${nombreMateria}`, `
           <div id="modal-comisiones-body" class="spinner-wrap" style="padding:30px;">
             <div class="spinner"></div>
@@ -523,52 +522,64 @@ async _editarMiPerfil(u) {
         `, null);
 
         try {
-          const session = AuthService.getSession();
-          let nombreProfesorLogueado = null;
-          if (session && session.role === 'PROFESOR') {
-            const perfil = await UsuarioService.miPerfil();
-            nombreProfesorLogueado = perfil.nombre;
-          }
-          const comisiones = await ComisionService.listarPorMateria(idMateria);
-          let comisionesFiltradas = comisiones;
-          if (session && session.role === 'PROFESOR') {
-            comisionesFiltradas = comisiones.filter(c => c.profesorNombre === nombreProfesorLogueado);
-          }
+            const session = AuthService.getSession();
+            let nombreProfesorLogueado = null;
+            if (session && session.role === 'PROFESOR') {
+                const perfil = await UsuarioService.miPerfil();
+                nombreProfesorLogueado = perfil.nombre;
+            }
+            const comisiones = await ComisionService.listarPorMateria(idMateria);
+            let comisionesFiltradas = comisiones;
+            if (session && session.role === 'PROFESOR') {
+                comisionesFiltradas = comisiones.filter(c => c.profesorNombre === nombreProfesorLogueado);
+            }
 
-          const modalBody = document.getElementById('modal-comisiones-body');
-          if (!modalBody) return;
+            const modalBody = document.getElementById('modal-comisiones-body');
+            if (!modalBody) return;
 
-          // 5. Dibujamos la tabla
-          modalBody.className = "table-wrap";
-          modalBody.style = "margin-top: 0; max-height: 350px; overflow-y: auto;";
-          modalBody.innerHTML = `
-            <table>
-              <thead>
-                <tr>
-                  <th>ID Comisión</th>
-                  <th>Profesor Asignado</th>
-                  <th>Cantidad Alumnos</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${comisionesFiltradas.length === 0 ?
-                  `<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--clr-muted);">No se encontraron comisiones para esta materia.</td></tr>` :
-                  comisionesFiltradas.map(com => `
-                    <tr>
-                      <td><code>#${com.id}</code></td>
-                      <td><strong>${com.profesorNombre || '—'}</strong></td>
-                      <td><span class="badge badge-laboratorio">${com.cantAlumnos} alumnos</span></td>
-                    </tr>
-                  `).join('')
-                }
-              </tbody>
-            </table>
-          `;
+            const diasLabel = {
+                LUNES:'Lunes', MARTES:'Martes', MIERCOLES:'Miércoles',
+                JUEVES:'Jueves', VIERNES:'Viernes', SABADO:'Sábado'
+            };
+
+            // Construimos las filas por separado para evitar anidamiento de backticks
+            let filas = '';
+            if (comisionesFiltradas.length === 0) {
+                filas = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--clr-muted);">No se encontraron comisiones para esta materia.</td></tr>';
+            } else {
+                comisionesFiltradas.forEach((com, i) => {
+                    const cf = com.claseFija;
+                    const cfTexto = cf
+                        ? (diasLabel[cf.diaSemana] || cf.diaSemana) + ' ' + cf.horaInicio + '–' + cf.horaFin + ' · ' + cf.aulaNombre
+                        : '—';
+                    filas += '<tr>'
+                        + '<td><strong>Comisión ' + (i + 1) + '</strong></td>'
+                        + '<td>' + (com.profesorNombre || '—') + '</td>'
+                        + '<td><span class="badge badge-laboratorio">' + com.cantAlumnos + ' alumnos</span></td>'
+                        + '<td>' + (com.horario || '—') + '</td>'
+                        + '<td style="font-size:.8rem">' + cfTexto + '</td>'
+                        + '</tr>';
+                });
+            }
+
+            modalBody.className = 'table-wrap';
+            modalBody.style = 'margin-top:0;max-height:350px;overflow-y:auto;';
+            modalBody.innerHTML = '<table>'
+                + '<thead><tr>'
+                + '<th>Comisión</th>'
+                + '<th>Profesor</th>'
+                + '<th>Alumnos</th>'
+                + '<th>Horario</th>'
+                + '<th>Clase Fija</th>'
+                + '</tr></thead>'
+                + '<tbody>' + filas + '</tbody>'
+                + '</table>';
+
         } catch (e) {
-          Modal.hide();
-          Toast.error("Error al obtener las comisiones: " + e.message);
+            Modal.hide();
+            Toast.error('Error al obtener las comisiones: ' + e.message);
         }
-      },
+    },
 
   _materiaForm(m = {}) {
     return `
@@ -633,7 +644,9 @@ async _editarMiPerfil(u) {
         </div>
         <select class="form-select" id="filter-estado-r" style="width:160px">
           <option value="">Todos los estados</option>
-          <option>RESERVADA</option><option>CANCELADA</option>
+          <option>RESERVADA</option>
+          <option>FINALIZADA</option>
+          <option>CANCELADA</option>
         </select>
       </div>
       <div class="table-wrap">
@@ -659,8 +672,13 @@ async _editarMiPerfil(u) {
           <td><span class="badge ${r.estadoReserva==='RESERVADA'?'badge-resuelto':'badge-pendiente'}">${r.estadoReserva||'—'}</span></td>
           ${isProfe||isAdmin ? `<td class="td-actions">
             ${isProfe&&r.estadoReserva==='RESERVADA'?`<button class="btn btn-danger btn-sm" onclick="Views._cancelarReserva(${r.id})">Cancelar</button>`:''}
-            ${isAdmin?`<button class="btn btn-secondary btn-sm" onclick="Views._editReserva(${r.id})">Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="Views._deleteReserva(${r.id})">Eliminar</button>`:''}
+            ${isAdmin && r.estadoReserva === 'RESERVADA'
+              ? `<button class="btn btn-secondary btn-sm" onclick="Views._editReserva(${r.id})">Editar</button>`
+              : ''}
+
+            ${r.estadoReserva === 'FINALIZADA'
+              ? `<button class="btn btn-danger btn-sm" onclick="Views._deleteReserva(${r.id})">Eliminar</button>`
+              : ''}
           </td>` : ''}
         </tr>`).join('');
     };
@@ -1187,29 +1205,47 @@ ${comisiones.map(c => `<option value="${c.id}" data-horario="${c.horario||''}" $
       </div>`;
 
     const render = (rows) => {
-      const tbody = document.getElementById('tbody-comisiones');
-      if (!rows.length) { tbody.innerHTML=`<tr><td colspan="9">${emptyState('Sin comisiones')}</td></tr>`; return; }
-      tbody.innerHTML = rows.map(c => {
-        const cf = c.claseFija;
-        const cfTexto = cf
-          ? `${diasLabel[cf.diaSemana]||cf.diaSemana} ${cf.horaInicio}–${cf.horaFin} · ${cf.aulaNombre}`
-          : '—';
-        return `
-        <tr>
-          <td><code>#${c.id}</code></td>
-          <td><strong>${c.materiaNombre||'—'}</strong></td>
-          <td>${c.profesorNombre||'—'}</td>
-          <td>${c.cantAlumnos||'—'}</td>
-          <td>${c.horario||'—'}</td>
-          <td style="font-size:.8rem">${c.fechaInicio||'—'}</td>
-          <td style="font-size:.8rem">${c.fechaFin||'—'}</td>
-          <td style="font-size:.8rem">${cfTexto}</td>
-          <td class="td-actions">
-            <button class="btn btn-secondary btn-sm" onclick="Views._editComision(${c.id})">Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="Views._deleteComision(${c.id})">Eliminar</button>
-          </td>
-        </tr>`;
-      }).join('');
+        const tbody = document.getElementById('tbody-comisiones');
+        if (!rows.length) { tbody.innerHTML=`<tr><td colspan="9">${emptyState('Sin comisiones')}</td></tr>`; return; }
+
+        const contadorPorMateria = {};
+        rows.forEach(c => {
+            const nombre = c.materiaNombre || '—';
+            contadorPorMateria[nombre] = (contadorPorMateria[nombre] || 0) + 1;
+        });
+
+        const numeroPorMateria = {};
+        const rowsConNumero = rows.map(c => {
+            const nombre = c.materiaNombre || '—';
+            numeroPorMateria[nombre] = (numeroPorMateria[nombre] || 0) + 1;
+            const numero = contadorPorMateria[nombre] > 1 ? numeroPorMateria[nombre] : null;
+            return { ...c, _numero: numero };
+        });
+
+        tbody.innerHTML = rowsConNumero.map(c => {
+            const cf = c.claseFija;
+            const cfTexto = cf
+                ? (diasLabel[cf.diaSemana] || cf.diaSemana) + ' ' + cf.horaInicio + '–' + cf.horaFin + ' · ' + cf.aulaNombre
+                : '—';
+            const nombreMateria = c._numero
+                ? (c.materiaNombre || '—') + ' <span class="badge badge-user">C' + c._numero + '</span>'
+                : (c.materiaNombre || '—');
+            return `
+            <tr>
+              <td><code>#${c.id}</code></td>
+              <td><strong>${nombreMateria}</strong></td>
+              <td>${c.profesorNombre||'—'}</td>
+              <td>${c.cantAlumnos||'—'}</td>
+              <td>${c.horario||'—'}</td>
+              <td style="font-size:.8rem">${c.fechaInicio||'—'}</td>
+              <td style="font-size:.8rem">${c.fechaFin||'—'}</td>
+              <td style="font-size:.8rem">${cfTexto}</td>
+              <td class="td-actions">
+                <button class="btn btn-secondary btn-sm" onclick="Views._editComision(${c.id})">Editar</button>
+                <button class="btn btn-danger btn-sm" onclick="Views._deleteComision(${c.id})">Eliminar</button>
+              </td>
+            </tr>`;
+        }).join('');
     };
 
     render(data);
