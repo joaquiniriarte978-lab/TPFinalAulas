@@ -1365,27 +1365,25 @@ ${comisiones.map(c => `<option value="${c.id}" data-horario="${c.horario||''}" $
                    fechaFin,
                };
 
+               // Add claseFija if checked
+               if (cfChecked) {
+                   dto.claseFija = {
+                       id_aula:     parseInt(document.getElementById('f-cf-aula').value),
+                       diaSemana:   document.getElementById('f-cf-dia').value,
+                       horaInicio:  document.getElementById('f-cf-hinicio').value,
+                       horaFin:     document.getElementById('f-cf-hfin').value,
+                   };
+               } else {
+                   dto.claseFija = null;
+               }
+
                try {
-                   let comisionId = id;
+                   let savedComision;
                    if (id) {
-                       await ComisionService.modificar(id, dto);
+                       savedComision = await ComisionService.modificar(id, dto);
                    } else {
-                       const saved = await ComisionService.crear(dto);
-                       comisionId = saved.id;
+                       savedComision = await ComisionService.crear(dto);
                    }
-
-                   if (cfChecked) {
-                       await ClaseFijaService.guardar({
-                           id_comision: comisionId,
-                           id_aula:     parseInt(document.getElementById('f-cf-aula').value),
-                           diaSemana:   document.getElementById('f-cf-dia').value,
-                           horaInicio:  document.getElementById('f-cf-hinicio').value,
-                           horaFin:     document.getElementById('f-cf-hfin').value,
-                       });
-                   } else if (c.claseFija) {
-                       await ClaseFijaService.eliminarPorComision(comisionId);
-                   }
-
                    Toast.success(id ? 'Comisión actualizada.' : 'Comisión creada.');
                    Modal.hide();
                    Views.comision(document.getElementById('page-body'));
