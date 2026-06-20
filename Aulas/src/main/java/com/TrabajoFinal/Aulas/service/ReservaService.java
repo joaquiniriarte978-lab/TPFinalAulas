@@ -92,10 +92,8 @@ public class ReservaService {
                 }
                 excluidoClaseFijaId = claseFijaDeComision.getId();
             } else if (!yaLiberada) {
-                // Class fixed exists for this day, not liberated, and user did not ask to liberate
                 throw new RuntimeException("CONFIRMACION_LIBERAR_AULA: Esta comisión ya tiene una clase fija hoy. ¿Deseas liberar tu aula fija por este día?");
             } else {
-                // It is already liberated, so exclude it from conflict check
                 excluidoClaseFijaId = claseFijaDeComision.getId();
             }
         }
@@ -116,16 +114,28 @@ public class ReservaService {
         return reservaRepository.save(reserva);
     }
 
-    public List<Reserva>listarReservas(){
+    public List<Reserva> listarReservas(String emailUsuario, boolean esAdmin) {
         finalizarReservasVencidas();
-        return reservaRepository.findAll();
+
+        return reservaRepository.findAll().stream()
+                .filter(reserva -> {
+                    if (!reserva.getEstadoReserva().equals(EstadoReserva.FINALIZADA)) {
+                        return true;
+                    }
+
+                    return reserva.getComision()
+                            .getProfesor()
+                            .getUsuario()
+                            .getEmail()
+                            .equals(emailUsuario);
+                })
+                .toList();
     }
     public Reserva listarXId(Integer id){
         return reservaRepository.findById(id)
                 .orElseThrow(()->new ResourceNotFoundException("Reserva", id));
     }
     public Reserva modificarReserva(Integer id, ReservaResponseDTO reservaNueva, String emailUsuario, boolean esAdmin){
-        // First, find existing reservation to check ownership
         Reserva existente = listarXId(id);
         if (!esAdmin) {
             String emailProfesorExistente = existente.getComision()
@@ -207,9 +217,7 @@ public class ReservaService {
             yaLiberada = claseFijaLiberadaRepository.findByClaseFijaIdAndFecha(
                     claseFijaDeComision.getId(), reservaNueva.getFecha()).isPresent();
             if (reservaNueva.getLiberarClaseFija() != null && reservaNueva.getLiberarClaseFija()) {
-                // User wants to liberate the class fixed for this day
                 if (!yaLiberada) {
-                    // Create the liberation record
                     ClaseFijaLiberada liberacion = new ClaseFijaLiberada();
                     liberacion.setClaseFija(claseFijaDeComision);
                     liberacion.setFecha(reservaNueva.getFecha());
