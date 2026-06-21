@@ -86,8 +86,8 @@ cd Aulas
 
 La aplicación queda disponible en `http://localhost:8080`.
 
-El frontend de prueba se sirve automáticamente desde la raíz: `http://localhost:8080/index.html`.
-
+ > _Enlace de Swagger:_
+   > `http://localhost:8080/swagger-ui/index.html`
 ---
 
 ## 5. Estructura general del proyecto
