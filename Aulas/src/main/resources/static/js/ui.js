@@ -683,7 +683,6 @@ async _editarMiPerfil(u) {
                 JUEVES:'Jueves', VIERNES:'Viernes', SABADO:'Sábado'
             };
 
-            // Construimos las filas por separado para evitar anidamiento de backticks
             let filas = '';
             if (comisionesFiltradas.length === 0) {
                 filas = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--clr-muted);">No se encontraron comisiones para esta materia.</td></tr>';
@@ -787,7 +786,6 @@ async _editarMiPerfil(u) {
           <option value="">Todos los estados</option>
           <option>RESERVADA</option>
           <option>FINALIZADA</option>
-          <option>CANCELADA</option>
         </select>
       </div>
       <div class="table-wrap">
@@ -1508,7 +1506,6 @@ ${isAdmin && a.estado === 'RESUELTO'
                    fechaFin,
                };
 
-               // Add claseFija if checked
                if (cfChecked) {
                    dto.claseFija = {
                        id_aula:     parseInt(document.getElementById('f-cf-aula').value),
