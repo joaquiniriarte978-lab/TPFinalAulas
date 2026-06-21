@@ -74,16 +74,20 @@ const App = {
       document.getElementById('user-avatar').textContent = session.username[0].toUpperCase();
       this._applyRoleVisibility(session.role);
     }
-    this.navigate('aulas');
+this.navigate(session?.role === 'ALUMNO' ? 'clases' : 'aulas');
   },
   _applyRoleVisibility(role) {
     const adminOnly  = ['usuarios', 'comision'];
     const profeAndUp = ['reservas', 'avisos'];
+    const alumnoHidden = ['aulas', 'materias'];
+
     document.querySelectorAll('.nav-item[data-section]').forEach(btn => {
       const s = btn.dataset.section;
-      if (adminOnly.includes(s) && role !== 'ADMIN')                btn.style.display = 'none';
-      else if (profeAndUp.includes(s) && role === 'ALUMNO')         btn.style.display = 'none';
-      else                                                           btn.style.display = '';
+
+      if (alumnoHidden.includes(s) && role === 'ALUMNO')       btn.style.display = 'none';
+      else if (adminOnly.includes(s) && role !== 'ADMIN')      btn.style.display = 'none';
+      else if (profeAndUp.includes(s) && role === 'ALUMNO')    btn.style.display = 'none';
+      else                                                     btn.style.display = '';
     });
   },
   fillLogin(user, pass) {
@@ -94,7 +98,7 @@ const App = {
     document.querySelectorAll('.nav-item').forEach(btn =>
       btn.classList.toggle('active', btn.dataset.section === section));
       const titles = {perfil: 'Mi Perfil', aulas:'Aulas', materias:'Materias', reservas:'Reservas',
-          avisos:'Avisos', usuarios:'Usuarios', comision:'Comisiones' };
+          avisos:'Avisos', usuarios:'Usuarios', comision:'Comisiones', clases:'Clases' };
     document.getElementById('topbar-title').textContent = titles[section] || section;
     const body = document.getElementById('page-body');
     switch (section) {
@@ -105,6 +109,7 @@ const App = {
       case 'usuarios': Views.usuarios(body); break;
       case 'comision': Views.comision(body); break;
       case 'perfil': Views.perfil(body); break;
+      case 'clases': Views.clases(body); break;
       default:         body.innerHTML = '<p>Sección no encontrada.</p>';
     }
   },
@@ -159,6 +164,129 @@ const App = {
 
 
 const Views = {
+async clases(container) {
+  setLoading(container);
+
+  const diasLabel = {
+    LUNES: 'Lunes',
+    MARTES: 'Martes',
+    MIERCOLES: 'Miercoles',
+    JUEVES: 'Jueves',
+    VIERNES: 'Viernes',
+    SABADO: 'Sabado'
+  };
+
+  const diasPorIndice = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO'];
+
+  const diaDesdeFecha = (fecha) => {
+    if (!fecha) return '';
+    const date = new Date(`${fecha}T00:00:00`);
+    return Number.isNaN(date.getTime()) ? '' : diasPorIndice[date.getDay()];
+  };
+
+  let comisiones = [];
+  let reservas = [];
+
+  try {
+    comisiones = await ComisionService.listar();
+
+    const materiasIds = [...new Set(
+      comisiones.map(c => c.id_materia || c.materia?.id).filter(Boolean)
+    )];
+
+    const reservasPorMateria = await Promise.all(
+      materiasIds.map(id => ReservaService.listarPorMateria(id))
+    );
+
+    const reservaMap = new Map();
+
+    reservasPorMateria.flat().forEach(r => {
+      const key = r.id || `${r.comision?.id || r.id_comision}-${r.fecha}-${r.horaInicio}-${r.horaFin}-${r.aula?.id || r.id_aula}`;
+      reservaMap.set(key, r);
+    });
+
+    reservas = [...reservaMap.values()];
+  } catch(e) {
+    container.innerHTML = `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
+    return;
+  }
+
+  const clases = [
+    ...comisiones.map(c => {
+      const cf = c.claseFija;
+      return {
+        tipo: 'Comision',
+        materia: c.materiaNombre || '-',
+        profesor: c.profesorNombre || '-',
+        aula: cf?.aulaNombre || '-',
+        dia: cf?.diaSemana || '',
+        fecha: `${c.fechaInicio || '-'} / ${c.fechaFin || '-'}`,
+        horario: cf ? `${cf.horaInicio || '?'} - ${cf.horaFin || '?'}` : (c.horario || '-'),
+        estado: 'Fija'
+      };
+    }),
+    ...reservas.map(r => {
+      const c = r.comision || {};
+      return {
+        tipo: 'Reserva',
+        materia: c.materia?.nombre || c.materiaNombre || '-',
+        profesor: c.profesor?.usuario?.nombre || c.profesorNombre || '-',
+        aula: r.aula?.nombre || '-',
+        dia: diaDesdeFecha(r.fecha),
+        fecha: r.fecha || '-',
+        horario: `${r.horaInicio || '?'} - ${r.horaFin || '?'}`,
+        estado: r.estadoReserva || 'Reservada'
+      };
+    })
+  ];
+
+  container.innerHTML = `
+    <div class="page-header">
+      <div class="page-header-text"><h2>Clases</h2><p>${clases.length} clases entre comisiones y reservas</p></div>
+    </div>
+    <div class="filters-bar">
+      <select class="form-select" id="filter-dia-clases" style="width:190px">
+        <option value="">Todos los dias</option>
+        ${Object.entries(diasLabel).map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Tipo</th><th>Materia</th><th>Profesor</th><th>Aula</th><th>Dia</th><th>Fecha</th><th>Horario</th><th>Estado</th>
+        </tr></thead>
+        <tbody id="tbody-clases"></tbody>
+      </table>
+    </div>`;
+
+  const render = (rows) => {
+    const tbody = document.getElementById('tbody-clases');
+
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="8">${emptyState('Sin clases', 'No hay comisiones ni reservas para ese dia.')}</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rows.map(clase => `
+      <tr>
+        <td><span class="badge ${clase.tipo === 'Reserva' ? 'badge-resuelto' : 'badge-user'}">${clase.tipo}</span></td>
+        <td><strong>${clase.materia}</strong></td>
+        <td>${clase.profesor}</td>
+        <td>${clase.aula}</td>
+        <td>${diasLabel[clase.dia] || '-'}</td>
+        <td style="font-size:.8rem">${clase.fecha}</td>
+        <td><code>${clase.horario}</code></td>
+        <td>${clase.estado}</td>
+      </tr>`).join('');
+  };
+
+  render(clases);
+
+  document.getElementById('filter-dia-clases').addEventListener('change', e => {
+    const dia = e.target.value;
+    render(clases.filter(clase => !dia || clase.dia === dia));
+  });
+},
 
 async _verReservasMateria(idMateria, nombreMateria) {
   const bodyHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
