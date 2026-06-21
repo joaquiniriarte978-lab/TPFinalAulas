@@ -245,6 +245,9 @@ async clases(container) {
       <div class="page-header-text"><h2>Clases</h2><p>${clases.length} clases entre comisiones y reservas</p></div>
     </div>
     <div class="filters-bar">
+      <div class="search-input-wrap">
+        <input class="form-input" id="search-clases" placeholder="Buscar por materia o profesor…">
+      </div>
       <select class="form-select" id="filter-dia-clases" style="width:190px">
         <option value="">Todos los dias</option>
         ${Object.entries(diasLabel).map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}
@@ -282,11 +285,21 @@ async clases(container) {
 
   render(clases);
 
-  document.getElementById('filter-dia-clases').addEventListener('change', e => {
-    const dia = e.target.value;
-    render(clases.filter(clase => !dia || clase.dia === dia));
-  });
-},
+  const aplicarFiltros = () => {
+    const dia = document.getElementById('filter-dia-clases').value;
+    const q   = document.getElementById('search-clases').value.toLowerCase().trim();
+
+    render(clases.filter(clase =>
+      (!dia || clase.dia === dia) &&
+      (!q ||
+        clase.materia.toLowerCase().includes(q) ||
+        clase.profesor.toLowerCase().includes(q))
+    ));
+  };
+
+  document.getElementById('filter-dia-clases').addEventListener('change', aplicarFiltros);
+  document.getElementById('search-clases').addEventListener('input', aplicarFiltros);
+  },
 
 async _verReservasMateria(idMateria, nombreMateria) {
   const bodyHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
