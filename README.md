@@ -133,9 +133,7 @@ Aulas/
 
 ### Esquema de base de datos
 
-El script DDL completo se encuentra en `database/schema.sql`. Resumen de tablas: `usuario`, `aula`, `materia`, `profesor`, `profesor_materias`, `comision`, `clase_fija`, `reserva`, `aviso`. La tabla `clase_fija_liberada` se autogenera vía Hibernate (ver sección 4.2).
-
----
+El script DDL completo se encuentra en `database/schema.sql`. Resumen de tablas: `usuario`, `aula`, `materia`, `profesor`, `profesor_materias`, `comision`, `clase_fija`,`clase_fija_liberada`, `reserva`, `aviso`. 
 
 ## 7. Autenticación y autorización
 
@@ -323,15 +321,13 @@ Los recursos no encontrados devuelven **404 Not Found**:
 ## 9. Aclaraciones importantes para la corrección
 
 
-1. **Tabla `clase_fija_liberada` no está en el DDL manual**: se genera automáticamente por Hibernate (`ddl-auto=update`). Si se ejecuta el proyecto contra una base creada *solo* con el script SQL manual y sin permitir que Hibernate actualice el esquema, esta tabla faltará y las reservas que requieran liberar una clase fija fallarán.
+1. **Nomenclatura de DTOs**: `ReservaResponseDTO` y `ComisionResponseDTO` se utilizan como cuerpo de las requests de creación/modificación (`@RequestBody`), a pesar de su nombre. Fue una decisión que quedó así desde una etapa temprana del desarrollo y no se renombró para no romper la integración ya probada con el frontend.
 
-2. **Nomenclatura de DTOs**: `ReservaResponseDTO` y `ComisionResponseDTO` se utilizan como cuerpo de las requests de creación/modificación (`@RequestBody`), a pesar de su nombre. Fue una decisión que quedó así desde una etapa temprana del desarrollo y no se renombró para no romper la integración ya probada con el frontend.
+2. **Algunos endpoints secundarios no tienen una entrada explícita en `SecurityConfig`** y quedan cubiertos por la regla general `anyRequest().authenticated()` (cualquier usuario autenticado, sin distinción de rol). Esto incluye, entre otros, `DELETE /api/avisos/{id}`, `POST /api/clase-fija` y `PUT /api/reservas/cancelar/{id}`. En la práctica el frontend oculta estas acciones a los roles que no deberían usarlas, pero a nivel de API la restricción no está reforzada del lado del servidor para esos casos puntuales.
 
-3. **Algunos endpoints secundarios no tienen una entrada explícita en `SecurityConfig`** y quedan cubiertos por la regla general `anyRequest().authenticated()` (cualquier usuario autenticado, sin distinción de rol). Esto incluye, entre otros, `DELETE /api/avisos/{id}`, `POST /api/clase-fija` y `PUT /api/reservas/cancelar/{id}`. En la práctica el frontend oculta estas acciones a los roles que no deberían usarlas, pero a nivel de API la restricción no está reforzada del lado del servidor para esos casos puntuales.
+3. **Despliegue**: este proyecto se entrega para ejecución y prueba en entorno local, según las instrucciones de la sección 4. No se realizó despliegue en una plataforma cloud pública.
 
-4. **Despliegue**: este proyecto se entrega para ejecución y prueba en entorno local, según las instrucciones de la sección 4. No se realizó despliegue en una plataforma cloud pública.
-
-5. **Documentación interactiva (Swagger/OpenAPI)**: la dependencia `springdoc-openapi-starter-webmvc-ui` está incluida y los endpoints `/swagger-ui/**` y `/v3/api-docs/**` están habilitados sin autenticación en `SecurityConfig`. Disponible en `http://localhost:8080/swagger-ui/index.html` una vez levantado el proyecto.
+4. **Documentación interactiva (Swagger/OpenAPI)**: la dependencia `springdoc-openapi-starter-webmvc-ui` está incluida y los endpoints `/swagger-ui/**` y `/v3/api-docs/**` están habilitados sin autenticación en `SecurityConfig`. Disponible en `http://localhost:8080/swagger-ui/index.html` una vez levantado el proyecto.
 
    > _Enlace de Swagger:_
    > `http://localhost:8080/swagger-ui/index.html`
