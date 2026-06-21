@@ -11,13 +11,11 @@ import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.Aula;
 import com.TrabajoFinal.Aulas.model.Aviso;
 import com.TrabajoFinal.Aulas.model.Usuario;
-import com.TrabajoFinal.Aulas.model.enums.DiaSemana;
 import com.TrabajoFinal.Aulas.model.enums.Estado;
 import com.TrabajoFinal.Aulas.model.enums.Rol;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -54,7 +52,7 @@ public class AvisoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", 0));
 
         if (usuario.getRol() == Rol.PROFESOR) {
-            validarClaseTerminada(emailUsuario, avisoDto.getId_aula());
+            validarAccesoAula(emailUsuario, avisoDto.getId_aula());
         }
 
         aviso.setAula(aula);
@@ -89,7 +87,7 @@ public class AvisoService {
         }
 
         if (aviso.getUsuario().getRol() == Rol.PROFESOR) {
-            validarClaseTerminada(emailUsuario, dto.getId_aula());
+            validarAccesoAula(emailUsuario, dto.getId_aula());
         }
 
         Aula aula = aulaRepository.findById(dto.getId_aula())
@@ -101,33 +99,19 @@ public class AvisoService {
         return avisoRepository.save(aviso);
     }
 
-    private void validarClaseTerminada(String emailProfesor, Integer idAula) {
+    private void validarAccesoAula(String emailProfesor, Integer idAula) {
         LocalDate hoy = LocalDate.now();
         LocalTime ahora = LocalTime.now();
 
         boolean tuvoReserva = reservaRepository.existeReservaTerminadaEnAula(emailProfesor, idAula, hoy, ahora);
         if (tuvoReserva) return;
 
-        DiaSemana diaHoy = toDiaSemana(hoy.getDayOfWeek());
-        boolean tuvoClaseFija = diaHoy != null &&
-                claseFijaRepository.existeClaseFijaTerminadaHoy(emailProfesor, idAula, diaHoy, hoy, ahora);
-        if (tuvoClaseFija) return;
+        boolean tieneClaseFija = claseFijaRepository.tieneClaseFijaActiva(emailProfesor, idAula, hoy);
+        if (tieneClaseFija) return;
 
         throw new RuntimeException(
-            "Solo podés hacer un aviso de un aula en la que hayas dado clase y cuya clase ya haya terminado."
+            "Solo podés hacer un aviso de un aula en la que tengas clase fija asignada o en la que hayas tenido una reserva."
         );
-    }
-
-    private DiaSemana toDiaSemana(DayOfWeek dow) {
-        return switch (dow) {
-            case MONDAY    -> DiaSemana.LUNES;
-            case TUESDAY   -> DiaSemana.MARTES;
-            case WEDNESDAY -> DiaSemana.MIERCOLES;
-            case THURSDAY  -> DiaSemana.JUEVES;
-            case FRIDAY    -> DiaSemana.VIERNES;
-            case SATURDAY  -> DiaSemana.SABADO;
-            default        -> null;
-        };
     }
 }
 

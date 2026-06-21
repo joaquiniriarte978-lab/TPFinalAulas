@@ -52,4 +52,17 @@ public interface ClaseFijaRepository extends JpaRepository<ClaseFija, Integer> {
             @Param("hoy")           LocalDate hoy,
             @Param("ahora")         LocalTime ahora
     );
+
+    @Query("""
+        SELECT COUNT(cf) > 0 FROM ClaseFija cf
+        WHERE cf.comision.profesor.usuario.email = :emailProfesor
+          AND cf.aula.id = :idAula
+          AND cf.comision.fechaInicio <= :hoy
+          AND cf.comision.fechaFin >= :hoy
+    """)
+    boolean tieneClaseFijaActiva(
+            @Param("emailProfesor") String emailProfesor,
+            @Param("idAula")        Integer idAula,
+            @Param("hoy")           LocalDate hoy
+    );
 }
