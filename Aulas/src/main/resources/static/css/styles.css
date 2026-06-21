@@ -508,6 +508,66 @@ tbody td { padding: 12px 16px; color: var(--clr-text); vertical-align: middle; }
 }
 
 
+.view-toggle {
+  display: flex;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.view-toggle button {
+  padding: 7px 16px;
+  font-size: .82rem; font-weight: 600;
+  background: #fff; border: none; cursor: pointer;
+  color: var(--clr-muted); font-family: var(--font-body);
+  transition: all var(--transition);
+}
+.view-toggle button.active { background: var(--clr-accent); color: #fff; }
+.view-toggle button:not(:last-child) { border-right: 1px solid var(--clr-border); }
+
+.clases-calendar {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.cal-day-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.cal-day-header {
+  background: var(--clr-surface2);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px; text-align: center;
+  font-size: .72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--clr-muted);
+}
+.cal-day-header.today {
+  background: rgba(29,78,216,.08);
+  border-color: var(--clr-accent);
+  color: var(--clr-accent);
+}
+.cal-clase-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px; cursor: pointer;
+  transition: all var(--transition);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.cal-clase-card:hover { border-color: var(--clr-accent); transform: translateY(-1px); box-shadow: var(--shadow-glow); }
+.cal-clase-card.tipo-fija    { border-left: 3px solid var(--clr-accent); }
+.cal-clase-card.tipo-reserva { border-left: 3px solid var(--clr-success); }
+.cal-card-materia { font-weight: 700; font-size: .82rem; color: var(--clr-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-card-info    { font-size: .73rem; color: var(--clr-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-card-horario { font-family: var(--font-mono); font-size: .7rem; color: var(--clr-subtle); }
+.cal-day-empty {
+  min-height: 60px; border: 2px dashed var(--clr-border);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--clr-muted); font-size: .75rem;
+}
+@media (max-width: 1100px) { .clases-calendar { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px)  { .clases-calendar { grid-template-columns: repeat(2, 1fr); } }
+
 .avisos-board {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

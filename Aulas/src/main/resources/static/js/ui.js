@@ -168,43 +168,30 @@ async clases(container) {
   setLoading(container);
 
   const diasLabel = {
-    LUNES: 'Lunes',
-    MARTES: 'Martes',
-    MIERCOLES: 'Miercoles',
-    JUEVES: 'Jueves',
-    VIERNES: 'Viernes',
-    SABADO: 'Sabado'
+    LUNES: 'Lunes', MARTES: 'Martes', MIERCOLES: 'Miércoles',
+    JUEVES: 'Jueves', VIERNES: 'Viernes', SABADO: 'Sábado'
   };
-
-  const diasPorIndice = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO'];
+  const diasSemana    = ['LUNES','MARTES','MIERCOLES','JUEVES','VIERNES','SABADO'];
+  const diasPorIndice = [null,'LUNES','MARTES','MIERCOLES','JUEVES','VIERNES','SABADO'];
+  const diasJS        = diasPorIndice;
 
   const diaDesdeFecha = (fecha) => {
     if (!fecha) return '';
     const date = new Date(`${fecha}T00:00:00`);
-    return Number.isNaN(date.getTime()) ? '' : diasPorIndice[date.getDay()];
+    return Number.isNaN(date.getTime()) ? '' : (diasPorIndice[date.getDay()] || '');
   };
 
-  let comisiones = [];
-  let reservas = [];
+  let comisiones = [], reservas = [];
 
   try {
     comisiones = await ComisionService.listar();
-
-    const materiasIds = [...new Set(
-      comisiones.map(c => c.id_materia || c.materia?.id).filter(Boolean)
-    )];
-
-    const reservasPorMateria = await Promise.all(
-      materiasIds.map(id => ReservaService.listarPorMateria(id))
-    );
-
+    const materiasIds = [...new Set(comisiones.map(c => c.id_materia || c.materia?.id).filter(Boolean))];
+    const reservasPorMateria = await Promise.all(materiasIds.map(id => ReservaService.listarPorMateria(id)));
     const reservaMap = new Map();
-
     reservasPorMateria.flat().forEach(r => {
       const key = r.id || `${r.comision?.id || r.id_comision}-${r.fecha}-${r.horaInicio}-${r.horaFin}-${r.aula?.id || r.id_aula}`;
       reservaMap.set(key, r);
     });
-
     reservas = [...reservaMap.values()];
   } catch(e) {
     container.innerHTML = `<p style="color:var(--clr-danger)">Error: ${e.message}</p>`;
@@ -215,7 +202,7 @@ async clases(container) {
     ...comisiones.map(c => {
       const cf = c.claseFija;
       return {
-        tipo: 'Comision',
+        tipo: 'Fija',
         materia: c.materiaNombre || '-',
         profesor: c.profesorNombre || '-',
         aula: cf?.aulaNombre || '-',
@@ -240,37 +227,12 @@ async clases(container) {
     })
   ];
 
-  container.innerHTML = `
-    <div class="page-header">
-      <div class="page-header-text"><h2>Clases</h2><p>${clases.length} clases entre comisiones y reservas</p></div>
-    </div>
-    <div class="filters-bar">
-      <div class="search-input-wrap">
-        <input class="form-input" id="search-clases" placeholder="Buscar por materia o profesor…">
-      </div>
-      <select class="form-select" id="filter-dia-clases" style="width:190px">
-        <option value="">Todos los dias</option>
-        ${Object.entries(diasLabel).map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}
-      </select>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th>Tipo</th><th>Materia</th><th>Profesor</th><th>Aula</th><th>Dia</th><th>Fecha</th><th>Horario</th><th>Estado</th>
-        </tr></thead>
-        <tbody id="tbody-clases"></tbody>
-      </table>
-    </div>`;
+  Views._clasesCache = clases;
+  const diaHoy = diasJS[new Date().getDay()] || null;
 
-  const render = (rows) => {
-    const tbody = document.getElementById('tbody-clases');
-
-    if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="8">${emptyState('Sin clases', 'No hay comisiones ni reservas para ese dia.')}</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = rows.map(clase => `
+  const renderTablaRows = (rows) => {
+    if (!rows.length) return `<tr><td colspan="8">${emptyState('Sin clases','No hay comisiones ni reservas para ese día.')}</td></tr>`;
+    return rows.map(clase => `
       <tr>
         <td><span class="badge ${clase.tipo === 'Reserva' ? 'badge-resuelto' : 'badge-user'}">${clase.tipo}</span></td>
         <td><strong>${clase.materia}</strong></td>
@@ -283,23 +245,131 @@ async clases(container) {
       </tr>`).join('');
   };
 
-  render(clases);
+  const aulasUnicas = [...new Set(clases.map(c => c.aula).filter(a => a && a !== '-'))].sort();
 
-  const aplicarFiltros = () => {
-    const dia = document.getElementById('filter-dia-clases').value;
-    const q   = document.getElementById('search-clases').value.toLowerCase().trim();
-
-    render(clases.filter(clase =>
-      (!dia || clase.dia === dia) &&
-      (!q ||
-        clase.materia.toLowerCase().includes(q) ||
-        clase.profesor.toLowerCase().includes(q))
-    ));
+  const renderCalendar = (rows) => {
+    const indexados = rows.map((c, i) => ({...c, _idx: clases.indexOf(c)}));
+    return `
+      <div class="clases-calendar">
+        ${diasSemana.map(dia => {
+          const clasesDelDia = indexados.filter(c => c.dia === dia);
+          return `
+            <div class="cal-day-col">
+              <div class="cal-day-header ${dia === diaHoy ? 'today' : ''}">${diasLabel[dia]}</div>
+              ${clasesDelDia.length
+                ? clasesDelDia.map(c => `
+                    <div class="cal-clase-card tipo-${c.tipo.toLowerCase()}" onclick="Views._detalleClase(${c._idx})">
+                      <div class="cal-card-materia">${c.materia}</div>
+                      <div class="cal-card-info">${c.profesor}</div>
+                      <div class="cal-card-info">${c.aula}</div>
+                      <div class="cal-card-horario">${c.horario}</div>
+                      <span class="badge ${c.tipo === 'Fija' ? 'badge-user' : 'badge-resuelto'}">${c.tipo}</span>
+                    </div>`).join('')
+                : '<div class="cal-day-empty">Sin clases</div>'
+              }
+            </div>`;
+        }).join('')}
+      </div>`;
   };
 
-  document.getElementById('filter-dia-clases').addEventListener('change', aplicarFiltros);
-  document.getElementById('search-clases').addEventListener('input', aplicarFiltros);
-  },
+  container.innerHTML = `
+    <div class="page-header">
+      <div class="page-header-text"><h2>Clases</h2><p>${clases.length} clases entre comisiones y reservas</p></div>
+      <div class="view-toggle">
+        <button id="btn-vista-tabla" class="active">Tabla</button>
+        <button id="btn-vista-calendario">Calendario</button>
+      </div>
+    </div>
+    <div class="filters-bar" id="filtros-clases">
+      <div class="search-input-wrap">
+        <input class="form-input" id="search-clases" placeholder="Buscar por materia o profesor…">
+      </div>
+      <select class="form-select" id="filter-dia-clases" style="width:190px">
+        <option value="">Todos los días</option>
+        ${Object.entries(diasLabel).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
+      </select>
+    </div>
+    <div class="filters-bar" id="filtros-calendario" style="display:none">
+      <select class="form-select" id="filter-aula-cal" style="width:220px">
+        <option value="">Todas las aulas</option>
+        ${aulasUnicas.map(a => `<option value="${a}">${a}</option>`).join('')}
+      </select>
+    </div>
+    <div id="vista-tabla-wrap">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Tipo</th><th>Materia</th><th>Profesor</th><th>Aula</th><th>Día</th><th>Fecha</th><th>Horario</th><th>Estado</th>
+          </tr></thead>
+          <tbody id="tbody-clases">${renderTablaRows(clases)}</tbody>
+        </table>
+      </div>
+    </div>
+    <div id="vista-calendario-wrap" style="display:none">${renderCalendar(clases)}</div>`;
+
+  const aplicarFiltrosTabla = () => {
+    const dia = document.getElementById('filter-dia-clases').value;
+    const q   = document.getElementById('search-clases').value.toLowerCase().trim();
+    document.getElementById('tbody-clases').innerHTML = renderTablaRows(
+      clases.filter(c =>
+        (!dia || c.dia === dia) &&
+        (!q || c.materia.toLowerCase().includes(q) || c.profesor.toLowerCase().includes(q))
+      )
+    );
+  };
+
+  const aplicarFiltroCalendario = () => {
+    const aula = document.getElementById('filter-aula-cal').value;
+    const rows = aula ? clases.filter(c => c.aula === aula) : clases;
+    document.getElementById('vista-calendario-wrap').innerHTML = renderCalendar(rows);
+  };
+
+  document.getElementById('filter-dia-clases').addEventListener('change', aplicarFiltrosTabla);
+  document.getElementById('search-clases').addEventListener('input', aplicarFiltrosTabla);
+  document.getElementById('filter-aula-cal').addEventListener('change', aplicarFiltroCalendario);
+
+  document.getElementById('btn-vista-tabla').addEventListener('click', () => {
+    document.getElementById('vista-tabla-wrap').style.display      = '';
+    document.getElementById('vista-calendario-wrap').style.display = 'none';
+    document.getElementById('filtros-clases').style.display        = '';
+    document.getElementById('filtros-calendario').style.display    = 'none';
+    document.getElementById('btn-vista-tabla').classList.add('active');
+    document.getElementById('btn-vista-calendario').classList.remove('active');
+  });
+  document.getElementById('btn-vista-calendario').addEventListener('click', () => {
+    document.getElementById('vista-tabla-wrap').style.display      = 'none';
+    document.getElementById('vista-calendario-wrap').style.display = '';
+    document.getElementById('filtros-clases').style.display        = 'none';
+    document.getElementById('filtros-calendario').style.display    = '';
+    document.getElementById('btn-vista-tabla').classList.remove('active');
+    document.getElementById('btn-vista-calendario').classList.add('active');
+  });
+},
+
+_clasesCache: [],
+
+_detalleClase(idx) {
+  const c = Views._clasesCache[idx];
+  if (!c) return;
+  const diasLabel = { LUNES:'Lunes', MARTES:'Martes', MIERCOLES:'Miércoles', JUEVES:'Jueves', VIERNES:'Viernes', SABADO:'Sábado' };
+  Modal.show(
+    c.materia,
+    `<div style="display:flex;flex-direction:column;gap:14px">
+      <div><span class="form-label">Tipo</span><br>
+        <span class="badge ${c.tipo === 'Fija' ? 'badge-user' : 'badge-resuelto'}" style="margin-top:4px">${c.tipo}</span>
+      </div>
+      <div><span class="form-label">Profesor</span><p style="color:var(--clr-text);margin:4px 0 0">${c.profesor}</p></div>
+      <div><span class="form-label">Aula</span><p style="color:var(--clr-text);margin:4px 0 0">${c.aula}</p></div>
+      <div><span class="form-label">Día</span><p style="color:var(--clr-text);margin:4px 0 0">${diasLabel[c.dia] || c.dia || '-'}</p></div>
+      <div><span class="form-label">Fecha</span><p style="color:var(--clr-text);margin:4px 0 0">${c.fecha}</p></div>
+      <div><span class="form-label">Horario</span><br><code style="margin-top:4px;display:inline-block">${c.horario}</code></div>
+      <div><span class="form-label">Estado</span><p style="color:var(--clr-text);margin:4px 0 0">${c.estado}</p></div>
+    </div>`,
+    () => Modal.hide(), 'Cerrar', 'btn-secondary'
+  );
+  const confirmBtn = document.getElementById('modal-confirm');
+  if (confirmBtn) confirmBtn.style.display = 'none';
+},
 
 async _verReservasMateria(idMateria, nombreMateria) {
   const bodyHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
