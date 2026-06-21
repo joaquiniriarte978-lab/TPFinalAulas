@@ -244,21 +244,17 @@ public class ReservaService {
         reservaVieja.setAula(aula);
         return reservaRepository.save(reservaVieja);
     }
-    public Reserva cancelarReserva(Integer id, String emailUsuario, boolean esAdmin) {
+    public void cancelarReserva(Integer id, String emailUsuario, boolean esAdmin) {
         Reserva reserva = listarXId(id);
-
         if (!esAdmin) {
             String emailProfesorReserva = reserva.getComision()
                     .getProfesor().getUsuario().getEmail();
-
             if (!emailProfesorReserva.equals(emailUsuario)) {
                 throw new RuntimeException("No tenés permiso para cancelar esta reserva.");
             }
         }
-
         if (reserva.getEstadoReserva().equals(EstadoReserva.RESERVADA)) {
-            reserva.setEstadoReserva(EstadoReserva.CANCELADA);
-            return reservaRepository.save(reserva);
+            reservaRepository.delete(reserva);
         } else {
             throw new RuntimeException("La reserva no está reservada.");
         }

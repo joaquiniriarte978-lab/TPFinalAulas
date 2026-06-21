@@ -126,7 +126,7 @@ public class AvisoService {
             case THURSDAY  -> DiaSemana.JUEVES;
             case FRIDAY    -> DiaSemana.VIERNES;
             case SATURDAY  -> DiaSemana.SABADO;
-            default        -> null; // domingo: sin clases
+            default        -> null;
         };
     }
 }

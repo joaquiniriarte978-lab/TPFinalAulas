@@ -61,10 +61,10 @@ public class ReservaController {
     }
     @PutMapping("/cancelar/{id_reserva}")
     @ResponseStatus(HttpStatus.OK)
-    public Reserva cancelar(@PathVariable Integer id_reserva, Authentication authentication) {
+    public void cancelar(@PathVariable Integer id_reserva, Authentication authentication) {
         String email = authentication.getName();
         boolean esAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        return reservaService.cancelarReserva(id_reserva, email, esAdmin);
+        reservaService.cancelarReserva(id_reserva, email, esAdmin);
     }
 }

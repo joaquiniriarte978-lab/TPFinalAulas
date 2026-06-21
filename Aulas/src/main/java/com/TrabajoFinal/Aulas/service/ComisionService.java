@@ -83,16 +83,13 @@ public class ComisionService {
 
     private void procesarClaseFija(ClaseFijaDTO claseFijaDTO, Integer comisionId) {
         if (claseFijaDTO == null) {
-            // No clase fija desired: delete any existing
             claseFijaRepository.findByComisionId(comisionId).ifPresent(claseFijaRepository::delete);
             return;
         }
 
-        // There is a clase fija to save/update
         ClaseFija cf = claseFijaRepository.findByComisionId(comisionId)
                 .orElse(new ClaseFija());
 
-        // Set comision (ensures the FK)
         Comision comision = comisionRepository.findById(comisionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comision", comisionId));
         cf.setComision(comision);
@@ -101,8 +98,7 @@ public class ComisionService {
         Aula aula = aulaRepository.findById(claseFijaDTO.getId_aula())
                 .orElseThrow(() -> new ResourceNotFoundException("Aula", claseFijaDTO.getId_aula()));
 
-        cf.setAula(aula); // Asignar el objeto Aula completo en lugar del ID
-        // ---------------------
+        cf.setAula(aula);
 
         cf.setDiaSemana(claseFijaDTO.getDiaSemana());
         cf.setHoraInicio(claseFijaDTO.getHoraInicio());

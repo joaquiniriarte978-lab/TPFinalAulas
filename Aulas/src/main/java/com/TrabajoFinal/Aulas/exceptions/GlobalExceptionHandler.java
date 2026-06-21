@@ -11,7 +11,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> manejarValidaciones(MethodArgumentNotValidException ex) {
-        // Obtenemos solo el primer mensaje de error para mostrar un Toast limpio en el frontend
         String errorMsg = ex.getBindingResult().getFieldErrors().stream()
                 .map(err -> err.getDefaultMessage())
                 .findFirst()

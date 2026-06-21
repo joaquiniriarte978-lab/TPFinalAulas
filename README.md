@@ -214,7 +214,7 @@ El sistema incluye tres usuarios hardcodeados en `CustomUserDetailsService`, pen
 **`POST /api/aulas`** — Crea un aula (ADMIN).
 
 ```json
-// Request
+
 {
   "nombre": "Laboratorio 2",
   "capacidad": 25,
@@ -228,7 +228,6 @@ El sistema incluye tres usuarios hardcodeados en `CustomUserDetailsService`, pen
 **`POST /api/comision`** — Crea una comisión, opcionalmente con clase fija (ADMIN).
 
 ```json
-// Request
 {
   "id_profesor": 3,
   "id_materia": 2,
@@ -252,7 +251,6 @@ El sistema incluye tres usuarios hardcodeados en `CustomUserDetailsService`, pen
 **`POST /api/reservas`** — Crea una reserva esporádica (PROFESOR, dueño de la comisión).
 
 ```json
-// Request
 {
   "id_comision": 4,
   "id_aula": 2,
@@ -272,7 +270,6 @@ Si la comisión ya tiene una clase fija ese mismo día y aún no fue liberada, l
 **`POST /api/avisos`** — Reporta un aviso sobre un aula (PROFESOR). Solo se permite si el profesor dictó una clase (reserva o clase fija) en esa aula.
 
 ```json
-// Request
 {
   "id_aula": 1,
   "mensaje": "El proyector no enciende"
@@ -282,7 +279,6 @@ Si la comisión ya tiene una clase fija ese mismo día y aún no fue liberada, l
 **`PUT /api/avisos/{id}/estado`** — Cambia el estado de un aviso (ADMIN).
 
 ```json
-// Request
 { "estado": "EN_REVISION" }
 ```
 
@@ -293,7 +289,6 @@ Si la comisión ya tiene una clase fija ese mismo día y aún no fue liberada, l
 **`POST /api/usuarios`** — Crea un usuario (ADMIN). Si el rol es `PROFESOR`, debe incluir `materiasIds`.
 
 ```json
-// Request
 {
   "nombre": "Ana Pérez",
   "email": "ana.perez@uni.edu",
