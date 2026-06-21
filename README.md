@@ -79,10 +79,8 @@ spring.jpa.properties.hibernate.format_sql=true
 
 ### 4.4. Levantar el proyecto
 
-```bash
-cd Aulas
-./mvnw spring-boot:run
-```
+Presionar **"Run"** (▶️).
+
 
 La aplicación queda disponible en `http://localhost:8080`.
 
