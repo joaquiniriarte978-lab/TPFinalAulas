@@ -25,6 +25,8 @@ public class Reserva {
     @JoinColumn(name = "id_aula")
     private Aula aula;
 
+
+
     private LocalDate fecha;
     @Column(name = "hora_inicio")
     private LocalTime horaInicio;

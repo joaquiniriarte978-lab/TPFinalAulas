@@ -65,6 +65,8 @@ public class ClaseFijaService {
             }
         }
 
+
+
         cf.setComision(comision);
         cf.setAula(aula);
         cf.setDiaSemana(dto.getDiaSemana());
