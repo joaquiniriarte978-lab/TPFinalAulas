@@ -181,6 +181,33 @@ async clases(container) {
     return Number.isNaN(date.getTime()) ? '' : (diasPorIndice[date.getDay()] || '');
   };
 
+  const hoyDate = new Date();
+  hoyDate.setHours(0, 0, 0, 0);
+  const idxHoy = hoyDate.getDay();
+  const corrimientoALunes = idxHoy === 0 ? -6 : 1 - idxHoy;
+  const inicioSemana = new Date(hoyDate);
+  inicioSemana.setDate(hoyDate.getDate() + corrimientoALunes);
+  const finSemana = new Date(inicioSemana);
+  finSemana.setDate(inicioSemana.getDate() + 5);
+
+  const parseFecha = (f) => {
+    if (!f) return null;
+    const d = new Date(`${f}T00:00:00`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  };
+
+
+  const fijaEnEstaSemana = (c) => {
+    const fi = parseFecha(c.fechaInicio);
+    const ff = parseFecha(c.fechaFin);
+    return !!fi && !!ff && fi <= finSemana && ff >= inicioSemana;
+  };
+
+  const reservaEnEstaSemana = (r) => {
+    const f = parseFecha(r.fecha);
+    return !!f && f >= inicioSemana && f <= finSemana;
+  };
+
   let comisiones = [], reservas = [];
 
   try {
@@ -209,7 +236,8 @@ async clases(container) {
         dia: cf?.diaSemana || '',
         fecha: `${c.fechaInicio || '-'} / ${c.fechaFin || '-'}`,
         horario: cf ? `${cf.horaInicio || '?'} - ${cf.horaFin || '?'}` : (c.horario || '-'),
-        estado: 'Fija'
+        estado: 'Fija',
+        _enEstaSemana: !!cf && fijaEnEstaSemana(c)
       };
     }),
     ...reservas.map(r => {
@@ -222,7 +250,8 @@ async clases(container) {
         dia: diaDesdeFecha(r.fecha),
         fecha: r.fecha || '-',
         horario: `${r.horaInicio || '?'} - ${r.horaFin || '?'}`,
-        estado: r.estadoReserva || 'Reservada'
+        estado: r.estadoReserva || 'Reservada',
+        _enEstaSemana: reservaEnEstaSemana(r)
       };
     })
   ];
@@ -248,11 +277,13 @@ async clases(container) {
   const aulasUnicas = [...new Set(clases.map(c => c.aula).filter(a => a && a !== '-'))].sort();
 
   const renderCalendar = (rows) => {
-    const indexados = rows.map((c, i) => ({...c, _idx: clases.indexOf(c)}));
+    const rowsSemana = rows.filter(c => c._enEstaSemana);
+    const indexados = rowsSemana.map((c, i) => ({...c, _idx: clases.indexOf(c)}));
     return `
       <div class="clases-calendar">
         ${diasSemana.map(dia => {
           const clasesDelDia = indexados.filter(c => c.dia === dia);
+          ...
           return `
             <div class="cal-day-col">
               <div class="cal-day-header ${dia === diaHoy ? 'today' : ''}">${diasLabel[dia]}</div>
