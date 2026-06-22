@@ -1,5 +1,3 @@
-
-
 CREATE DATABASE IF NOT EXISTS gestion_aulas
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
@@ -7,11 +5,11 @@ CREATE DATABASE IF NOT EXISTS gestion_aulas
 USE gestion_aulas;
 
 CREATE TABLE IF NOT EXISTS usuario (
-    id          INT          AUTO_INCREMENT PRIMARY KEY,
-    nombre      VARCHAR(20)  NOT NULL,
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    nombre      VARCHAR(100) NOT NULL,
     email       VARCHAR(255) NOT NULL UNIQUE,
     contrasenia VARCHAR(255) NOT NULL,
-    rol         VARCHAR(20)
+    rol         ENUM('PROFESOR', 'ALUMNO', 'ADMIN') NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS aula (
@@ -94,4 +92,3 @@ CREATE TABLE IF NOT EXISTS aviso (
     CONSTRAINT fk_aviso_aula    FOREIGN KEY (id_aula)    REFERENCES aula(id) ON DELETE CASCADE,
     CONSTRAINT fk_aviso_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON DELETE CASCADE
 );
-
