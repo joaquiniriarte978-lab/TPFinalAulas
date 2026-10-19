@@ -1,0 +1,213 @@
+<div class="page-heading">
+  <div>
+    <h1>Aulas</h1>
+    @if (!data.loading() && !data.error()) {
+      <p>{{ data.items().length }} espacios registrados</p>
+    }
+  </div>
+  @if (auth.isAdmin()) {
+    <button class="button primary" (click)="open()">
+      <span aria-hidden="true">＋</span> Nueva aula
+    </button>
+  }
+</div>
+@if (state.success()) {
+  <div class="success" role="status">{{ state.success() }}</div>
+}
+<section class="panel" aria-label="Listado de aulas">
+  <div class="filters aula-filters">
+    <label
+      >Buscar aula<input
+        type="search"
+        placeholder="Nombre del aula…"
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event)" /></label
+    ><label
+      >Tipo de espacio<select [ngModel]="tipo()" (ngModelChange)="tipo.set($event)">
+        <option value="">Todos los tipos</option>
+        @for (t of tipos; track t.value) {
+          <option [value]="t.value">{{ t.label }}</option>
+        }
+      </select></label
+    ><label
+      >Capacidad mínima<input
+        type="number"
+        min="1"
+        max="100"
+        placeholder="Personas"
+        [ngModel]="capacidad()"
+        (ngModelChange)="capacidad.set($event)" /></label
+    ><label
+      >Equipamiento<input
+        type="search"
+        placeholder="Proyector, PC…"
+        [ngModel]="equipamiento()"
+        (ngModelChange)="equipamiento.set($event)" /></label
+    ><button class="button subtle filter-clear" (click)="clear()">Limpiar</button>
+  </div>
+  @if (data.loading()) {
+    <div class="empty-state" role="status">
+      <span class="spinner"></span>
+      <p>Cargando aulas…</p>
+    </div>
+  } @else if (data.error()) {
+    <div class="empty-state">
+      <p class="alert" role="alert">{{ data.error() }}</p>
+      <button class="button secondary" (click)="data.load()">Reintentar</button>
+    </div>
+  } @else if (!filtered().length) {
+    <div class="empty-state">
+      <h3>{{ data.items().length ? 'No hay aulas que coincidan' : 'Todavía no hay aulas' }}</h3>
+      <p>
+        {{
+          data.items().length
+            ? 'Probá con otros filtros para encontrar un espacio.'
+            : 'Las aulas registradas aparecerán en esta sección.'
+        }}
+      </p>
+      @if (data.items().length) {
+        <button class="button secondary" (click)="clear()">Limpiar filtros</button>
+      } @else if (auth.isAdmin()) {
+        <button class="button primary" (click)="open()">Crear primera aula</button>
+      }
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Capacidad</th>
+            <th scope="col">Equipamiento</th>
+            @if (auth.isAdmin()) {
+              <th scope="col" class="align-right">Acciones</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (aula of filtered(); track aula.id) {
+            <tr>
+              <td>
+                <code>#{{ aula.id }}</code>
+              </td>
+              <td>
+                <strong>{{ aula.nombre }}</strong>
+              </td>
+              <td>
+                <span class="badge" [class.lab]="aula.tipo !== 'AULA'">{{ label(aula.tipo) }}</span>
+              </td>
+              <td>{{ aula.capacidad }} <span class="muted">personas</span></td>
+              <td class="equipment">{{ aula.equipamiento || 'Sin equipamiento indicado' }}</td>
+              @if (auth.isAdmin()) {
+                <td>
+                  <div class="row-actions">
+                    <button
+                      class="button subtle"
+                      [attr.aria-label]="'Editar ' + aula.nombre"
+                      (click)="open(aula)"
+                    >
+                      Editar</button
+                    ><button
+                      class="button text-danger"
+                      [attr.aria-label]="'Eliminar ' + aula.nombre"
+                      (click)="state.confirmDelete(aula)"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="table-footer">{{ filtered().length }} de {{ data.items().length }} aulas</div>
+  }
+</section>
+@if (state.opened()) {
+  <app-modal
+    [title]="state.editing() ? 'Editar aula' : 'Nueva aula'"
+    [busy]="state.busy()"
+    (closed)="state.close()"
+  >
+    <p class="muted">Completá los datos del espacio. La capacidad máxima es de 100 personas.</p>
+    @if (state.error()) {
+      <div class="alert" role="alert">{{ state.error() }}</div>
+    }
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <fieldset [disabled]="state.busy()">
+        <label for="aula-nombre">Nombre</label
+        ><input
+          id="aula-nombre"
+          formControlName="nombre"
+          maxlength="20"
+          placeholder="Ej. Aula 101"
+        /><app-field-error [control]="form.controls.nombre" />
+        <div class="form-grid">
+          <div>
+            <label for="aula-tipo">Tipo</label
+            ><select id="aula-tipo" formControlName="tipo">
+              @for (t of tipos; track t.value) {
+                <option [value]="t.value">{{ t.label }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label for="aula-capacidad">Capacidad</label
+            ><input
+              id="aula-capacidad"
+              type="number"
+              min="1"
+              max="100"
+              step="1"
+              formControlName="capacidad"
+            /><app-field-error [control]="form.controls.capacidad" />
+          </div>
+        </div>
+        <label for="aula-equipo">Equipamiento <span class="muted">(opcional)</span></label
+        ><textarea
+          id="aula-equipo"
+          formControlName="equipamiento"
+          maxlength="255"
+          rows="3"
+          placeholder="Ej. Proyector, pizarrón, 20 computadoras"
+        ></textarea
+        ><app-field-error [control]="form.controls.equipamiento" />
+      </fieldset>
+      <div class="dialog-actions">
+        <button
+          class="button secondary"
+          type="button"
+          [disabled]="state.busy()"
+          (click)="state.close()"
+        >
+          Cancelar</button
+        ><button class="button primary" type="submit" [disabled]="state.busy()">
+          {{ state.busy() ? 'Guardando…' : 'Guardar aula' }}
+        </button>
+      </div>
+    </form>
+  </app-modal>
+}
+@if (state.deleting(); as aula) {
+  <app-modal title="Eliminar aula" [busy]="state.busy()" (closed)="state.close()"
+    ><p>
+      Vas a eliminar <strong>{{ aula.nombre }}</strong
+      >. Esta acción no se puede deshacer.
+    </p>
+    <p class="muted">Si tiene clases, reservas o avisos vinculados, se conservará el registro.</p>
+    @if (state.error()) {
+      <div class="alert" role="alert">{{ state.error() }}</div>
+    }
+    <div class="dialog-actions">
+      <button class="button secondary" [disabled]="state.busy()" (click)="state.close()">
+        Cancelar</button
+      ><button class="button danger" [disabled]="state.busy()" (click)="remove()">
+        {{ state.busy() ? 'Eliminando…' : 'Eliminar aula' }}
+      </button>
+    </div></app-modal
+  >
+}

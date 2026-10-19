@@ -26,6 +26,7 @@ public class UsuarioRequestDTO {
     private String password;
 
     @NotBlank(message = "El rol es obligatorio")
+    @Pattern(regexp = "ADMIN|PROFESOR|ALUMNO", message = "El rol debe ser ADMIN, PROFESOR o ALUMNO")
     private String rol;
     private List<Integer> materiasIds;
 }

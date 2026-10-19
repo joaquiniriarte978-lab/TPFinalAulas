@@ -12,4 +12,6 @@ public interface ComisionRepository extends JpaRepository<Comision, Integer> {
     List<Comision> findByMateriaId(Integer idMateria);
 
     void deleteByProfesorId(Integer profesorId);
+    boolean existsByProfesorId(Integer profesorId);
+    boolean existsByMateriaId(Integer materiaId);
 }

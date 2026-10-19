@@ -14,6 +14,7 @@ import java.util.Optional;
 public interface AvisoRepository extends JpaRepository<Aviso,Integer> {
 
     boolean existsByAulaId(Integer aulaId);
+    boolean existsByUsuarioId(Integer usuarioId);
 
     List<Aviso> findByEstado(Estado estado);
 }

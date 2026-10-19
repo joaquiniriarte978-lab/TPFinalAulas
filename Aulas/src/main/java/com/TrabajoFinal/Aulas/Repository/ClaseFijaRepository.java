@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface ClaseFijaRepository extends JpaRepository<ClaseFija, Integer> {
 
     Optional<ClaseFija> findByComisionId(Integer comisionId);
+    boolean existsByAulaId(Integer aulaId);
 
     @Query("SELECT COUNT(cf) > 0 FROM ClaseFija cf " +
            "WHERE cf.aula.id = :idAula " +

@@ -1,6 +1,14 @@
 [README.md](https://github.com/user-attachments/files/29182488/README.md)
 # Gestión de Aulas — API RESTful
 
+## Frontend Angular — Sprint 1
+
+El nuevo cliente está en `AulasysFront`. Incluye acceso y permisos por rol, consulta y administración de aulas, materias y usuarios. La guía de ejecución, el alcance y las pruebas están en [AulasysFront/README.md](AulasysFront/README.md).
+
+Para iniciarlo: ejecutar el backend con MySQL y luego `npm ci` y `npm start` dentro de `AulasysFront`. Angular se abre en `http://localhost:4200` y usa el proxy hacia el backend en el puerto 8080.
+
+En esta entrega, los cambios de rol conservan los datos académicos del profesor y se reforzaron los permisos de los endpoints de usuarios y materias. Las funciones de los sprints 2 y 3 siguen fuera del frontend Angular.
+
 Trabajo Práctico Final — **Programación III**
 Tecnicatura Universitaria en Programación · Universidad Tecnológica Nacional (UTN)
 Profesor: Rodrigo Soto · Comisión 3
