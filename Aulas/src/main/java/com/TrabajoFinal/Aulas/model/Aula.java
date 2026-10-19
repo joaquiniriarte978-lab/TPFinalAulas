@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,7 +32,9 @@ public class Aula {
     private int capacidad;
 
     @Enumerated(EnumType.STRING)
+    @NotNull(message = "El tipo de aula es obligatorio")
     private Tipo tipo;
 
+    @Size(max = 255, message = "El equipamiento debe tener un máximo de 255 caracteres")
     private String equipamiento;
 }

@@ -20,7 +20,7 @@ public class Profesor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(unique = true)
     private Usuario usuario;
 

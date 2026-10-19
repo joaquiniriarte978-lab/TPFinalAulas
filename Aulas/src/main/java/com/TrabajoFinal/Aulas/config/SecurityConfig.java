@@ -5,15 +5,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -33,11 +28,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/aulas/{id_aula}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios/me").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/usuarios").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/usuarios/{id_usuario}").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/{id_usuario}").hasRole("ADMIN")
+                        .requestMatchers("/api/usuarios", "/api/usuarios/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/materias").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/materias").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/materias", "/api/materias/{id_materia}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/materias/{id_materia}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/reservas").hasAnyRole("ADMIN", "PROFESOR")
                         .requestMatchers(HttpMethod.GET, "/api/reservas/{id_reserva}").hasAnyRole("ADMIN", "PROFESOR")
@@ -61,7 +54,14 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .httpBasic(basic -> basic.authenticationEntryPoint((request, response, authException) -> {
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"message\":\"Usuario o contraseña incorrectos.\"}");
+                }))
+                .exceptionHandling(errors -> errors.accessDeniedHandler((request, response, exception) -> {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"message\":\"No tenés permiso para realizar esta acción.\"}");
                 }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();

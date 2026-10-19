@@ -1,10 +1,9 @@
 package com.TrabajoFinal.Aulas.service;
 
 import com.TrabajoFinal.Aulas.Dtos.usuarioDTO.UsuarioRequestDTO;
-import com.TrabajoFinal.Aulas.Dtos.usuarioDTO.UsuarioResponseDTO;
 import com.TrabajoFinal.Aulas.Repository.ComisionRepository;
 import com.TrabajoFinal.Aulas.Repository.MateriaRepository;
-import com.TrabajoFinal.Aulas.Repository.ReservaRepository;
+import com.TrabajoFinal.Aulas.Repository.AvisoRepository;
 import com.TrabajoFinal.Aulas.Repository.UsuarioRepository;
 import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.Materia;
@@ -18,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +27,9 @@ public class UsuarioService {
     private final ProfesorRepository profesorRepository;
     private final MateriaRepository materiaRepository;
     private final ComisionRepository comisionRepository;
-    private final ReservaRepository reservaRepository;
+    private final AvisoRepository avisoRepository;
 
+    @Transactional
     public Usuario subirUsuario(UsuarioRequestDTO dto){
 
         if(usuarioRepository.existsByEmail(dto.getEmail())){
@@ -50,6 +51,7 @@ public class UsuarioService {
 
             Profesor profesor = new Profesor();
             profesor.setUsuario(usuarioGuardado);
+            profesor.setMaterias(new ArrayList<>());
 
             if(dto.getMateriasIds() != null && !dto.getMateriasIds().isEmpty()){
                 List<Materia> materias = materiaRepository.findAllById(
@@ -77,7 +79,6 @@ public class UsuarioService {
             throw new RuntimeException("El email ya está registrado");
         }
 
-        Rol rolViejo = viejo.getRol();
         Rol rolNuevo = Rol.valueOf(dto.getRol());
 
         viejo.setNombre(dto.getNombre());
@@ -90,17 +91,14 @@ public class UsuarioService {
 
         Usuario usuarioGuardado = usuarioRepository.save(viejo);
 
-        if (rolViejo == Rol.PROFESOR && rolNuevo != Rol.PROFESOR) {
-            profesorRepository.findByUsuarioId(id).ifPresent(profesor -> {
-                reservaRepository.deleteByComisionProfesorId(profesor.getId());
-                comisionRepository.deleteByProfesorId(profesor.getId());
-                profesorRepository.delete(profesor);
-            });
-        } else if (rolNuevo == Rol.PROFESOR) {
+        // El rol define permisos. La entidad Profesor conserva la historia académica,
+        // incluso si temporalmente pasa a ser administrador o alumno.
+        if (rolNuevo == Rol.PROFESOR) {
             Profesor profesor = profesorRepository.findByUsuarioId(usuarioGuardado.getId())
                     .orElseGet(() -> {
                         Profesor nuevoProfesor = new Profesor();
                         nuevoProfesor.setUsuario(usuarioGuardado);
+                        nuevoProfesor.setMaterias(new ArrayList<>());
                         return nuevoProfesor;
                     });
 
@@ -116,7 +114,20 @@ public class UsuarioService {
 
         return usuarioGuardado;
     }
+    @Transactional
     public void eliminarUsuario(Integer id){
-        usuarioRepository.deleteById(id);
+        Usuario usuario = buscarPorId(id);
+        if (avisoRepository.existsByUsuarioId(id)) {
+            throw new IllegalArgumentException("No se puede eliminar el usuario porque tiene avisos vinculados.");
+        }
+        profesorRepository.findByUsuarioId(id).ifPresent(profesor -> {
+            if (comisionRepository.existsByProfesorId(profesor.getId()) ||
+                    (profesor.getMaterias() != null && !profesor.getMaterias().isEmpty())) {
+                throw new IllegalArgumentException("No se puede eliminar el usuario porque tiene materias o comisiones vinculadas. Sus datos académicos se conservaron.");
+            }
+            profesorRepository.delete(profesor);
+            profesorRepository.flush();
+        });
+        usuarioRepository.delete(usuario);
     }
 }

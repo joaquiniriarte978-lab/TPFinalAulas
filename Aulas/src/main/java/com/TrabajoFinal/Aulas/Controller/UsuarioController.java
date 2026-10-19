@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import com.TrabajoFinal.Aulas.Repository.ProfesorRepository;
-import com.TrabajoFinal.Aulas.model.enums.Rol;
 
 import java.util.List;
 
@@ -42,12 +41,19 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id_usuario}")
-    public void eliminar(@PathVariable Integer id_usuario)  {
+    public void eliminar(@PathVariable Integer id_usuario, Authentication authentication)  {
+        if (usuarioService.buscarPorId(id_usuario).getEmail().equals(authentication.getName())) {
+            throw new IllegalArgumentException("No podés eliminar tu propia cuenta.");
+        }
         usuarioService.eliminarUsuario(id_usuario);
     }
 
     @PutMapping("/{id_usuario}")
-    public UsuarioResponseDTO modificar(@PathVariable Integer id_usuario, @Valid @RequestBody UsuarioRequestDTO usuarioNuevo) {
+    public UsuarioResponseDTO modificar(@PathVariable Integer id_usuario, @Valid @RequestBody UsuarioRequestDTO usuarioNuevo, Authentication authentication) {
+        Usuario actual = usuarioService.buscarPorId(id_usuario);
+        if (actual.getEmail().equals(authentication.getName()) && !actual.getRol().name().equals(usuarioNuevo.getRol())) {
+            throw new IllegalArgumentException("No podés cambiar tu propio rol.");
+        }
         Usuario updated = usuarioService.modificar(id_usuario, usuarioNuevo);
         return convertirADto(updated);
     }
@@ -59,7 +65,8 @@ public class UsuarioController {
         dto.setEmail(usuario.getEmail());
         dto.setRol(usuario.getRol());
 
-        if (usuario.getRol() == Rol.PROFESOR) {
+        // También mostrar las asignaciones conservadas si el profesor cambió de rol.
+        if (usuario.getId() != null) {
             profesorRepository.findByUsuarioId(usuario.getId())
                     .ifPresent(profesor -> dto.setMateriasIds(
                             profesor.getMaterias()
@@ -99,6 +106,9 @@ public class UsuarioController {
 
         if (principal instanceof Usuario usuario) {
             id = usuario.getId();
+            if (!usuario.getRol().name().equals(usuarioNuevo.getRol()) || usuarioNuevo.getMateriasIds() != null) {
+                throw new IllegalArgumentException("El perfil propio no permite cambiar el rol ni las asignaciones académicas.");
+            }
         } else {
             throw new RuntimeException("Los usuarios de prueba no pueden modificar su perfil.");
         }
