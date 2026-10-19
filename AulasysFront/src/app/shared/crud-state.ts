@@ -29,7 +29,12 @@ export function crudState<T>(reload: () => void) {
     error.set('');
     success.set('');
   };
-  const run = (request: Observable<unknown>, message: string, after?: () => void) => {
+  const run = (
+    request: Observable<unknown>,
+    message: string,
+    after?: () => void,
+    onError?: (err: Error) => void,
+  ) => {
     if (busy()) return;
     busy.set(true);
     error.set('');
@@ -47,7 +52,10 @@ export function crudState<T>(reload: () => void) {
           if (after) after();
           else reload();
         },
-        error: (err: Error) => error.set(err.message),
+        error: (err: Error) => {
+          error.set(err.message);
+          onError?.(err);
+        },
       });
   };
   return { editing, deleting, opened, busy, error, success, close, open, confirmDelete, run };

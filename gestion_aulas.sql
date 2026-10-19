@@ -63,13 +63,6 @@ CREATE TABLE IF NOT EXISTS clase_fija (
     CONSTRAINT fk_cf_aula     FOREIGN KEY (id_aula)     REFERENCES aula(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS clase_fija_liberada (
-    id             INT  AUTO_INCREMENT PRIMARY KEY,
-    id_clase_fija  INT  NOT NULL,
-    fecha          DATE NOT NULL,
-    CONSTRAINT fk_cfl_clase_fija FOREIGN KEY (id_clase_fija) REFERENCES clase_fija(id) ON DELETE CASCADE
-);
-
 CREATE TABLE IF NOT EXISTS reserva (
     id            INT AUTO_INCREMENT PRIMARY KEY,
     comision      INT,
@@ -80,6 +73,16 @@ CREATE TABLE IF NOT EXISTS reserva (
     estado_reserva VARCHAR(15),  -- 'RESERVADA' | 'FINALIZADA'
     CONSTRAINT fk_reserva_comision FOREIGN KEY (comision) REFERENCES comision(id_comision) ON DELETE CASCADE,
     CONSTRAINT fk_reserva_aula     FOREIGN KEY (id_aula)  REFERENCES aula(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS clase_fija_liberada (
+    id             INT AUTO_INCREMENT PRIMARY KEY,
+    id_clase_fija   INT NOT NULL,
+    fecha          DATE NOT NULL,
+    id_reserva     INT UNIQUE,
+    CONSTRAINT uk_liberacion_fecha UNIQUE (id_clase_fija, fecha),
+    CONSTRAINT fk_cfl_clase_fija FOREIGN KEY (id_clase_fija) REFERENCES clase_fija(id) ON DELETE CASCADE,
+    CONSTRAINT fk_cfl_reserva FOREIGN KEY (id_reserva) REFERENCES reserva(id)
 );
 
 CREATE TABLE IF NOT EXISTS aviso (

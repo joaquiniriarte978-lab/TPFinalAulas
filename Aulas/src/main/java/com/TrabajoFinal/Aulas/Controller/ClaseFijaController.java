@@ -3,7 +3,9 @@ package com.TrabajoFinal.Aulas.Controller;
 import com.TrabajoFinal.Aulas.Dtos.comisionDTO.ClaseFijaDTO;
 import com.TrabajoFinal.Aulas.model.ClaseFija;
 import com.TrabajoFinal.Aulas.service.ClaseFijaService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,7 +16,7 @@ public class ClaseFijaController {
     private final ClaseFijaService claseFijaService;
 
     @PostMapping
-    public ClaseFijaDTO guardar(@RequestBody ClaseFijaDTO dto) {
+    public ClaseFijaDTO guardar(@jakarta.validation.Valid @RequestBody ClaseFijaDTO dto) {
         ClaseFija cf = claseFijaService.crearOActualizar(dto);
         return toDto(cf);
     }

@@ -1,15 +1,21 @@
 package com.TrabajoFinal.Aulas.exceptions;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<String> manejarPermisos(
+            org.springframework.security.access.AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("No tenés permiso para realizar esta acción.");
+    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<String> manejarNoEncontrado(ResourceNotFoundException ex) {
@@ -19,20 +25,24 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<String> manejarIntegridad(DataIntegrityViolationException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body("No se pudo completar la operación: existen datos relacionados o un valor duplicado. Los datos se conservaron.");
+                .body(
+                        "No se pudo completar la operación: existen datos relacionados o un valor"
+                            + " duplicado. Los datos se conservaron.");
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<String> manejarFormato(HttpMessageNotReadableException ex) {
-        return ResponseEntity.badRequest().body("El formato de los datos no es válido. Revisá los campos enviados.");
+        return ResponseEntity.badRequest()
+                .body("El formato de los datos no es válido. Revisá los campos enviados.");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> manejarValidaciones(MethodArgumentNotValidException ex) {
-        String errorMsg = ex.getBindingResult().getFieldErrors().stream()
-                .map(err -> err.getDefaultMessage())
-                .findFirst()
-                .orElse("Error de validación en los datos ingresados");
+        String errorMsg =
+                ex.getBindingResult().getFieldErrors().stream()
+                        .map(err -> err.getDefaultMessage())
+                        .findFirst()
+                        .orElse("Error de validación en los datos ingresados");
 
         return new ResponseEntity<>(errorMsg, HttpStatus.BAD_REQUEST);
     }

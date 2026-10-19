@@ -1,0 +1,238 @@
+<div class="page-heading">
+  <div>
+    <h1>Reservas</h1>
+    <p>Consultá la ocupación y gestioná tus reservas.</p>
+  </div>
+  <button class="button primary" (click)="open()">Nueva reserva</button>
+</div>
+@if (state.success()) {
+  <p class="success" role="status">{{ state.success() }}</p>
+}
+<section class="panel">
+  <div class="filters">
+    <label class="grow"
+      >Buscar<input
+        type="search"
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event)"
+        placeholder="Aula, materia o profesor"
+    /></label>
+    <label
+      >Fecha<input type="date" [ngModel]="fecha()" (ngModelChange)="fecha.set($event)"
+    /></label>
+    <label
+      >Estado<select [ngModel]="history()" (ngModelChange)="history.set($event)">
+        <option value="RESERVADA">Activas</option>
+        <option value="FINALIZADA">Historial</option>
+        <option value="">Todas</option>
+      </select></label
+    >
+    <label
+      >Mostrar<select [ngModel]="scope()" (ngModelChange)="scope.set($event)">
+        <option value="">Todas las disponibles</option>
+        <option value="mias">Mis reservas</option>
+      </select></label
+    >
+    <button class="button secondary" [disabled]="data.loading()" (click)="data.load()">
+      Actualizar
+    </button>
+  </div>
+  <app-list-status
+    [loading]="data.loading()"
+    [error]="data.error()"
+    [count]="filtered().length"
+    (retry)="data.load()"
+  />
+  @if (!data.loading() && !data.error() && filtered().length) {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Materia</th>
+            <th>Aula</th>
+            <th>Fecha y horario</th>
+            <th>Profesor</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of filtered(); track r.id) {
+            <tr>
+              <td>{{ r.materiaNombre }} · #{{ r.id_comision }}</td>
+              <td>{{ r.aulaNombre }}</td>
+              <td>{{ r.fecha }}<br />{{ r.horaInicio.slice(0, 5) }}–{{ r.horaFin.slice(0, 5) }}</td>
+              <td>
+                {{ r.profesorNombre }}<br /><small>{{
+                  r.propia ? 'Propia' : 'Otro profesor'
+                }}</small>
+              </td>
+              <td>{{ r.estadoReserva === 'FINALIZADA' ? 'Finalizada' : 'Activa' }}</td>
+              <td><button class="button subtle" (click)="detail.set(r)">Ver detalle</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+@if (detail(); as r) {
+  <app-modal title="Detalle de reserva" (closed)="detail.set(null)">
+    <dl class="details">
+      <dt>Materia y comisión</dt>
+      <dd>{{ r.materiaNombre }} · #{{ r.id_comision }}</dd>
+      <dt>Profesor</dt>
+      <dd>{{ r.profesorNombre }}</dd>
+      <dt>Aula</dt>
+      <dd>{{ r.aulaNombre }}</dd>
+      <dt>Fecha</dt>
+      <dd>{{ r.fecha }}</dd>
+      <dt>Horario</dt>
+      <dd>{{ r.horaInicio.slice(0, 5) }}–{{ r.horaFin.slice(0, 5) }}</dd>
+      <dt>Estado</dt>
+      <dd>{{ r.estadoReserva === 'FINALIZADA' ? 'Finalizada' : 'Activa' }}</dd>
+    </dl>
+    <div class="dialog-actions">
+      @if (r.editable) {
+        <button class="button primary" (click)="open(r)">Editar</button
+        ><button class="button text-danger" (click)="confirm(r)">Cancelar reserva</button>
+      }
+      @if (r.estadoReserva === 'FINALIZADA' && (r.propia || auth.isAdmin())) {
+        <button class="button text-danger" (click)="confirm(r)">Eliminar del historial</button>
+      }
+    </div></app-modal
+  >
+}
+@if (state.opened()) {
+  <app-modal
+    [title]="
+      confirmRelease()
+        ? 'Confirmar cambio de aula'
+        : state.editing()
+          ? 'Editar reserva'
+          : 'Nueva reserva'
+    "
+    [busy]="state.busy()"
+    (closed)="state.close()"
+  >
+    @if (state.error()) {
+      <p class="alert" role="alert">{{ state.error() }}</p>
+    }
+    @if (confirmRelease()) {
+      <p>{{ confirmRelease() }}</p>
+      <p class="muted">El cambio afecta únicamente esa fecha. La clase semanal se conserva.</p>
+      <div class="dialog-actions">
+        <button
+          class="button secondary"
+          [disabled]="state.busy()"
+          (click)="confirmRelease.set(''); state.error.set('')"
+        >
+          Volver al formulario</button
+        ><button class="button primary" [disabled]="state.busy()" (click)="save(true)">
+          Confirmar cambio
+        </button>
+      </div>
+    } @else {
+      @if (comisiones.error() || aulas.error()) {
+        <p class="alert">
+          No se pudieron cargar las opciones.
+          <button class="button subtle" (click)="comisiones.load(); aulas.load()">
+            Reintentar
+          </button>
+        </p>
+      }
+      @if (!comisiones.loading() && !comisiones.error() && !comisiones.items().length) {
+        <p class="alert">No tenés comisiones asignadas para reservar.</p>
+      }
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <fieldset [disabled]="state.busy()">
+          <label
+            >Comisión<select formControlName="id_comision">
+              <option [ngValue]="0">Seleccioná una comisión</option>
+              @for (c of comisiones.items(); track c.id) {
+                <option [ngValue]="c.id">
+                  #{{ c.id }} · {{ c.materiaNombre }} · {{ c.horario }}
+                </option>
+              }
+            </select></label
+          ><app-field-error [control]="form.controls.id_comision" />
+          <label
+            >Aula<select formControlName="id_aula">
+              <option [ngValue]="0">Seleccioná un aula</option>
+              @for (a of aulas.items(); track a.id) {
+                <option [ngValue]="a.id">
+                  {{ a.nombre }} · {{ a.capacidad }} lugares · {{ a.tipo }}
+                </option>
+              }
+            </select></label
+          ><app-field-error [control]="form.controls.id_aula" />
+          <label>Fecha<input type="date" formControlName="fecha" /></label
+          ><app-field-error [control]="form.controls.fecha" />
+          <div class="form-grid">
+            <div>
+              <label>Hora de inicio<input type="time" formControlName="horaInicio" /></label
+              ><app-field-error [control]="form.controls.horaInicio" />
+            </div>
+            <div>
+              <label>Hora de fin<input type="time" formControlName="horaFin" /></label
+              ><app-field-error [control]="form.controls.horaFin" />
+            </div>
+          </div>
+          <p class="muted">
+            Mañana 06–13 · Tarde 13–19 · Noche 19–23:59. No se reserva los domingos.
+          </p>
+        </fieldset>
+        <div class="dialog-actions">
+          <button
+            type="button"
+            class="button secondary"
+            [disabled]="state.busy()"
+            (click)="state.close()"
+          >
+            Volver</button
+          ><button
+            class="button primary"
+            type="submit"
+            [disabled]="
+              state.busy() ||
+              comisiones.loading() ||
+              aulas.loading() ||
+              !!comisiones.error() ||
+              !!aulas.error()
+            "
+          >
+            Guardar reserva
+          </button>
+        </div>
+      </form>
+    }
+  </app-modal>
+}
+@if (state.deleting(); as r) {
+  <app-modal
+    [title]="r.estadoReserva === 'FINALIZADA' ? 'Eliminar del historial' : 'Cancelar reserva'"
+    [busy]="state.busy()"
+    (closed)="state.close()"
+  >
+    <p>
+      {{ r.materiaNombre }} · {{ r.aulaNombre }} · {{ r.fecha }} · {{ r.horaInicio.slice(0, 5) }}–{{
+        r.horaFin.slice(0, 5)
+      }}.
+    </p>
+    <p>
+      {{
+        r.estadoReserva === 'FINALIZADA'
+          ? 'Se eliminará este registro del historial.'
+          : 'Se dejará disponible el aula. Si hubo un cambio de aula, se intentará restaurar la clase fija.'
+      }}
+    </p>
+    @if (state.error()) {
+      <p class="alert" role="alert">{{ state.error() }}</p>
+    }
+    <div class="dialog-actions">
+      <button class="button secondary" [disabled]="state.busy()" (click)="state.close()">
+        Volver</button
+      ><button class="button danger" [disabled]="state.busy()" (click)="remove()">Confirmar</button>
+    </div></app-modal
+  >
+}

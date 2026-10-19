@@ -1,13 +1,13 @@
 [README.md](https://github.com/user-attachments/files/29182488/README.md)
 # Gestión de Aulas — API RESTful
 
-## Frontend Angular — Sprint 1
+## Frontend Angular — Sprints 1 y 2
 
-El nuevo cliente está en `AulasysFront`. Incluye acceso y permisos por rol, consulta y administración de aulas, materias y usuarios. La guía de ejecución, el alcance y las pruebas están en [AulasysFront/README.md](AulasysFront/README.md).
+El cliente está en `AulasysFront`. Incluye acceso por rol, aulas, materias, usuarios, perfil, profesores, comisiones, clases fijas, reservas, historial, avisos y consulta de clases. La guía de ejecución está en [AulasysFront/README.md](AulasysFront/README.md) y el alcance por historia en [SPRINT-2.md](SPRINT-2.md).
 
 Para iniciarlo: ejecutar el backend con MySQL y luego `npm ci` y `npm start` dentro de `AulasysFront`. Angular se abre en `http://localhost:4200` y usa el proxy hacia el backend en el puerto 8080.
 
-En esta entrega, los cambios de rol conservan los datos académicos del profesor y se reforzaron los permisos de los endpoints de usuarios y materias. Las funciones de los sprints 2 y 3 siguen fuera del frontend Angular.
+Los cambios de rol se bloquean mientras el profesor tenga comisiones vigentes. Las reservas y clases comparten los turnos mañana 06–13, tarde 13–19 y noche 19–23:59.
 
 Trabajo Práctico Final — **Programación III**
 Tecnicatura Universitaria en Programación · Universidad Tecnológica Nacional (UTN)
@@ -25,7 +25,7 @@ Profesor: Rodrigo Soto · Comisión 3
 - Reportar y gestionar **avisos** sobre el estado de un aula (mantenimiento, problemas, etc.).
 - Autenticación HTTP Basic con autorización por rol sobre cada endpoint.
 
-El proyecto incluye, además del backend, un frontend en HTML/CSS/JS vanilla que consume la API y sirve como cliente de prueba funcional.
+El frontend actual es Angular. La carpeta estática conserva el cliente anterior como referencia; sus formularios de comisiones y profesores usan contratos anteriores.
 
 ---
 
@@ -52,7 +52,7 @@ El proyecto incluye, además del backend, un frontend en HTML/CSS/JS vanilla que
 - **MySQL** (vía `mysql-connector-j`)
 - **Lombok**
 - **springdoc-openapi-starter-webmvc-ui** (Swagger/OpenAPI)
-- **Frontend**: HTML5, CSS3 y JavaScript vanilla (sin frameworks ni build tools)
+- **Frontend**: Angular 22, TypeScript, HTML y CSS.
 
 ---
 
@@ -66,8 +66,8 @@ El proyecto incluye, además del backend, un frontend en HTML/CSS/JS vanilla que
 
 ### 4.2. Configuración de la base de datos
 
-1. Ejecutar el script SQL provisto en `database/schema.sql` (ver sección 5) contra el servidor MySQL para crear la base `gestion_aulas` y sus tablas principales.
-2. **Nota importante**: la tabla `clase_fija_liberada` **no está incluida en el script SQL manual**, porque el proyecto usa `spring.jpa.hibernate.ddl-auto=update`. Hibernate la crea automáticamente al levantar la aplicación por primera vez a partir de la entidad `ClaseFijaLiberada`. No es necesario crearla a mano, pero si en algún entorno se desactiva `ddl-auto`, hay que agregarla manualmente (ver sección 9, aclaraciones).
+1. Para una base nueva, usar `gestion_aulas.sql` o dejar que Hibernate cree las tablas con `spring.jpa.hibernate.ddl-auto=update`.
+2. Sprint 2 agrega `id_reserva` y unicidad por clase/fecha a `clase_fija_liberada`. Para una base existente, consultar la nota de actualización en [SPRINT-2.md](SPRINT-2.md).
 
 ### 4.3. Configuración de la aplicación
 
@@ -141,7 +141,7 @@ Aulas/
 
 ### Esquema de base de datos
 
-El script DDL completo se encuentra en `database/schema.sql`. Resumen de tablas: `usuario`, `aula`, `materia`, `profesor`, `profesor_materias`, `comision`, `clase_fija`,`clase_fija_liberada`, `reserva`, `aviso`. 
+El script DDL se encuentra en `gestion_aulas.sql`. Resumen de tablas: `usuario`, `aula`, `materia`, `profesor`, `profesor_materias`, `comision`, `clase_fija`, `clase_fija_liberada`, `reserva`, `aviso`.
 
 ## 7. Autenticación y autorización
 
@@ -183,7 +183,7 @@ Se definió además una **jerarquía de roles** (`RoleHierarchy`) donde `ROLE_AD
 | `/api/avisos/{id}` | PUT | PROFESOR |
 | `/api/avisos/{id}/estado` | PUT | ADMIN |
 
-> Nota: algunos endpoints secundarios (ej. `GET /api/comision/{id}`, `PUT /api/reservas/cancelar/{id}`, `POST /api/clase-fija`) quedan cubiertos por la regla genérica `anyRequest().authenticated()` en lugar de tener una entrada explícita en `SecurityConfig`. Esto se documenta como aclaración para la corrección en la sección 9.
+Los endpoints de clases fijas y profesores requieren ADMIN. Reservas requiere ADMIN/PROFESOR y valida la propiedad antes de editar o cancelar. `GET /api/clases?fecha=AAAA-MM-DD` permite consultar el aula efectiva con cualquier rol.
 
 ### 7.4. Usuarios de prueba
 
@@ -231,7 +231,7 @@ El sistema incluye tres usuarios hardcodeados en `CustomUserDetailsService`, pen
 
 ### 8.2. Comisiones
 
-**`POST /api/comision`** — Crea una comisión, opcionalmente con clase fija (ADMIN).
+**`POST /api/comision`** — Crea una comisión (ADMIN). La clase fija se asigna por separado con `POST /api/clase-fija`.
 
 ```json
 {
@@ -240,17 +240,11 @@ El sistema incluye tres usuarios hardcodeados en `CustomUserDetailsService`, pen
   "cantAlumnos": 25,
   "horario": "MAÑANA",
   "fechaInicio": "2026-08-01",
-  "fechaFin": "2026-11-01",
-  "claseFija": {
-    "id_aula": 1,
-    "diaSemana": "LUNES",
-    "horaInicio": "08:00",
-    "horaFin": "10:00"
-  }
+  "fechaFin": "2026-11-01"
 }
 ```
 
-> **Importante:** el campo `id_profesor` espera el **id del usuario** (no el id de la entidad `Profesor`). Ver aclaración en sección 9.
+`id_profesor` es el identificador de Profesor devuelto por `GET /api/profesores`. Ese endpoint también devuelve `usuarioId`, para distinguir ambas identidades.
 
 ### 8.3. Reservas
 
@@ -329,9 +323,9 @@ Los recursos no encontrados devuelven **404 Not Found**:
 ## 9. Aclaraciones importantes para la corrección
 
 
-1. **Nomenclatura de DTOs**: `ReservaResponseDTO` y `ComisionResponseDTO` se utilizan como cuerpo de las requests de creación/modificación (`@RequestBody`), a pesar de su nombre. Fue una decisión que quedó así desde una etapa temprana del desarrollo y no se renombró para no romper la integración ya probada con el frontend.
+1. **Contratos de escritura**: comisiones y reservas reciben `ComisionRequestDTO` y `ReservaRequestDTO`. Las respuestas contienen identificadores y nombres, sin entidades de usuario anidadas.
 
-2. **Algunos endpoints secundarios no tienen una entrada explícita en `SecurityConfig`** y quedan cubiertos por la regla general `anyRequest().authenticated()` (cualquier usuario autenticado, sin distinción de rol). Esto incluye, entre otros, `DELETE /api/avisos/{id}`, `POST /api/clase-fija` y `PUT /api/reservas/cancelar/{id}`. En la práctica el frontend oculta estas acciones a los roles que no deberían usarlas, pero a nivel de API la restricción no está reforzada del lado del servidor para esos casos puntuales.
+2. **Permisos**: se controlan tanto en Angular como en la API. El perfil propio no admite cambiar rol ni materias. Un profesor no puede modificar reservas o avisos ajenos.
 
 3. **Despliegue**: este proyecto se entrega para ejecución y prueba en entorno local, según las instrucciones de la sección 4. No se realizó despliegue en una plataforma cloud pública.
 

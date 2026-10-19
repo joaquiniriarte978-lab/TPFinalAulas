@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { adminGuard, authGuard, guestGuard } from './core/auth.guards';
+import { adminGuard, authGuard, guestGuard, staffGuard } from './core/auth.guards';
 import { Shell } from './layout/shell';
 
 export const routes: Routes = [
@@ -15,6 +15,40 @@ export const routes: Routes = [
     canActivate: [authGuard],
     canActivateChild: [authGuard],
     children: [
+      {
+        path: 'perfil',
+        title: 'Mi perfil · AulaSys',
+        loadComponent: () => import('./features/perfil/perfil').then((m) => m.Perfil),
+      },
+      {
+        path: 'profesores',
+        canActivate: [adminGuard],
+        title: 'Profesores · AulaSys',
+        loadComponent: () => import('./features/profesores/profesores').then((m) => m.Profesores),
+      },
+      {
+        path: 'comisiones',
+        canActivate: [staffGuard],
+        title: 'Comisiones · AulaSys',
+        loadComponent: () => import('./features/comisiones/comisiones').then((m) => m.Comisiones),
+      },
+      {
+        path: 'reservas',
+        canActivate: [staffGuard],
+        title: 'Reservas · AulaSys',
+        loadComponent: () => import('./features/reservas/reservas').then((m) => m.Reservas),
+      },
+      {
+        path: 'avisos',
+        canActivate: [staffGuard],
+        title: 'Avisos · AulaSys',
+        loadComponent: () => import('./features/avisos/avisos').then((m) => m.Avisos),
+      },
+      {
+        path: 'clases',
+        title: 'Clases · AulaSys',
+        loadComponent: () => import('./features/clases/clases').then((m) => m.Clases),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'aulas' },
       { path: 'inicio', pathMatch: 'full', redirectTo: 'aulas' },
       {

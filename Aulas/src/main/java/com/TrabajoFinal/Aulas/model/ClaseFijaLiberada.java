@@ -1,6 +1,7 @@
 package com.TrabajoFinal.Aulas.model;
 
 import jakarta.persistence.*;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,9 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "clase_fija_liberada")
+@Table(
+        name = "clase_fija_liberada",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"id_clase_fija", "fecha"}))
 public class ClaseFijaLiberada {
 
     @Id
@@ -24,4 +27,8 @@ public class ClaseFijaLiberada {
 
     @Column(name = "fecha", nullable = false)
     private LocalDate fecha;
+
+    @OneToOne
+    @JoinColumn(name = "id_reserva", unique = true)
+    private Reserva reserva;
 }

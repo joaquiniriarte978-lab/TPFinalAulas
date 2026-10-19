@@ -668,3 +668,36 @@ dialog::backdrop {
     animation: none;
   }
 }
+.form-panel {
+  padding: 24px;
+  max-width: 680px;
+}
+.details {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  margin: 20px 0;
+}
+.details dt {
+  font-weight: 600;
+}
+.details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.message-cell {
+  white-space: pre-wrap;
+  max-width: 420px;
+  overflow-wrap: anywhere;
+}
+textarea {
+  width: 100%;
+  font: inherit;
+  border: 1px solid var(--clr-border);
+  border-radius: 8px;
+  padding: 10px;
+  resize: vertical;
+}
+.dialog-actions {
+  flex-wrap: wrap;
+}

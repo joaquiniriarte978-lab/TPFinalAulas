@@ -1,13 +1,17 @@
 package com.TrabajoFinal.Aulas.Dtos.avisoDTO;
 
-
-
 import com.TrabajoFinal.Aulas.model.enums.Estado;
+
 import lombok.Data;
+
 import java.time.LocalDate;
 
 @Data
 public class AvisoResponseDTO {
+    private Integer id;
+    private String aulaNombre;
+    private String autorNombre;
+    private boolean propio;
     private Integer idAula;
     private Integer idUsuario;
     private String mensaje;

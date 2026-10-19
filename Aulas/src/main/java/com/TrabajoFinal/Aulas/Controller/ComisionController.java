@@ -1,13 +1,17 @@
 package com.TrabajoFinal.Aulas.Controller;
 
 import com.TrabajoFinal.Aulas.Dtos.comisionDTO.ClaseFijaDTO;
+import com.TrabajoFinal.Aulas.Dtos.comisionDTO.ComisionRequestDTO;
 import com.TrabajoFinal.Aulas.Dtos.comisionDTO.ComisionResponseDTO;
 import com.TrabajoFinal.Aulas.model.ClaseFija;
 import com.TrabajoFinal.Aulas.model.Comision;
 import com.TrabajoFinal.Aulas.service.ClaseFijaService;
 import com.TrabajoFinal.Aulas.service.ComisionService;
+
 import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,16 +34,12 @@ public class ComisionController {
 
     @GetMapping
     public List<ComisionResponseDTO> listarTodos() {
-        return service.listar().stream()
-                .map(this::toDto)
-                .toList();
+        return service.listar().stream().map(this::toDto).toList();
     }
 
     @GetMapping("/materia/{id_materia}")
     public List<ComisionResponseDTO> listarPorMateria(@PathVariable Integer id_materia) {
-        return service.listarPorMateria(id_materia).stream()
-                .map(this::toDto)
-                .toList();
+        return service.listarPorMateria(id_materia).stream().map(this::toDto).toList();
     }
 
     @GetMapping("/{id}")
@@ -48,13 +48,13 @@ public class ComisionController {
     }
 
     @PostMapping
-    public ComisionResponseDTO guardar(@Valid @RequestBody ComisionResponseDTO profesorMateria) {
+    public ComisionResponseDTO guardar(@Valid @RequestBody ComisionRequestDTO profesorMateria) {
         return toDto(service.guardar(profesorMateria));
     }
 
     @PutMapping("/{id}")
-    public ComisionResponseDTO modificar(@PathVariable Integer id,
-                                         @Valid @RequestBody ComisionResponseDTO profesorMateria) {
+    public ComisionResponseDTO modificar(
+            @PathVariable Integer id, @Valid @RequestBody ComisionRequestDTO profesorMateria) {
         return toDto(service.actualizar(id, profesorMateria));
     }
 
@@ -74,7 +74,9 @@ public class ComisionController {
         dto.setHorario(c.getHorario());
         dto.setFechaInicio(c.getFechaInicio());
         dto.setFechaFin(c.getFechaFin());
-        claseFijaService.buscarPorComision(c.getId()).ifPresent(cf -> dto.setClaseFija(cfToDto(cf)));
+        claseFijaService
+                .buscarPorComision(c.getId())
+                .ifPresent(cf -> dto.setClaseFija(cfToDto(cf)));
         return dto;
     }
 
@@ -88,6 +90,5 @@ public class ComisionController {
         dto.setHoraInicio(cf.getHoraInicio());
         dto.setHoraFin(cf.getHoraFin());
         return dto;
-
     }
 }

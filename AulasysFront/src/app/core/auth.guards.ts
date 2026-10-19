@@ -9,6 +9,15 @@ export const adminGuard: CanActivateFn = () =>
   inject(AuthService).isAdmin() ? true : inject(Router).createUrlTree(['/sin-acceso']);
 export const guestGuard: CanActivateFn = () =>
   inject(AuthService).user() ? inject(Router).createUrlTree(['/inicio']) : true;
+export const staffGuard: CanActivateFn = () =>
+  ['ADMIN', 'PROFESOR'].includes(inject(AuthService).user()?.rol ?? '')
+    ? true
+    : inject(Router).createUrlTree(['/sin-acceso']);
 export function safeReturnUrl(value: string | null): string {
-  return value && /^\/(inicio|aulas|materias|usuarios)([?#].*)?$/.test(value) ? value : '/inicio';
+  return value &&
+    /^\/(inicio|aulas|materias|usuarios|perfil|profesores|comisiones|reservas|avisos|clases)([?#].*)?$/.test(
+      value,
+    )
+    ? value
+    : '/inicio';
 }

@@ -26,6 +26,43 @@ import { ROLES } from '../core/models';
           <div class="nav-section-label">Principal</div>
           <a
             class="nav-item"
+            routerLink="/clases"
+            routerLinkActive="active"
+            ariaCurrentWhenActive="page"
+            >Clases</a
+          >
+          <a
+            class="nav-item"
+            routerLink="/perfil"
+            routerLinkActive="active"
+            ariaCurrentWhenActive="page"
+            >Mi perfil</a
+          >
+          @if (auth.user()?.rol !== 'ALUMNO') {
+            <a
+              class="nav-item"
+              routerLink="/comisiones"
+              routerLinkActive="active"
+              ariaCurrentWhenActive="page"
+              >{{ auth.isAdmin() ? 'Comisiones' : 'Mis comisiones' }}</a
+            >
+            <a
+              class="nav-item"
+              routerLink="/reservas"
+              routerLinkActive="active"
+              ariaCurrentWhenActive="page"
+              >Reservas</a
+            >
+            <a
+              class="nav-item"
+              routerLink="/avisos"
+              routerLinkActive="active"
+              ariaCurrentWhenActive="page"
+              >Avisos</a
+            >
+          }
+          <a
+            class="nav-item"
             routerLink="/aulas"
             routerLinkActive="active"
             ariaCurrentWhenActive="page"
@@ -40,6 +77,13 @@ import { ROLES } from '../core/models';
           >
           @if (auth.isAdmin()) {
             <div class="nav-section-label">Gestión</div>
+            <a
+              class="nav-item"
+              routerLink="/profesores"
+              routerLinkActive="active"
+              ariaCurrentWhenActive="page"
+              >Profesores y materias</a
+            >
             <a
               class="nav-item"
               routerLink="/usuarios"
@@ -91,6 +135,15 @@ export class Shell {
   );
   readonly sectionTitle = computed(() => {
     const path = this.url().split(/[?#]/)[0];
+    const titles: Record<string, string> = {
+      '/perfil': 'Mi perfil',
+      '/profesores': 'Profesores y materias',
+      '/comisiones': 'Comisiones',
+      '/reservas': 'Reservas',
+      '/avisos': 'Avisos',
+      '/clases': 'Clases',
+    };
+    if (titles[path]) return titles[path];
     return path === '/aulas'
       ? 'Aulas'
       : path === '/materias'

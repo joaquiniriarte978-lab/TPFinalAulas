@@ -1,23 +1,25 @@
 package com.TrabajoFinal.Aulas.service;
 
 import com.TrabajoFinal.Aulas.Dtos.usuarioDTO.UsuarioRequestDTO;
+import com.TrabajoFinal.Aulas.Repository.AvisoRepository;
 import com.TrabajoFinal.Aulas.Repository.ComisionRepository;
 import com.TrabajoFinal.Aulas.Repository.MateriaRepository;
-import com.TrabajoFinal.Aulas.Repository.AvisoRepository;
+import com.TrabajoFinal.Aulas.Repository.ProfesorRepository;
 import com.TrabajoFinal.Aulas.Repository.UsuarioRepository;
 import com.TrabajoFinal.Aulas.exceptions.ResourceNotFoundException;
 import com.TrabajoFinal.Aulas.model.Materia;
-import com.TrabajoFinal.Aulas.model.Usuario;
 import com.TrabajoFinal.Aulas.model.Profesor;
-import com.TrabajoFinal.Aulas.Repository.ProfesorRepository;
+import com.TrabajoFinal.Aulas.model.Usuario;
 import com.TrabajoFinal.Aulas.model.enums.Rol;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,11 +30,12 @@ public class UsuarioService {
     private final MateriaRepository materiaRepository;
     private final ComisionRepository comisionRepository;
     private final AvisoRepository avisoRepository;
+    private final AgendaRules agenda;
 
     @Transactional
-    public Usuario subirUsuario(UsuarioRequestDTO dto){
+    public Usuario subirUsuario(UsuarioRequestDTO dto) {
 
-        if(usuarioRepository.existsByEmail(dto.getEmail())){
+        if (usuarioRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("El email ya está registrado");
         }
         if (dto.getPassword() == null || dto.getPassword().isBlank()) {
@@ -47,16 +50,17 @@ public class UsuarioService {
 
         Usuario usuarioGuardado = usuarioRepository.save(usuario);
 
-        if(usuarioGuardado.getRol().equals(Rol.PROFESOR)){
+        if (usuarioGuardado.getRol().equals(Rol.PROFESOR)) {
 
             Profesor profesor = new Profesor();
             profesor.setUsuario(usuarioGuardado);
             profesor.setMaterias(new ArrayList<>());
 
-            if(dto.getMateriasIds() != null && !dto.getMateriasIds().isEmpty()){
-                List<Materia> materias = materiaRepository.findAllById(
-                        dto.getMateriasIds().stream().distinct().toList()
-                );
+            if (dto.getMateriasIds() != null && !dto.getMateriasIds().isEmpty()) {
+                List<Materia> materias =
+                        materiaRepository.findAllById(
+                                dto.getMateriasIds().stream().distinct().toList());
+                validarMaterias(dto.getMateriasIds(), materias);
                 profesor.setMaterias(materias);
             }
 
@@ -65,21 +69,41 @@ public class UsuarioService {
 
         return usuarioGuardado;
     }
-    public List<Usuario> listarTodos(){
+
+    public List<Usuario> listarTodos() {
         return usuarioRepository.findAll();
     }
-    public Usuario buscarPorId(Integer id){
-        return usuarioRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Usuario", id));
+
+    public Usuario buscarPorId(Integer id) {
+        return usuarioRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", id));
     }
+
     @Transactional
-    public Usuario modificar(Integer id, UsuarioRequestDTO dto){
+    public Usuario modificar(Integer id, UsuarioRequestDTO dto) {
+        agenda.bloquear();
         Usuario viejo = buscarPorId(id);
 
-        if (!dto.getEmail().equals(viejo.getEmail()) && usuarioRepository.existsByEmail(dto.getEmail())) {
+        if (!dto.getEmail().equals(viejo.getEmail())
+                && usuarioRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("El email ya está registrado");
         }
 
         Rol rolNuevo = Rol.valueOf(dto.getRol());
+        if (viejo.getRol() == Rol.PROFESOR && rolNuevo != Rol.PROFESOR) {
+            profesorRepository
+                    .findByUsuarioId(id)
+                    .ifPresent(
+                            profesor -> {
+                                if (comisionRepository
+                                        .existsByProfesorIdAndFechaFinGreaterThanEqual(
+                                                profesor.getId(), agenda.hoy()))
+                                    throw new IllegalArgumentException(
+                                            "No se puede cambiar el rol de un profesor con"
+                                                + " comisiones vigentes.");
+                            });
+        }
 
         viejo.setNombre(dto.getNombre());
         viejo.setEmail(dto.getEmail());
@@ -94,18 +118,30 @@ public class UsuarioService {
         // El rol define permisos. La entidad Profesor conserva la historia académica,
         // incluso si temporalmente pasa a ser administrador o alumno.
         if (rolNuevo == Rol.PROFESOR) {
-            Profesor profesor = profesorRepository.findByUsuarioId(usuarioGuardado.getId())
-                    .orElseGet(() -> {
-                        Profesor nuevoProfesor = new Profesor();
-                        nuevoProfesor.setUsuario(usuarioGuardado);
-                        nuevoProfesor.setMaterias(new ArrayList<>());
-                        return nuevoProfesor;
-                    });
+            Profesor profesor =
+                    profesorRepository
+                            .findByUsuarioId(usuarioGuardado.getId())
+                            .orElseGet(
+                                    () -> {
+                                        Profesor nuevoProfesor = new Profesor();
+                                        nuevoProfesor.setUsuario(usuarioGuardado);
+                                        nuevoProfesor.setMaterias(new ArrayList<>());
+                                        return nuevoProfesor;
+                                    });
 
             if (dto.getMateriasIds() != null) {
-                List<Materia> materias = materiaRepository.findAllById(
-                        dto.getMateriasIds().stream().distinct().toList()
-                );
+                List<Materia> materias =
+                        materiaRepository.findAllById(
+                                dto.getMateriasIds().stream().distinct().toList());
+                validarMaterias(dto.getMateriasIds(), materias);
+                for (var comision :
+                        comisionRepository.findByProfesorIdAndFechaFinGreaterThanEqual(
+                                profesor.getId(), agenda.hoy())) {
+                    if (materias.stream()
+                            .noneMatch(m -> m.getId().equals(comision.getMateria().getId())))
+                        throw new IllegalArgumentException(
+                                "No se puede quitar una materia con comisiones vigentes.");
+                }
                 profesor.setMaterias(materias);
             }
 
@@ -114,20 +150,36 @@ public class UsuarioService {
 
         return usuarioGuardado;
     }
+
     @Transactional
-    public void eliminarUsuario(Integer id){
+    public void eliminarUsuario(Integer id) {
+        agenda.bloquear();
         Usuario usuario = buscarPorId(id);
         if (avisoRepository.existsByUsuarioId(id)) {
-            throw new IllegalArgumentException("No se puede eliminar el usuario porque tiene avisos vinculados.");
+            throw new IllegalArgumentException(
+                    "No se puede eliminar el usuario porque tiene avisos vinculados.");
         }
-        profesorRepository.findByUsuarioId(id).ifPresent(profesor -> {
-            if (comisionRepository.existsByProfesorId(profesor.getId()) ||
-                    (profesor.getMaterias() != null && !profesor.getMaterias().isEmpty())) {
-                throw new IllegalArgumentException("No se puede eliminar el usuario porque tiene materias o comisiones vinculadas. Sus datos académicos se conservaron.");
-            }
-            profesorRepository.delete(profesor);
-            profesorRepository.flush();
-        });
+        profesorRepository
+                .findByUsuarioId(id)
+                .ifPresent(
+                        profesor -> {
+                            if (comisionRepository.existsByProfesorId(profesor.getId())
+                                    || (profesor.getMaterias() != null
+                                            && !profesor.getMaterias().isEmpty())) {
+                                throw new IllegalArgumentException(
+                                        "No se puede eliminar el usuario porque tiene materias o"
+                                            + " comisiones vinculadas. Sus datos académicos se"
+                                            + " conservaron.");
+                            }
+                            profesorRepository.delete(profesor);
+                            profesorRepository.flush();
+                        });
         usuarioRepository.delete(usuario);
+    }
+
+    private void validarMaterias(List<Integer> ids, List<Materia> materias) {
+        if (ids.stream().anyMatch(java.util.Objects::isNull)
+                || ids.stream().distinct().count() != materias.size())
+            throw new IllegalArgumentException("Alguna de las materias no existe.");
     }
 }

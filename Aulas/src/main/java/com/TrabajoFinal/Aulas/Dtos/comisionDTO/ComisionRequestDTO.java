@@ -1,7 +1,9 @@
 package com.TrabajoFinal.Aulas.Dtos.comisionDTO;
 
 import com.TrabajoFinal.Aulas.model.enums.Horario;
+
 import jakarta.validation.constraints.NotNull;
+
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -16,6 +18,12 @@ public class ComisionRequestDTO {
     private Integer id_materia;
 
     @NotNull(message = "La cantidad de alumnos es obligatorio")
+    @jakarta.validation.constraints.Min(
+            value = 1,
+            message = "La comisión debe tener al menos 1 alumno")
+    @jakarta.validation.constraints.Max(
+            value = 100,
+            message = "La comisión admite hasta 100 alumnos")
     private Integer cantAlumnos;
 
     @NotNull(message = "El horario es obligatorio")

@@ -2,13 +2,16 @@ package com.TrabajoFinal.Aulas.Controller;
 
 import com.TrabajoFinal.Aulas.Dtos.usuarioDTO.UsuarioRequestDTO;
 import com.TrabajoFinal.Aulas.Dtos.usuarioDTO.UsuarioResponseDTO;
+import com.TrabajoFinal.Aulas.Repository.ProfesorRepository;
 import com.TrabajoFinal.Aulas.model.Usuario;
 import com.TrabajoFinal.Aulas.service.UsuarioService;
+
 import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import com.TrabajoFinal.Aulas.Repository.ProfesorRepository;
 
 import java.util.List;
 
@@ -23,25 +26,23 @@ public class UsuarioController {
     @GetMapping
     public List<UsuarioResponseDTO> Usuarios() {
         List<Usuario> usuarios = usuarioService.listarTodos();
-        return usuarios.stream()
-                .map(this::convertirADto)
-                .toList();
+        return usuarios.stream().map(this::convertirADto).toList();
     }
 
     @PostMapping
-    public UsuarioResponseDTO crear(@Valid @RequestBody UsuarioRequestDTO dto){
+    public UsuarioResponseDTO crear(@Valid @RequestBody UsuarioRequestDTO dto) {
         Usuario saved = usuarioService.subirUsuario(dto);
         return convertirADto(saved);
     }
 
     @GetMapping("/{id_usuario}")
-    public UsuarioResponseDTO buscar(@PathVariable Integer id_usuario)  {
+    public UsuarioResponseDTO buscar(@PathVariable Integer id_usuario) {
         Usuario usuario = usuarioService.buscarPorId(id_usuario);
         return convertirADto(usuario);
     }
 
     @DeleteMapping("/{id_usuario}")
-    public void eliminar(@PathVariable Integer id_usuario, Authentication authentication)  {
+    public void eliminar(@PathVariable Integer id_usuario, Authentication authentication) {
         if (usuarioService.buscarPorId(id_usuario).getEmail().equals(authentication.getName())) {
             throw new IllegalArgumentException("No podés eliminar tu propia cuenta.");
         }
@@ -49,9 +50,13 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id_usuario}")
-    public UsuarioResponseDTO modificar(@PathVariable Integer id_usuario, @Valid @RequestBody UsuarioRequestDTO usuarioNuevo, Authentication authentication) {
+    public UsuarioResponseDTO modificar(
+            @PathVariable Integer id_usuario,
+            @Valid @RequestBody UsuarioRequestDTO usuarioNuevo,
+            Authentication authentication) {
         Usuario actual = usuarioService.buscarPorId(id_usuario);
-        if (actual.getEmail().equals(authentication.getName()) && !actual.getRol().name().equals(usuarioNuevo.getRol())) {
+        if (actual.getEmail().equals(authentication.getName())
+                && !actual.getRol().name().equals(usuarioNuevo.getRol())) {
             throw new IllegalArgumentException("No podés cambiar tu propio rol.");
         }
         Usuario updated = usuarioService.modificar(id_usuario, usuarioNuevo);
@@ -67,17 +72,19 @@ public class UsuarioController {
 
         // También mostrar las asignaciones conservadas si el profesor cambió de rol.
         if (usuario.getId() != null) {
-            profesorRepository.findByUsuarioId(usuario.getId())
-                    .ifPresent(profesor -> dto.setMateriasIds(
-                            profesor.getMaterias()
-                                    .stream()
-                                    .map(materia -> materia.getId())
-                                    .toList()
-                    ));
+            profesorRepository
+                    .findByUsuarioId(usuario.getId())
+                    .ifPresent(
+                            profesor ->
+                                    dto.setMateriasIds(
+                                            profesor.getMaterias().stream()
+                                                    .map(materia -> materia.getId())
+                                                    .toList()));
         }
 
         return dto;
     }
+
     @GetMapping("/me")
     public UsuarioResponseDTO miPerfil(Authentication authentication) {
         Object principal = authentication.getPrincipal();
@@ -87,10 +94,11 @@ public class UsuarioController {
         }
 
         String username = authentication.getName();
-        String rol = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(authority -> authority.getAuthority().replace("ROLE_", ""))
-                .orElse("ALUMNO");
+        String rol =
+                authentication.getAuthorities().stream()
+                        .findFirst()
+                        .map(authority -> authority.getAuthority().replace("ROLE_", ""))
+                        .orElse("ALUMNO");
 
         UsuarioResponseDTO dto = new UsuarioResponseDTO();
         dto.setNombre(username);
@@ -98,21 +106,25 @@ public class UsuarioController {
         dto.setRol(com.TrabajoFinal.Aulas.model.enums.Rol.valueOf(rol));
         return dto;
     }
+
     @PutMapping("/me")
-    public UsuarioResponseDTO modificarMiPerfil(Authentication authentication,
-                                                @Valid @RequestBody UsuarioRequestDTO usuarioNuevo) {
+    public UsuarioResponseDTO modificarMiPerfil(
+            Authentication authentication,
+            @Valid @RequestBody com.TrabajoFinal.Aulas.Dtos.usuarioDTO.PerfilRequestDTO perfil) {
         Object principal = authentication.getPrincipal();
         Integer id;
 
         if (principal instanceof Usuario usuario) {
             id = usuario.getId();
-            if (!usuario.getRol().name().equals(usuarioNuevo.getRol()) || usuarioNuevo.getMateriasIds() != null) {
-                throw new IllegalArgumentException("El perfil propio no permite cambiar el rol ni las asignaciones académicas.");
-            }
         } else {
             throw new RuntimeException("Los usuarios de prueba no pueden modificar su perfil.");
         }
 
+        UsuarioRequestDTO usuarioNuevo = new UsuarioRequestDTO();
+        usuarioNuevo.setNombre(perfil.getNombre());
+        usuarioNuevo.setEmail(perfil.getEmail());
+        usuarioNuevo.setPassword(perfil.getPassword());
+        usuarioNuevo.setRol(((Usuario) principal).getRol().name());
         Usuario updated = usuarioService.modificar(id, usuarioNuevo);
         return convertirADto(updated);
     }

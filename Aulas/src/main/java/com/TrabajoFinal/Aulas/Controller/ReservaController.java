@@ -1,14 +1,13 @@
 package com.TrabajoFinal.Aulas.Controller;
 
-
-import com.TrabajoFinal.Aulas.Dtos.reservaDTO.ReservaResponseDTO;
-import com.TrabajoFinal.Aulas.Repository.ReservaRepository;
-import com.TrabajoFinal.Aulas.model.Aula;
-import com.TrabajoFinal.Aulas.model.Aviso;
-import com.TrabajoFinal.Aulas.model.Reserva;
+import com.TrabajoFinal.Aulas.Dtos.reservaDTO.*;
 import com.TrabajoFinal.Aulas.service.ReservaService;
+
+import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,53 +17,54 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/reservas")
 public class ReservaController {
+    private final ReservaService service;
 
-    private final ReservaService reservaService;
-
-    @GetMapping("/materia/{id_materia}")
-    public List<Reserva> buscarPorMateria(@PathVariable Integer id_materia) {
-        return reservaService.listarPorMateria(id_materia);
+    private boolean admin(Authentication a) {
+        return a.getAuthorities().stream().anyMatch(r -> r.getAuthority().equals("ROLE_ADMIN"));
     }
+
     @GetMapping
-    public List<Reserva> Reservas(Authentication authentication) {
-        String email = authentication.getName();
-
-        boolean esAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-        return reservaService.listarReservas(email, esAdmin);
+    public List<ReservaResponseDTO> listar(Authentication a) {
+        return service.listarReservas(a.getName(), admin(a)).stream()
+                .map(r -> service.dto(r, a.getName(), admin(a)))
+                .toList();
     }
+
+    @GetMapping("/materia/{id}")
+    public List<ReservaResponseDTO> porMateria(@PathVariable Integer id, Authentication a) {
+        return service.listarReservas(a.getName(), admin(a)).stream()
+                .filter(r -> r.getComision().getMateria().getId().equals(id))
+                .map(r -> service.dto(r, a.getName(), admin(a)))
+                .toList();
+    }
+
+    @GetMapping("/{id}")
+    public ReservaResponseDTO detalle(@PathVariable Integer id, Authentication a) {
+        var r = service.listarXId(id);
+        if (!service.visible(r, a.getName(), admin(a)))
+            throw new AccessDeniedException("No podés consultar ese historial.");
+        return service.dto(r, a.getName(), admin(a));
+    }
+
     @PostMapping
-    public Reserva crear(@RequestBody ReservaResponseDTO reserva, Authentication authentication) {
-        String email = authentication.getName();
-        boolean esAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        return reservaService.hacerReserva(reserva, email, esAdmin);
+    public ReservaResponseDTO crear(@Valid @RequestBody ReservaRequestDTO dto, Authentication a) {
+        return service.dto(service.hacerReserva(dto, a.getName(), admin(a)), a.getName(), admin(a));
     }
-    @GetMapping("/{id_reserva}")
-    public Reserva buscar(@PathVariable Integer id_reserva)  {
-        return reservaService.listarXId(id_reserva);
+
+    @PutMapping("/{id}")
+    public ReservaResponseDTO editar(
+            @PathVariable Integer id, @Valid @RequestBody ReservaRequestDTO dto, Authentication a) {
+        return service.dto(
+                service.modificarReserva(id, dto, a.getName(), admin(a)), a.getName(), admin(a));
     }
-    @DeleteMapping("/{id_reserva}")
-    public void eliminar(@PathVariable Integer id_reserva, Authentication authentication) {
-        String email = authentication.getName();
-        boolean esAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        reservaService.eliminarReserva(id_reserva, email, esAdmin);
+
+    @PutMapping("/cancelar/{id}")
+    public void cancelar(@PathVariable Integer id, Authentication a) {
+        service.cancelarReserva(id, a.getName(), admin(a));
     }
-    @PutMapping("/{id_reserva}")
-    public Reserva modificar(@PathVariable Integer id_reserva, @RequestBody ReservaResponseDTO reservaNueva, Authentication authentication) {
-        String email = authentication.getName();
-        boolean esAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        return reservaService.modificarReserva(id_reserva, reservaNueva, email, esAdmin);
-    }
-    @PutMapping("/cancelar/{id_reserva}")
-    @ResponseStatus(HttpStatus.OK)
-    public void cancelar(@PathVariable Integer id_reserva, Authentication authentication) {
-        String email = authentication.getName();
-        boolean esAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        reservaService.cancelarReserva(id_reserva, email, esAdmin);
+
+    @DeleteMapping("/{id}")
+    public void eliminar(@PathVariable Integer id, Authentication a) {
+        service.eliminarReserva(id, a.getName(), admin(a));
     }
 }

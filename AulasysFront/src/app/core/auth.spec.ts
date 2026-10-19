@@ -120,7 +120,8 @@ describe('Autenticación y permisos', () => {
 
   it('impide redirecciones externas o fuera del sprint', () => {
     expect(safeReturnUrl('//external.test')).toBe('/inicio');
-    expect(safeReturnUrl('/reservas')).toBe('/inicio');
+    expect(safeReturnUrl('/reservas')).toBe('/reservas');
+    expect(safeReturnUrl('/reportes')).toBe('/inicio');
     expect(safeReturnUrl('/aulas?tipo=AULA')).toBe('/aulas?tipo=AULA');
   });
 });
