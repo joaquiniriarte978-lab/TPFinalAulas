@@ -2,7 +2,7 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { routes } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { apiInterceptor } from './core/api.interceptor';
+import { apiInterceptor } from './shared/data-access/api.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
