@@ -1,0 +1,94 @@
+<div class="page-heading">
+  <div>
+    <h1>Clases</h1>
+    <p>Consultá el aula donde se dicta cada clase.</p>
+  </div>
+</div>
+<section class="panel">
+  <form class="filters" (submit)="$event.preventDefault(); buscar()">
+    <label>Fecha<input type="date" [formField]="filters.fecha" /></label>
+    <label
+      >Materia<select [formField]="filters.materia">
+        <option value="">Todas</option>
+        @for (m of materias.items(); track m.id) {
+          <option [value]="m.id">{{ m.nombre }}</option>
+        }
+      </select></label
+    >
+    <label
+      >Aula<select [formField]="filters.aula">
+        <option value="">Todas</option>
+        @for (a of aulas.items(); track a.id) {
+          <option [value]="a.id">{{ a.nombre }}</option>
+        }
+      </select></label
+    >
+    <button
+      type="submit"
+      class="button primary"
+      [disabled]="data.loading() || !filterModel().fecha"
+    >
+      Consultar
+    </button>
+  </form>
+  @if (materias.error() || aulas.error()) {
+    <p class="alert">
+      No se pudieron cargar los filtros.
+      <button class="button subtle" (click)="materias.load(); aulas.load()">Reintentar</button>
+    </p>
+  }
+  <app-list-status
+    [loading]="data.loading()"
+    [error]="data.error()"
+    [count]="data.items().length"
+    (retry)="buscar()"
+  />
+  @if (!data.loading() && !data.error() && data.items().length) {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Materia</th>
+            <th>Horario</th>
+            <th>Aula efectiva</th>
+            <th>Tipo</th>
+            <th>Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of data.items(); track $index) {
+            <tr>
+              <td>{{ c.materiaNombre }} · #{{ c.comisionId }}</td>
+              <td>{{ c.horaInicio.slice(0, 5) }}–{{ c.horaFin.slice(0, 5) }}</td>
+              <td>
+                <strong>{{ c.aulaNombre }}</strong>
+              </td>
+              <td>{{ c.origen === 'RESERVA' ? 'Reserva puntual' : 'Clase semanal' }}</td>
+              <td>
+                <button class="button subtle" (click)="detail.set(c)">Ver detalle</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+@if (detail(); as c) {
+  <app-modal title="Detalle de clase" (closed)="detail.set(null)"
+    ><dl class="details">
+      <dt>Materia</dt>
+      <dd>{{ c.materiaNombre }}</dd>
+      <dt>Comisión</dt>
+      <dd>#{{ c.comisionId }}</dd>
+      <dt>Profesor</dt>
+      <dd>{{ c.profesorNombre }}</dd>
+      <dt>Fecha</dt>
+      <dd>{{ c.fecha }}</dd>
+      <dt>Horario</dt>
+      <dd>{{ c.horaInicio.slice(0, 5) }}–{{ c.horaFin.slice(0, 5) }}</dd>
+      <dt>Aula</dt>
+      <dd>{{ c.aulaNombre }}</dd>
+    </dl></app-modal
+  >
+}

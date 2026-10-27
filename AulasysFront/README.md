@@ -4,6 +4,8 @@ Cliente Angular 22 para el backend Spring Boot de `../Aulas`. Incluye los sprint
 
 El detalle de las 13 historias del segundo sprint está en [SPRINT-2.md](../SPRINT-2.md).
 
+Cada componente conserva su plantilla HTML y estilos CSS en archivos de su carpeta. La validación de formularios usa Signal Forms de Angular 22; `styles.css` contiene únicamente los estilos globales.
+
 ## Ejecutar
 
 Requisitos: Node.js 24, npm, JDK 21 y MySQL 8.
@@ -17,18 +19,18 @@ Las cuentas demo existentes son `admin`, `profesor` y `alumno`, con contraseña 
 
 ## Permisos
 
-| Función | Administrador | Profesor | Alumno |
-| --- | --- | --- | --- |
-| Consultar aulas, materias y clases por fecha | Sí | Sí | Sí |
-| Editar perfil propio | Sí | Sí | Sí |
-| Administrar aulas, materias y usuarios | Sí | No | No |
-| Asignar materias a profesores | Sí | No | No |
-| Consultar comisiones | Todas | Propias | En consulta de clases |
-| Administrar comisiones y clase fija | Sí | No | No |
-| Consultar reservas activas | Sí | Sí | En consulta de clases |
-| Crear, editar y cancelar reservas | Todas | Propias | No |
-| Consultar y depurar historial | Todo | Propio | No |
-| Crear y editar avisos propios | — | Sí | No |
+| Función                                      | Administrador | Profesor | Alumno                |
+| -------------------------------------------- | ------------- | -------- | --------------------- |
+| Consultar aulas, materias y clases por fecha | Sí            | Sí       | Sí                    |
+| Editar perfil propio                         | Sí            | Sí       | Sí                    |
+| Administrar aulas, materias y usuarios       | Sí            | No       | No                    |
+| Asignar materias a profesores                | Sí            | No       | No                    |
+| Consultar comisiones                         | Todas         | Propias  | En consulta de clases |
+| Administrar comisiones y clase fija          | Sí            | No       | No                    |
+| Consultar reservas activas                   | Sí            | Sí       | En consulta de clases |
+| Crear, editar y cancelar reservas            | Todas         | Propias  | No                    |
+| Consultar y depurar historial                | Todo          | Propio   | No                    |
+| Crear y editar avisos propios                | —             | Sí       | No                    |
 
 El servidor valida los permisos y la propiedad; las rutas protegidas y botones de Angular acompañan esas reglas.
 

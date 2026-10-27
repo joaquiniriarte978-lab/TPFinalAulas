@@ -1,0 +1,219 @@
+<div class="page-heading">
+  <div>
+    <h1>Usuarios</h1>
+    @if (!data.loading() && !data.error()) {
+      <p>{{ data.items().length }} usuarios registrados</p>
+    }
+  </div>
+  <button class="button primary" (click)="open()">
+    <span aria-hidden="true">＋</span> Nuevo usuario
+  </button>
+</div>
+@if (state.success()) {
+  <div class="success" role="status">{{ state.success() }}</div>
+}
+<section class="panel" aria-label="Listado de usuarios">
+  <div class="filters">
+    <label class="grow"
+      >Buscar usuario<input
+        type="search"
+        placeholder="Nombre o correo electrónico…"
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event)" /></label
+    ><label
+      >Rol<select [ngModel]="rol()" (ngModelChange)="rol.set($event)">
+        <option value="">Todos los roles</option>
+        @for (role of roleKeys; track role) {
+          <option [value]="role">{{ roles[role] }}</option>
+        }
+      </select></label
+    ><button class="button subtle filter-clear" (click)="clear()">Limpiar</button>
+  </div>
+  @if (data.loading()) {
+    <div class="empty-state" role="status">
+      <span class="spinner"></span>
+      <p>Cargando usuarios…</p>
+    </div>
+  } @else if (data.error()) {
+    <div class="empty-state">
+      <p class="alert" role="alert">{{ data.error() }}</p>
+      <button class="button secondary" (click)="data.load()">Reintentar</button>
+    </div>
+  } @else if (!filtered().length) {
+    <div class="empty-state">
+      <h3>
+        {{
+          data.items().length
+            ? 'No encontramos coincidencias'
+            : 'Todavía no hay usuarios registrados'
+        }}
+      </h3>
+      <p>
+        {{
+          data.items().length
+            ? 'Probá con otro nombre, correo o rol.'
+            : 'Creá la primera cuenta de la institución. Las cuentas de prueba no forman parte de este listado.'
+        }}
+      </p>
+      @if (data.items().length) {
+        <button class="button secondary" (click)="clear()">Limpiar filtros</button>
+      } @else {
+        <button class="button primary" (click)="open()">Crear primer usuario</button>
+      }
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Correo electrónico</th>
+            <th scope="col">Rol</th>
+            <th scope="col" class="align-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of filtered(); track user.id) {
+            <tr>
+              <td>
+                <code>#{{ user.id }}</code>
+              </td>
+              <td>
+                <strong>{{ user.nombre }}</strong>
+                @if (isSelf(user)) {
+                  <span class="self-label">Vos</span>
+                }
+              </td>
+              <td>{{ user.email }}</td>
+              <td>
+                <span
+                  class="badge"
+                  [class.lab]="user.rol === 'PROFESOR'"
+                  [class.admin]="user.rol === 'ADMIN'"
+                  >{{ roles[user.rol] }}</span
+                >
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    class="button subtle"
+                    [attr.aria-label]="'Editar ' + user.nombre"
+                    (click)="open(user)"
+                  >
+                    Editar</button
+                  ><button
+                    class="button text-danger"
+                    [disabled]="isSelf(user)"
+                    [attr.aria-label]="'Eliminar ' + user.nombre"
+                    [title]="
+                      isSelf(user) ? 'No podés eliminar tu propia cuenta' : 'Eliminar usuario'
+                    "
+                    (click)="state.confirmDelete(user)"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="table-footer">{{ filtered().length }} de {{ data.items().length }} usuarios</div>
+  }
+</section>
+@if (state.opened()) {
+  <app-modal
+    [title]="state.editing() ? 'Editar usuario' : 'Nuevo usuario'"
+    [busy]="state.busy()"
+    (closed)="state.close()"
+    ><p class="muted">Completá los datos de la cuenta y su nivel de acceso.</p>
+    @if (state.error()) {
+      <div class="alert" role="alert">{{ state.error() }}</div>
+    }
+    <form (submit)="$event.preventDefault(); save()">
+      <fieldset [disabled]="state.busy()">
+        <label for="usuario-nombre">Nombre</label
+        ><input
+          id="usuario-nombre"
+          [formField]="form.nombre"
+          autocomplete="off"
+          placeholder="Ej. Ana Pérez"
+        /><app-field-error [field]="form.nombre" />
+        <label for="usuario-email">Correo electrónico</label
+        ><input
+          id="usuario-email"
+          type="email"
+          [formField]="form.email"
+          autocomplete="off"
+          placeholder="nombre@universidad.edu"
+        /><app-field-error [field]="form.email" />
+        <label for="usuario-password">{{
+          state.editing() ? 'Nueva contraseña (opcional)' : 'Contraseña'
+        }}</label
+        ><input
+          id="usuario-password"
+          type="password"
+          [formField]="form.password"
+          autocomplete="new-password"
+          aria-describedby="password-hint"
+        /><small id="password-hint" class="field-hint"
+          >Al menos 8 caracteres y una mayúscula.
+          @if (state.editing()) {
+            Dejá vacío para conservar la contraseña actual.
+          }</small
+        ><app-field-error [field]="form.password" /> <label for="usuario-rol">Rol</label
+        ><select id="usuario-rol" [formField]="form.rol">
+          @for (role of roleKeys; track role) {
+            <option [value]="role">{{ roles[role] }}</option>
+          }
+        </select>
+        <small class="field-hint">{{
+          isSelf(state.editing())
+            ? 'Tu propio rol no se puede cambiar desde esta cuenta.'
+            : 'Administrador: gestiona datos y usuarios. Profesor y alumno: consultan aulas y materias.'
+        }}</small>
+        @if (state.editing()?.materiasIds?.length) {
+          <div class="notice">
+            Esta cuenta tiene {{ state.editing()!.materiasIds!.length }} materia(s) vinculada(s). Se
+            conservarán al guardar o cambiar el rol.
+          </div>
+        }
+      </fieldset>
+      <div class="dialog-actions">
+        <button
+          class="button secondary"
+          type="button"
+          [disabled]="state.busy()"
+          (click)="state.close()"
+        >
+          Cancelar</button
+        ><button class="button primary" type="submit" [disabled]="state.busy()">
+          {{ state.busy() ? 'Guardando…' : 'Guardar usuario' }}
+        </button>
+      </div>
+    </form>
+  </app-modal>
+}
+@if (state.deleting(); as user) {
+  <app-modal title="Eliminar usuario" [busy]="state.busy()" (closed)="state.close()"
+    ><p>
+      Vas a eliminar la cuenta de <strong>{{ user.nombre }}</strong> ({{ user.email }}).
+    </p>
+    <p class="muted">
+      Esta acción no se puede deshacer. Si hay materias, comisiones o avisos vinculados, la cuenta
+      se conservará.
+    </p>
+    @if (state.error()) {
+      <div class="alert" role="alert">{{ state.error() }}</div>
+    }
+    <div class="dialog-actions">
+      <button class="button secondary" [disabled]="state.busy()" (click)="state.close()">
+        Cancelar</button
+      ><button class="button danger" [disabled]="state.busy()" (click)="remove()">
+        {{ state.busy() ? 'Eliminando…' : 'Eliminar usuario' }}
+      </button>
+    </div></app-modal
+  >
+}

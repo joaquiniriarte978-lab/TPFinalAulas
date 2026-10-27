@@ -1,0 +1,268 @@
+<div class="page-heading">
+  <div>
+    <h1>{{ auth.isAdmin() ? 'Comisiones' : 'Mis comisiones' }}</h1>
+    <p>Materia, profesor y planificación de la cursada.</p>
+  </div>
+  @if (auth.isAdmin()) {
+    <button class="button primary" (click)="open()">Nueva comisión</button>
+  }
+</div>
+@if (state.success()) {
+  <p class="success" role="status">{{ state.success() }}</p>
+}
+<section class="panel">
+  <div class="filters">
+    <label class="grow"
+      >Buscar comisión<input
+        type="search"
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event)"
+        placeholder="Materia, profesor o número" /></label
+    ><button class="button secondary" (click)="data.load()" [disabled]="data.loading()">
+      Actualizar
+    </button>
+  </div>
+  <app-list-status
+    [loading]="data.loading()"
+    [error]="data.error()"
+    [count]="filtered().length"
+    (retry)="data.load()"
+  />
+  @if (!data.loading() && !data.error() && filtered().length) {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Comisión</th>
+            <th>Materia</th>
+            <th>Profesor</th>
+            <th>Turno</th>
+            <th>Clase fija</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of filtered(); track c.id) {
+            <tr>
+              <td>#{{ c.id }}</td>
+              <td>{{ c.materiaNombre }}</td>
+              <td>{{ c.profesorNombre }}</td>
+              <td>{{ c.horario }}</td>
+              <td>{{ c.claseFija?.aulaNombre || 'Sin asignar' }}</td>
+              <td><button class="button subtle" (click)="detail.set(c)">Ver detalle</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+@if (detail(); as c) {
+  <app-modal title="Detalle de comisión" (closed)="detail.set(null)">
+    <dl class="details">
+      <dt>Comisión</dt>
+      <dd>#{{ c.id }} · {{ c.materiaNombre }}</dd>
+      <dt>Profesor</dt>
+      <dd>{{ c.profesorNombre }}</dd>
+      <dt>Alumnos</dt>
+      <dd>{{ c.cantAlumnos }}</dd>
+      <dt>Turno</dt>
+      <dd>{{ c.horario }}</dd>
+      <dt>Cursada</dt>
+      <dd>{{ c.fechaInicio }} al {{ c.fechaFin }}</dd>
+      <dt>Clase fija</dt>
+      <dd>
+        @if (c.claseFija; as f) {
+          {{ f.aulaNombre }} · {{ f.diaSemana }} · {{ f.horaInicio.slice(0, 5) }}–{{
+            f.horaFin.slice(0, 5)
+          }}
+        } @else {
+          Sin asignar
+        }
+      </dd>
+    </dl>
+    @if (auth.isAdmin()) {
+      <div class="dialog-actions">
+        <button class="button secondary" (click)="open(c)">Editar comisión</button
+        ><button class="button primary" (click)="openClase(c)">
+          {{ c.claseFija ? 'Editar clase fija' : 'Asignar clase fija' }}
+        </button>
+        @if (c.claseFija) {
+          <button class="button text-danger" (click)="confirm(c, true)">Quitar clase fija</button>
+        }
+        <button class="button text-danger" (click)="confirm(c)">Eliminar comisión</button>
+      </div>
+    }
+  </app-modal>
+}
+@if (state.opened()) {
+  <app-modal
+    [title]="
+      mode() === 'clase' ? 'Clase fija' : state.editing() ? 'Editar comisión' : 'Nueva comisión'
+    "
+    [busy]="state.busy()"
+    (closed)="state.close()"
+  >
+    @if (state.error()) {
+      <p class="alert" role="alert">{{ state.error() }}</p>
+    }
+    @if (mode() === 'comision') {
+      @if (profesores.error() || materias.error()) {
+        <p class="alert">
+          No se pudieron cargar las opciones.
+          <button class="button subtle" (click)="profesores.load(); materias.load()">
+            Reintentar
+          </button>
+        </p>
+      }
+      <form (submit)="$event.preventDefault(); save()">
+        <fieldset [disabled]="state.busy()">
+          <div class="form-grid">
+            <div>
+              <label
+                >Materia<select [formField]="form.id_materia" (change)="onMateriaChange()">
+                  <option value="">Seleccioná una materia</option>
+                  @for (m of materias.items(); track m.id) {
+                    <option [value]="m.id">{{ m.nombre }}</option>
+                  }
+                </select></label
+              ><app-field-error [field]="form.id_materia" />
+            </div>
+            <div>
+              <label
+                >Profesor<select [formField]="form.id_profesor">
+                  <option value="">Seleccioná un profesor</option>
+                  @for (p of opcionesProfesor(); track p.id) {
+                    <option [value]="p.id">{{ p.nombre }}</option>
+                  }
+                </select></label
+              ><app-field-error [field]="form.id_profesor" />
+            </div>
+            <div>
+              <label>Alumnos<input type="number" [formField]="form.cantAlumnos" step="1" /></label
+              ><app-field-error [field]="form.cantAlumnos" />
+            </div>
+            <div>
+              <label
+                >Turno<select [formField]="form.horario">
+                  @for (t of turnos; track t) {
+                    <option [value]="t">{{ t }}</option>
+                  }
+                </select></label
+              >
+            </div>
+            <div>
+              <label>Inicio de cursada<input type="date" [formField]="form.fechaInicio" /></label
+              ><app-field-error [field]="form.fechaInicio" />
+            </div>
+            <div>
+              <label>Fin de cursada<input type="date" [formField]="form.fechaFin" /></label
+              ><app-field-error [field]="form.fechaFin" />
+            </div>
+          </div>
+          <p class="muted">
+            La cursada dura entre 2 y 6 meses. Los profesores se muestran según la materia asignada.
+          </p>
+        </fieldset>
+        <div class="dialog-actions">
+          <button
+            type="button"
+            class="button secondary"
+            [disabled]="state.busy()"
+            (click)="state.close()"
+          >
+            Cancelar</button
+          ><button
+            class="button primary"
+            type="submit"
+            [disabled]="
+              state.busy() ||
+              profesores.loading() ||
+              materias.loading() ||
+              !!profesores.error() ||
+              !!materias.error()
+            "
+          >
+            Guardar comisión
+          </button>
+        </div>
+      </form>
+    } @else {
+      <p>{{ state.editing()?.materiaNombre }} · {{ state.editing()?.horario }}</p>
+      @if (aulas.error()) {
+        <p class="alert">
+          {{ aulas.error() }}
+          <button class="button subtle" (click)="aulas.load()">Reintentar</button>
+        </p>
+      }
+      <form (submit)="$event.preventDefault(); saveClase()">
+        <fieldset [disabled]="state.busy()">
+          <label
+            >Aula<select [formField]="claseForm.id_aula">
+              <option value="">Seleccioná un aula</option>
+              @for (a of aulas.items(); track a.id) {
+                <option [value]="a.id">{{ a.nombre }} · {{ a.capacidad }} lugares</option>
+              }
+            </select></label
+          ><app-field-error [field]="claseForm.id_aula" />
+          <label
+            >Día<select [formField]="claseForm.diaSemana">
+              @for (d of dias; track d) {
+                <option [value]="d">{{ d }}</option>
+              }
+            </select></label
+          >
+          <div class="form-grid">
+            <div>
+              <label>Hora de inicio<input type="time" [formField]="claseForm.horaInicio" /></label
+              ><app-field-error [field]="claseForm.horaInicio" />
+            </div>
+            <div>
+              <label>Hora de fin<input type="time" [formField]="claseForm.horaFin" /></label
+              ><app-field-error [field]="claseForm.horaFin" />
+            </div>
+          </div>
+          <p class="muted">Mañana 06–13 · Tarde 13–19 · Noche 19–23:59.</p>
+        </fieldset>
+        <div class="dialog-actions">
+          <button
+            type="button"
+            class="button secondary"
+            [disabled]="state.busy()"
+            (click)="state.close()"
+          >
+            Cancelar</button
+          ><button
+            type="submit"
+            class="button primary"
+            [disabled]="state.busy() || aulas.loading() || !!aulas.error()"
+          >
+            Guardar clase fija
+          </button>
+        </div>
+      </form>
+    }
+  </app-modal>
+}
+@if (state.deleting(); as c) {
+  <app-modal
+    [title]="quitarClase() ? 'Quitar clase fija' : 'Eliminar comisión'"
+    [busy]="state.busy()"
+    (closed)="state.close()"
+  >
+    <p>
+      {{ quitarClase() ? 'Se quitará la asignación semanal de' : 'Se eliminará' }} la comisión #{{
+        c.id
+      }}
+      de {{ c.materiaNombre }}.
+    </p>
+    @if (state.error()) {
+      <p class="alert" role="alert">{{ state.error() }}</p>
+    }
+    <div class="dialog-actions">
+      <button class="button secondary" [disabled]="state.busy()" (click)="state.close()">
+        Volver</button
+      ><button class="button danger" [disabled]="state.busy()" (click)="remove()">Confirmar</button>
+    </div></app-modal
+  >
+}

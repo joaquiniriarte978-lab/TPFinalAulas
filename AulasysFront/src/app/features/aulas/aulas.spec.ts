@@ -51,9 +51,9 @@ describe('Consulta de aulas', () => {
   it('rechaza capacidades fraccionarias y nombres en blanco antes del envío', () => {
     const page = TestBed.createComponent(Aulas).componentInstance;
     http.expectOne('/api/aulas').flush([]);
-    page.form.patchValue({ nombre: '   ', capacidad: 2.5 });
+    page.formModel.set({ nombre: '   ', capacidad: 2.5, tipo: 'AULA', equipamiento: '' });
     page.save();
-    expect(page.form.invalid).toBe(true);
+    expect(page.form().invalid()).toBe(true);
     http.expectNone((req) => req.method === 'POST');
   });
 });

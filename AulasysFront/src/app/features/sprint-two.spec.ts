@@ -79,7 +79,13 @@ describe('Sprint 2: flujos de usuario', () => {
     const fixture = reservas();
     const page = fixture.componentInstance;
     page.open();
-    page.form.patchValue(reserva);
+    page.formModel.set({
+      id_comision: String(reserva.id_comision),
+      id_aula: String(reserva.id_aula),
+      fecha: reserva.fecha,
+      horaInicio: reserva.horaInicio,
+      horaFin: reserva.horaFin,
+    });
     page.save();
     page.save();
     const first = http.expectOne('/api/reservas');
@@ -112,7 +118,7 @@ describe('Sprint 2: flujos de usuario', () => {
       .flush({ message: 'El aula ya está ocupada.' }, { status: 400, statusText: 'Bad Request' });
     expect(page.state.opened()).toBe(true);
     expect(page.state.error()).toContain('ocupada');
-    expect(page.form.controls.fecha.value).toBe('2026-10-26');
+    expect(page.formModel().fecha).toBe('2026-10-26');
   });
   it('cancela solo al confirmar y actualiza la disponibilidad mostrada', () => {
     const page = reservas().componentInstance;
@@ -148,9 +154,9 @@ describe('Sprint 2: flujos de usuario', () => {
       .expectOne('/api/profesores')
       .flush([{ id: 3, usuarioId: 41, nombre: 'Ana', materiasIds: [2] }]);
     page.open();
-    page.form.setValue({
-      id_materia: 2,
-      id_profesor: 3,
+    page.formModel.set({
+      id_materia: '2',
+      id_profesor: '3',
       cantAlumnos: 20,
       horario: 'MAÑANA',
       fechaInicio: '2026-10-01',
@@ -166,7 +172,7 @@ describe('Sprint 2: flujos de usuario', () => {
   it('cambiar correo obliga a iniciar sesión con las nuevas credenciales', () => {
     login();
     const page = TestBed.createComponent(Perfil).componentInstance;
-    page.form.controls.email.setValue('nueva@test.com');
+    page.formModel.update((value) => ({ ...value, email: 'nueva@test.com' }));
     page.save();
     const request = http.expectOne('/api/usuarios/me');
     expect(request.request.body.rol).toBeUndefined();
@@ -185,7 +191,7 @@ describe('Sprint 2: flujos de usuario', () => {
   it('editar el nombre conserva la sesión', () => {
     login();
     const page = TestBed.createComponent(Perfil).componentInstance;
-    page.form.controls.nombre.setValue('Ana María');
+    page.formModel.update((value) => ({ ...value, nombre: 'Ana María' }));
     page.save();
     http.expectOne('/api/usuarios/me').flush({
       id: 41,
