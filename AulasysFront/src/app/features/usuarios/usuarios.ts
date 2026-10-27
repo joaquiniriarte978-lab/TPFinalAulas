@@ -1,17 +1,28 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { tap } from 'rxjs';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import {
+  disabled,
+  email,
+  form,
+  FormField,
+  maxLength,
+  pattern,
+  required,
+  validate,
+} from '@angular/forms/signals';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { normalize, Rol, ROLES, Usuario } from '../../core/models';
 import { collection } from '../../shared/collection';
 import { crudState } from '../../shared/crud-state';
-import { FieldError, nonBlank } from '../../shared/field-error';
+import { FieldError } from '../../shared/field-error';
 import { Modal } from '../../shared/modal';
 @Component({
   selector: 'app-usuarios',
-  imports: [FormsModule, ReactiveFormsModule, Modal, FieldError],
+  imports: [FormsModule, FormField, Modal, FieldError],
   templateUrl: './usuarios.html',
+  styleUrl: './usuarios.css',
 })
 export class Usuarios {
   readonly auth = inject(AuthService);
@@ -31,18 +42,19 @@ export class Usuarios {
           (!this.rol() || u.rol === this.rol()),
       ),
   );
-  readonly form = inject(FormBuilder).nonNullable.group({
-    nombre: ['', [nonBlank, Validators.maxLength(20)]],
-    email: [
-      '',
-      [
-        Validators.required,
-        Validators.email,
-        Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/),
-      ],
-    ],
-    password: [''],
-    rol: ['ALUMNO' as Rol, Validators.required],
+  readonly formModel = signal({ nombre: '', email: '', password: '', rol: 'ALUMNO' as Rol });
+  readonly form = form(this.formModel, (path) => {
+    validate(path.nombre, ({ value }) =>
+      value().trim() ? undefined : { kind: 'required', message: 'Completá este campo.' },
+    );
+    maxLength(path.nombre, 20);
+    required(path.email);
+    email(path.email);
+    pattern(path.email, /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/);
+    required(path.password, { when: () => !this.state.editing() });
+    pattern(path.password, /^$|^(?=.*[A-Z]).{8,}$/);
+    required(path.rol);
+    disabled(path.rol, () => this.isSelf(this.state.editing()));
   });
   isSelf(user: Usuario | null) {
     return user?.id != null && user.id === this.auth.user()?.id;
@@ -52,25 +64,17 @@ export class Usuarios {
     this.rol.set('');
   }
   open(user: Usuario | null = null) {
-    this.form.reset(
+    this.form().reset(
       user
         ? { nombre: user.nombre, email: user.email, password: '', rol: user.rol }
         : { nombre: '', email: '', password: '', rol: 'ALUMNO' },
     );
-    this.form.controls.password.setValidators(
-      user
-        ? [Validators.pattern(/^$|^(?=.*[A-Z]).{8,}$/)]
-        : [Validators.required, Validators.pattern(/^(?=.*[A-Z]).{8,}$/)],
-    );
-    this.form.controls.password.updateValueAndValidity();
-    if (this.isSelf(user)) this.form.controls.rol.disable();
-    else this.form.controls.rol.enable();
     this.state.open(user);
   }
   save() {
-    this.form.markAllAsTouched();
-    if (this.form.invalid || !this.auth.isAdmin()) return;
-    const value = this.form.getRawValue();
+    this.form().markAsTouched();
+    if (this.form().invalid() || !this.auth.isAdmin()) return;
+    const value = this.formModel();
     const current = this.state.editing();
     const payload = {
       nombre: value.nombre.trim(),

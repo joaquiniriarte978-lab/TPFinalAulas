@@ -115,42 +115,36 @@
           </button>
         </p>
       }
-      <form [formGroup]="form" (ngSubmit)="save()">
+      <form (submit)="$event.preventDefault(); save()">
         <fieldset [disabled]="state.busy()">
           <div class="form-grid">
             <div>
               <label
-                >Materia<select formControlName="id_materia">
-                  <option [ngValue]="0">Seleccioná una materia</option>
+                >Materia<select [formField]="form.id_materia" (change)="onMateriaChange()">
+                  <option value="">Seleccioná una materia</option>
                   @for (m of materias.items(); track m.id) {
-                    <option [ngValue]="m.id">{{ m.nombre }}</option>
+                    <option [value]="m.id">{{ m.nombre }}</option>
                   }
                 </select></label
-              ><app-field-error [control]="form.controls.id_materia" />
+              ><app-field-error [field]="form.id_materia" />
             </div>
             <div>
               <label
-                >Profesor<select formControlName="id_profesor">
-                  <option [ngValue]="0">Seleccioná un profesor</option>
+                >Profesor<select [formField]="form.id_profesor">
+                  <option value="">Seleccioná un profesor</option>
                   @for (p of opcionesProfesor(); track p.id) {
-                    <option [ngValue]="p.id">{{ p.nombre }}</option>
+                    <option [value]="p.id">{{ p.nombre }}</option>
                   }
                 </select></label
-              ><app-field-error [control]="form.controls.id_profesor" />
+              ><app-field-error [field]="form.id_profesor" />
+            </div>
+            <div>
+              <label>Alumnos<input type="number" [formField]="form.cantAlumnos" step="1" /></label
+              ><app-field-error [field]="form.cantAlumnos" />
             </div>
             <div>
               <label
-                >Alumnos<input
-                  type="number"
-                  formControlName="cantAlumnos"
-                  min="1"
-                  max="100"
-                  step="1" /></label
-              ><app-field-error [control]="form.controls.cantAlumnos" />
-            </div>
-            <div>
-              <label
-                >Turno<select formControlName="horario">
+                >Turno<select [formField]="form.horario">
                   @for (t of turnos; track t) {
                     <option [value]="t">{{ t }}</option>
                   }
@@ -158,12 +152,12 @@
               >
             </div>
             <div>
-              <label>Inicio de cursada<input type="date" formControlName="fechaInicio" /></label
-              ><app-field-error [control]="form.controls.fechaInicio" />
+              <label>Inicio de cursada<input type="date" [formField]="form.fechaInicio" /></label
+              ><app-field-error [field]="form.fechaInicio" />
             </div>
             <div>
-              <label>Fin de cursada<input type="date" formControlName="fechaFin" /></label
-              ><app-field-error [control]="form.controls.fechaFin" />
+              <label>Fin de cursada<input type="date" [formField]="form.fechaFin" /></label
+              ><app-field-error [field]="form.fechaFin" />
             </div>
           </div>
           <p class="muted">
@@ -201,18 +195,18 @@
           <button class="button subtle" (click)="aulas.load()">Reintentar</button>
         </p>
       }
-      <form [formGroup]="claseForm" (ngSubmit)="saveClase()">
+      <form (submit)="$event.preventDefault(); saveClase()">
         <fieldset [disabled]="state.busy()">
           <label
-            >Aula<select formControlName="id_aula">
-              <option [ngValue]="0">Seleccioná un aula</option>
+            >Aula<select [formField]="claseForm.id_aula">
+              <option value="">Seleccioná un aula</option>
               @for (a of aulas.items(); track a.id) {
-                <option [ngValue]="a.id">{{ a.nombre }} · {{ a.capacidad }} lugares</option>
+                <option [value]="a.id">{{ a.nombre }} · {{ a.capacidad }} lugares</option>
               }
             </select></label
-          ><app-field-error [control]="claseForm.controls.id_aula" />
+          ><app-field-error [field]="claseForm.id_aula" />
           <label
-            >Día<select formControlName="diaSemana">
+            >Día<select [formField]="claseForm.diaSemana">
               @for (d of dias; track d) {
                 <option [value]="d">{{ d }}</option>
               }
@@ -220,12 +214,12 @@
           >
           <div class="form-grid">
             <div>
-              <label>Hora de inicio<input type="time" formControlName="horaInicio" /></label
-              ><app-field-error [control]="claseForm.controls.horaInicio" />
+              <label>Hora de inicio<input type="time" [formField]="claseForm.horaInicio" /></label
+              ><app-field-error [field]="claseForm.horaInicio" />
             </div>
             <div>
-              <label>Hora de fin<input type="time" formControlName="horaFin" /></label
-              ><app-field-error [control]="claseForm.controls.horaFin" />
+              <label>Hora de fin<input type="time" [formField]="claseForm.horaFin" /></label
+              ><app-field-error [field]="claseForm.horaFin" />
             </div>
           </div>
           <p class="muted">Mañana 06–13 · Tarde 13–19 · Noche 19–23:59.</p>

@@ -137,19 +137,18 @@
     @if (state.error()) {
       <div class="alert" role="alert">{{ state.error() }}</div>
     }
-    <form [formGroup]="form" (ngSubmit)="save()">
+    <form (submit)="$event.preventDefault(); save()">
       <fieldset [disabled]="state.busy()">
         <label for="aula-nombre">Nombre</label
         ><input
           id="aula-nombre"
-          formControlName="nombre"
-          maxlength="20"
+          [formField]="form.nombre"
           placeholder="Ej. Aula 101"
-        /><app-field-error [control]="form.controls.nombre" />
+        /><app-field-error [field]="form.nombre" />
         <div class="form-grid">
           <div>
             <label for="aula-tipo">Tipo</label
-            ><select id="aula-tipo" formControlName="tipo">
+            ><select id="aula-tipo" [formField]="form.tipo">
               @for (t of tipos; track t.value) {
                 <option [value]="t.value">{{ t.label }}</option>
               }
@@ -160,22 +159,19 @@
             ><input
               id="aula-capacidad"
               type="number"
-              min="1"
-              max="100"
               step="1"
-              formControlName="capacidad"
-            /><app-field-error [control]="form.controls.capacidad" />
+              [formField]="form.capacidad"
+            /><app-field-error [field]="form.capacidad" />
           </div>
         </div>
         <label for="aula-equipo">Equipamiento <span class="muted">(opcional)</span></label
         ><textarea
           id="aula-equipo"
-          formControlName="equipamiento"
-          maxlength="255"
+          [formField]="form.equipamiento"
           rows="3"
           placeholder="Ej. Proyector, pizarrón, 20 computadoras"
         ></textarea
-        ><app-field-error [control]="form.controls.equipamiento" />
+        ><app-field-error [field]="form.equipamiento" />
       </fieldset>
       <div class="dialog-actions">
         <button

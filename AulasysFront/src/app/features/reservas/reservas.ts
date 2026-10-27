@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { form, FormField, required, validate } from '@angular/forms/signals';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { Reserva, fechaHoy, normalize } from '../../core/models';
@@ -10,8 +11,9 @@ import { ListStatus } from '../../shared/list-status';
 import { Modal } from '../../shared/modal';
 @Component({
   selector: 'app-reservas',
-  imports: [FormsModule, ReactiveFormsModule, FieldError, ListStatus, Modal],
+  imports: [FormsModule, FormField, FieldError, ListStatus, Modal],
   templateUrl: './reservas.html',
+  styleUrl: './reservas.css',
 })
 export class Reservas {
   readonly auth = inject(AuthService);
@@ -44,27 +46,43 @@ export class Reservas {
           ),
       ),
   );
-  readonly form = inject(FormBuilder).nonNullable.group({
-    id_comision: [0, Validators.min(1)],
-    id_aula: [0, Validators.min(1)],
-    fecha: [fechaHoy(), Validators.required],
-    horaInicio: ['', Validators.required],
-    horaFin: ['', Validators.required],
+  readonly formModel = signal({
+    id_comision: '',
+    id_aula: '',
+    fecha: fechaHoy(),
+    horaInicio: '',
+    horaFin: '',
+  });
+  readonly form = form(this.formModel, (path) => {
+    validate(path.id_comision, ({ value }) =>
+      Number(value()) > 0 ? undefined : { kind: 'required' },
+    );
+    validate(path.id_aula, ({ value }) => (Number(value()) > 0 ? undefined : { kind: 'required' }));
+    required(path.fecha);
+    required(path.horaInicio);
+    required(path.horaFin);
   });
   open(r: Reserva | null = null) {
     this.detail.set(null);
     this.confirmRelease.set('');
-    this.form.reset(
+    this.form().reset(
       r
-        ? { ...r, horaInicio: r.horaInicio.slice(0, 5), horaFin: r.horaFin.slice(0, 5) }
-        : { id_comision: 0, id_aula: 0, fecha: fechaHoy(), horaInicio: '', horaFin: '' },
+        ? {
+            id_comision: String(r.id_comision),
+            id_aula: String(r.id_aula),
+            fecha: r.fecha,
+            horaInicio: r.horaInicio.slice(0, 5),
+            horaFin: r.horaFin.slice(0, 5),
+          }
+        : { id_comision: '', id_aula: '', fecha: fechaHoy(), horaInicio: '', horaFin: '' },
     );
     this.state.open(r);
   }
   save(liberar = false) {
-    this.form.markAllAsTouched();
-    if (this.form.invalid) return;
-    const v = this.form.getRawValue();
+    this.form().markAsTouched();
+    if (this.form().invalid()) return;
+    const raw = this.formModel();
+    const v = { ...raw, id_comision: Number(raw.id_comision), id_aula: Number(raw.id_aula) };
     if (v.horaFin <= v.horaInicio) {
       this.state.error.set('La hora de fin debe ser posterior al inicio.');
       return;

@@ -1,24 +1,24 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
+import { form, FormField, max, min, required, validate } from '@angular/forms/signals';
 import { of } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { Comision, Profesor, Turno, DiaSemana, TURNOS, DIAS, normalize } from '../../core/models';
 import { collection } from '../../shared/collection';
 import { crudState } from '../../shared/crud-state';
-import { FieldError, integer } from '../../shared/field-error';
+import { FieldError } from '../../shared/field-error';
 import { ListStatus } from '../../shared/list-status';
 import { Modal } from '../../shared/modal';
 @Component({
   selector: 'app-comisiones',
-  imports: [FormsModule, ReactiveFormsModule, FieldError, ListStatus, Modal],
+  imports: [FormsModule, FormField, FieldError, ListStatus, Modal],
   templateUrl: './comisiones.html',
+  styleUrl: './comisiones.css',
 })
 export class Comisiones {
   readonly auth = inject(AuthService);
   private readonly api = inject(ApiService);
-  private readonly fb = inject(FormBuilder);
   readonly data = collection(this.auth.isAdmin() ? this.api.comisiones : this.api.misComisiones);
   readonly profesores = collection(() =>
     this.auth.isAdmin() ? this.api.profesores() : of<Profesor[]>([]),
@@ -44,73 +44,101 @@ export class Comisiones {
         ),
       ),
   );
-  readonly form = this.fb.nonNullable.group({
-    id_materia: [0, Validators.min(1)],
-    id_profesor: [0, Validators.min(1)],
-    cantAlumnos: [1, [Validators.required, Validators.min(1), Validators.max(100), integer]],
-    horario: ['MAÑANA' as Turno, Validators.required],
-    fechaInicio: ['', Validators.required],
-    fechaFin: ['', Validators.required],
+  readonly formModel = signal({
+    id_materia: '',
+    id_profesor: '',
+    cantAlumnos: 1,
+    horario: 'MAÑANA' as Turno,
+    fechaInicio: '',
+    fechaFin: '',
   });
-  readonly claseForm = this.fb.nonNullable.group({
-    id_aula: [0, Validators.min(1)],
-    diaSemana: ['LUNES' as DiaSemana, Validators.required],
-    horaInicio: ['08:00', Validators.required],
-    horaFin: ['10:00', Validators.required],
+  readonly form = form(this.formModel, (path) => {
+    validate(path.id_materia, ({ value }) =>
+      Number(value()) > 0 ? undefined : { kind: 'required' },
+    );
+    validate(path.id_profesor, ({ value }) =>
+      Number(value()) > 0 ? undefined : { kind: 'required' },
+    );
+    min(path.cantAlumnos, 1);
+    max(path.cantAlumnos, 100);
+    validate(path.cantAlumnos, ({ value }) =>
+      Number.isInteger(value()) ? undefined : { kind: 'integer' },
+    );
+    required(path.horario);
+    required(path.fechaInicio);
+    required(path.fechaFin);
   });
-  constructor() {
-    this.form.controls.id_materia.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
-      if (!this.opcionesProfesor().some((p) => p.id === this.form.controls.id_profesor.value))
-        this.form.controls.id_profesor.setValue(0);
-    });
-  }
+  readonly claseModel = signal({
+    id_aula: '',
+    diaSemana: 'LUNES' as DiaSemana,
+    horaInicio: '08:00',
+    horaFin: '10:00',
+  });
+  readonly claseForm = form(this.claseModel, (path) => {
+    validate(path.id_aula, ({ value }) => (Number(value()) > 0 ? undefined : { kind: 'required' }));
+    required(path.diaSemana);
+    required(path.horaInicio);
+    required(path.horaFin);
+  });
   opcionesProfesor() {
     return this.profesores
       .items()
-      .filter((p) => p.materiasIds.includes(this.form.controls.id_materia.value));
+      .filter((p) => p.materiasIds.includes(Number(this.formModel().id_materia)));
+  }
+  onMateriaChange() {
+    if (!this.opcionesProfesor().some((p) => p.id === Number(this.formModel().id_profesor)))
+      this.formModel.update((value) => ({ ...value, id_profesor: '' }));
   }
   open(c: Comision | null = null) {
     this.detail.set(null);
     this.mode.set('comision');
-    this.form.reset(
-      c ?? {
-        id_materia: 0,
-        id_profesor: 0,
-        cantAlumnos: 1,
-        horario: 'MAÑANA',
-        fechaInicio: '',
-        fechaFin: '',
-      },
+    this.form().reset(
+      c
+        ? { ...c, id_materia: String(c.id_materia), id_profesor: String(c.id_profesor) }
+        : {
+            id_materia: '',
+            id_profesor: '',
+            cantAlumnos: 1,
+            horario: 'MAÑANA',
+            fechaInicio: '',
+            fechaFin: '',
+          },
     );
     this.state.open(c);
   }
   openClase(c: Comision) {
     this.detail.set(null);
     this.mode.set('clase');
-    this.claseForm.reset(
+    this.claseForm().reset(
       c.claseFija
         ? {
             ...c.claseFija,
+            id_aula: String(c.claseFija.id_aula),
             horaInicio: c.claseFija.horaInicio.slice(0, 5),
             horaFin: c.claseFija.horaFin.slice(0, 5),
           }
-        : { id_aula: 0, diaSemana: 'LUNES', horaInicio: '', horaFin: '' },
+        : { id_aula: '', diaSemana: 'LUNES', horaInicio: '', horaFin: '' },
     );
     this.state.open(c);
   }
   save() {
-    this.form.markAllAsTouched();
-    if (this.form.invalid || !this.auth.isAdmin()) return;
+    this.form().markAsTouched();
+    if (this.form().invalid() || !this.auth.isAdmin()) return;
+    const value = this.formModel();
     this.state.run(
-      this.api.saveComision(this.form.getRawValue(), this.state.editing()?.id),
+      this.api.saveComision(
+        { ...value, id_materia: Number(value.id_materia), id_profesor: Number(value.id_profesor) },
+        this.state.editing()?.id,
+      ),
       'Comisión guardada.',
     );
   }
   saveClase() {
-    this.claseForm.markAllAsTouched();
+    this.claseForm().markAsTouched();
     const c = this.state.editing();
-    if (!c || this.claseForm.invalid || !this.auth.isAdmin()) return;
-    const v = this.claseForm.getRawValue();
+    if (!c || this.claseForm().invalid() || !this.auth.isAdmin()) return;
+    const raw = this.claseModel();
+    const v = { ...raw, id_aula: Number(raw.id_aula) };
     if (v.horaFin <= v.horaInicio) {
       this.state.error.set('La hora de fin debe ser posterior al inicio.');
       return;

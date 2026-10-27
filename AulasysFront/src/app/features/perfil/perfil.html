@@ -1,0 +1,40 @@
+<div class="page-heading">
+  <div>
+    <h1>Mi perfil</h1>
+    <p>Actualizá tus datos de acceso.</p>
+  </div>
+</div>
+<section class="panel form-panel">
+  @if (auth.user()?.id == null) {
+    <p class="alert">
+      Las cuentas de prueba no permiten editar el perfil. Usá una cuenta registrada.
+    </p>
+  }
+  @if (state.error()) {
+    <p class="alert" role="alert">{{ state.error() }}</p>
+  }
+  @if (state.success()) {
+    <p class="success" role="status">{{ state.success() }}</p>
+  }
+  <form (submit)="$event.preventDefault(); save()">
+    <fieldset [disabled]="state.busy() || auth.user()?.id == null">
+      <label>Nombre<input [formField]="form.nombre" /></label
+      ><app-field-error [field]="form.nombre" />
+      <label>Correo<input [formField]="form.email" type="email" /></label
+      ><app-field-error [field]="form.email" />
+      <label
+        >Nueva contraseña<input
+          [formField]="form.password"
+          type="password"
+          autocomplete="new-password" /></label
+      ><app-field-error [field]="form.password" />
+      <p class="muted">
+        Dejala vacía para conservar la actual. Usá al menos 8 caracteres y una mayúscula.
+      </p>
+      <p>Rol: {{ auth.user()?.rol }}</p>
+      <button class="button primary" type="submit">
+        {{ state.busy() ? 'Guardando…' : 'Guardar cambios' }}
+      </button>
+    </fieldset>
+  </form>
+</section>

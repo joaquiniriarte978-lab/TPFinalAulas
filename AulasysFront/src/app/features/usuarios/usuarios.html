@@ -132,31 +132,30 @@
     @if (state.error()) {
       <div class="alert" role="alert">{{ state.error() }}</div>
     }
-    <form [formGroup]="form" (ngSubmit)="save()">
+    <form (submit)="$event.preventDefault(); save()">
       <fieldset [disabled]="state.busy()">
         <label for="usuario-nombre">Nombre</label
         ><input
           id="usuario-nombre"
-          formControlName="nombre"
-          maxlength="20"
+          [formField]="form.nombre"
           autocomplete="off"
           placeholder="Ej. Ana Pérez"
-        /><app-field-error [control]="form.controls.nombre" />
+        /><app-field-error [field]="form.nombre" />
         <label for="usuario-email">Correo electrónico</label
         ><input
           id="usuario-email"
           type="email"
-          formControlName="email"
+          [formField]="form.email"
           autocomplete="off"
           placeholder="nombre@universidad.edu"
-        /><app-field-error [control]="form.controls.email" />
+        /><app-field-error [field]="form.email" />
         <label for="usuario-password">{{
           state.editing() ? 'Nueva contraseña (opcional)' : 'Contraseña'
         }}</label
         ><input
           id="usuario-password"
           type="password"
-          formControlName="password"
+          [formField]="form.password"
           autocomplete="new-password"
           aria-describedby="password-hint"
         /><small id="password-hint" class="field-hint"
@@ -164,8 +163,8 @@
           @if (state.editing()) {
             Dejá vacío para conservar la contraseña actual.
           }</small
-        ><app-field-error [control]="form.controls.password" /> <label for="usuario-rol">Rol</label
-        ><select id="usuario-rol" formControlName="rol">
+        ><app-field-error [field]="form.password" /> <label for="usuario-rol">Rol</label
+        ><select id="usuario-rol" [formField]="form.rol">
           @for (role of roleKeys; track role) {
             <option [value]="role">{{ roles[role] }}</option>
           }

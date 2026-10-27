@@ -1,16 +1,18 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { form, FormField, max, maxLength, min, required, validate } from '@angular/forms/signals';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { Aula, normalize, TIPOS_AULA, TipoAula } from '../../core/models';
 import { collection } from '../../shared/collection';
 import { crudState } from '../../shared/crud-state';
-import { FieldError, integer, nonBlank } from '../../shared/field-error';
+import { FieldError } from '../../shared/field-error';
 import { Modal } from '../../shared/modal';
 @Component({
   selector: 'app-aulas',
-  imports: [FormsModule, ReactiveFormsModule, Modal, FieldError],
+  imports: [FormsModule, FormField, Modal, FieldError],
   templateUrl: './aulas.html',
+  styleUrl: './aulas.css',
 })
 export class Aulas {
   readonly auth = inject(AuthService);
@@ -33,11 +35,24 @@ export class Aulas {
           normalize(a.equipamiento ?? '').includes(normalize(this.equipamiento())),
       ),
   );
-  readonly form = inject(FormBuilder).nonNullable.group({
-    nombre: ['', [nonBlank, Validators.maxLength(20)]],
-    capacidad: [30, [Validators.required, Validators.min(1), Validators.max(100), integer]],
-    tipo: ['AULA' as TipoAula, Validators.required],
-    equipamiento: ['', Validators.maxLength(255)],
+  readonly formModel = signal({
+    nombre: '',
+    capacidad: 30,
+    tipo: 'AULA' as TipoAula,
+    equipamiento: '',
+  });
+  readonly form = form(this.formModel, (path) => {
+    validate(path.nombre, ({ value }) =>
+      value().trim() ? undefined : { kind: 'required', message: 'Completá este campo.' },
+    );
+    maxLength(path.nombre, 20);
+    min(path.capacidad, 1);
+    max(path.capacidad, 100);
+    validate(path.capacidad, ({ value }) =>
+      Number.isInteger(value()) ? undefined : { kind: 'integer' },
+    );
+    required(path.tipo);
+    maxLength(path.equipamiento, 255);
   });
   label(tipo: TipoAula) {
     return this.tipos.find((t) => t.value === tipo)?.label ?? tipo;
@@ -49,7 +64,7 @@ export class Aulas {
     this.equipamiento.set('');
   }
   open(aula: Aula | null = null) {
-    this.form.reset(
+    this.form().reset(
       aula
         ? { ...aula, equipamiento: aula.equipamiento ?? '' }
         : { nombre: '', capacidad: 30, tipo: 'AULA', equipamiento: '' },
@@ -57,9 +72,9 @@ export class Aulas {
     this.state.open(aula);
   }
   save() {
-    this.form.markAllAsTouched();
-    if (this.form.invalid || !this.auth.isAdmin()) return;
-    const value = this.form.getRawValue();
+    this.form().markAsTouched();
+    if (this.form().invalid() || !this.auth.isAdmin()) return;
+    const value = this.formModel();
     this.state.run(
       this.api.saveAula(
         { ...value, nombre: value.nombre.trim(), equipamiento: value.equipamiento.trim() },

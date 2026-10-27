@@ -144,38 +144,38 @@
       @if (!comisiones.loading() && !comisiones.error() && !comisiones.items().length) {
         <p class="alert">No tenés comisiones asignadas para reservar.</p>
       }
-      <form [formGroup]="form" (ngSubmit)="save()">
+      <form (submit)="$event.preventDefault(); save()">
         <fieldset [disabled]="state.busy()">
           <label
-            >Comisión<select formControlName="id_comision">
-              <option [ngValue]="0">Seleccioná una comisión</option>
+            >Comisión<select [formField]="form.id_comision">
+              <option value="">Seleccioná una comisión</option>
               @for (c of comisiones.items(); track c.id) {
-                <option [ngValue]="c.id">
+                <option [value]="c.id">
                   #{{ c.id }} · {{ c.materiaNombre }} · {{ c.horario }}
                 </option>
               }
             </select></label
-          ><app-field-error [control]="form.controls.id_comision" />
+          ><app-field-error [field]="form.id_comision" />
           <label
-            >Aula<select formControlName="id_aula">
-              <option [ngValue]="0">Seleccioná un aula</option>
+            >Aula<select [formField]="form.id_aula">
+              <option value="">Seleccioná un aula</option>
               @for (a of aulas.items(); track a.id) {
-                <option [ngValue]="a.id">
+                <option [value]="a.id">
                   {{ a.nombre }} · {{ a.capacidad }} lugares · {{ a.tipo }}
                 </option>
               }
             </select></label
-          ><app-field-error [control]="form.controls.id_aula" />
-          <label>Fecha<input type="date" formControlName="fecha" /></label
-          ><app-field-error [control]="form.controls.fecha" />
+          ><app-field-error [field]="form.id_aula" />
+          <label>Fecha<input type="date" [formField]="form.fecha" /></label
+          ><app-field-error [field]="form.fecha" />
           <div class="form-grid">
             <div>
-              <label>Hora de inicio<input type="time" formControlName="horaInicio" /></label
-              ><app-field-error [control]="form.controls.horaInicio" />
+              <label>Hora de inicio<input type="time" [formField]="form.horaInicio" /></label
+              ><app-field-error [field]="form.horaInicio" />
             </div>
             <div>
-              <label>Hora de fin<input type="time" formControlName="horaFin" /></label
-              ><app-field-error [control]="form.controls.horaFin" />
+              <label>Hora de fin<input type="time" [formField]="form.horaFin" /></label
+              ><app-field-error [field]="form.horaFin" />
             </div>
           </div>
           <p class="muted">
