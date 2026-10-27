@@ -123,16 +123,15 @@
     @if (state.error()) {
       <div class="alert" role="alert">{{ state.error() }}</div>
     }
-    <form [formGroup]="form" (ngSubmit)="save()">
+    <form (submit)="$event.preventDefault(); save()">
       <fieldset [disabled]="state.busy()">
         <label for="materia-nombre">Nombre</label
         ><input
           id="materia-nombre"
-          formControlName="nombre"
-          maxlength="20"
+          [formField]="form.nombre"
           placeholder="Ej. Programación III"
-        /><app-field-error [control]="form.controls.nombre" /><label class="checkbox-field"
-          ><input type="checkbox" formControlName="requiereLaboratorio" /><span
+        /><app-field-error [field]="form.nombre" /><label class="checkbox-field"
+          ><input type="checkbox" [formField]="form.requiereLaboratorio" /><span
             >Requiere laboratorio<small
               >La materia necesita un espacio con equipamiento específico.</small
             ></span
