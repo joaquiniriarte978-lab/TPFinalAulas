@@ -1,10 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { form, FormField, required, validate } from '@angular/forms/signals';
-<<<<<<< HEAD
-<<<<<<< Updated upstream:AulasysFront/src/app/reservas/features/reserva-list/reservas.ts
-=======
->>>>>>> c3dc27cbe825a3c1a1207d9c2ddf84e74d732be1
 import { ApiService } from '../../../shared/data-access/api.service';
 import { AuthService } from '../../../auth/data-access/auth.service';
 import { Reserva } from '../../data-access/reserva.model';
@@ -15,19 +11,6 @@ import { crudState } from '../../../shared/utils/crud-state';
 import FieldError from '../../../shared/ui/field-error/field-error';
 import ListStatus from '../../../shared/ui/list-status/list-status';
 import Modal from '../../../shared/ui/modal/modal';
-<<<<<<< HEAD
-=======
-import { ApiService } from '../../core/api.service';
-import { AuthService } from '../../core/auth.service';
-import { Reserva, fechaHoy, normalize } from '../../core/models';
-import { collection } from '../../shared/collection';
-import { crudState } from '../../shared/crud-state';
-import { FieldError } from '../../shared/field-error';
-import { ListStatus } from '../../shared/list-status';
-import { Modal } from '../../shared/modal';
->>>>>>> Stashed changes:AulasysFront/src/app/features/reservas/reservas.ts
-=======
->>>>>>> c3dc27cbe825a3c1a1207d9c2ddf84e74d732be1
 @Component({
   selector: 'app-reservas',
   imports: [FormsModule, FormField, FieldError, ListStatus, Modal],

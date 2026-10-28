@@ -1,10 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { form, FormField, max, maxLength, min, required, validate } from '@angular/forms/signals';
-<<<<<<< HEAD
-<<<<<<< Updated upstream:AulasysFront/src/app/aulas/features/aula-list/aulas.ts
-=======
->>>>>>> c3dc27cbe825a3c1a1207d9c2ddf84e74d732be1
 import { ApiService } from '../../../shared/data-access/api.service';
 import { AuthService } from '../../../auth/data-access/auth.service';
 import { Aula, TIPOS_AULA, TipoAula } from '../../data-access/aula.model';
@@ -13,18 +9,6 @@ import { collection } from '../../../shared/utils/collection';
 import { crudState } from '../../../shared/utils/crud-state';
 import FieldError from '../../../shared/ui/field-error/field-error';
 import Modal from '../../../shared/ui/modal/modal';
-<<<<<<< HEAD
-=======
-import { ApiService } from '../../core/api.service';
-import { AuthService } from '../../core/auth.service';
-import { Aula, normalize, TIPOS_AULA, TipoAula } from '../../core/models';
-import { collection } from '../../shared/collection';
-import { crudState } from '../../shared/crud-state';
-import { FieldError } from '../../shared/field-error';
-import { Modal } from '../../shared/modal';
->>>>>>> Stashed changes:AulasysFront/src/app/features/aulas/aulas.ts
-=======
->>>>>>> c3dc27cbe825a3c1a1207d9c2ddf84e74d732be1
 @Component({
   selector: 'app-aulas',
   imports: [FormsModule, FormField, Modal, FieldError],

@@ -11,10 +11,6 @@ import {
   required,
   validate,
 } from '@angular/forms/signals';
-<<<<<<< HEAD
-<<<<<<< Updated upstream:AulasysFront/src/app/usuarios/features/usuario-list/usuarios.ts
-=======
->>>>>>> c3dc27cbe825a3c1a1207d9c2ddf84e74d732be1
 import { ApiService } from '../../../shared/data-access/api.service';
 import { AuthService } from '../../../auth/data-access/auth.service';
 import { normalize } from '../../../shared/utils/text';
@@ -23,18 +19,6 @@ import { collection } from '../../../shared/utils/collection';
 import { crudState } from '../../../shared/utils/crud-state';
 import FieldError from '../../../shared/ui/field-error/field-error';
 import Modal from '../../../shared/ui/modal/modal';
-<<<<<<< HEAD
-=======
-import { ApiService } from '../../core/api.service';
-import { AuthService } from '../../core/auth.service';
-import { normalize, Rol, ROLES, Usuario } from '../../core/models';
-import { collection } from '../../shared/collection';
-import { crudState } from '../../shared/crud-state';
-import { FieldError } from '../../shared/field-error';
-import { Modal } from '../../shared/modal';
->>>>>>> Stashed changes:AulasysFront/src/app/features/usuarios/usuarios.ts
-=======
->>>>>>> c3dc27cbe825a3c1a1207d9c2ddf84e74d732be1
 @Component({
   selector: 'app-usuarios',
   imports: [FormsModule, FormField, Modal, FieldError],
