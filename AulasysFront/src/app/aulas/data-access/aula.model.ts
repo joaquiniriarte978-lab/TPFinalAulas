@@ -1,5 +1,5 @@
-export type TipoAula =
-  'AULA' | 'LABORATORIO' | 'SUM' | 'LABORATORIO_TEXTIL' | 'LABORATORIO_IDIOMAS';
+export type TipoAula = 'AULA' | 'LABORATORIO' | 'SUM' | 'LABORATORIO_TEXTIL' | 'LABORATORIO_IDIOMAS';
+
 export interface Aula {
   id: number;
   nombre: string;
@@ -7,7 +7,9 @@ export interface Aula {
   tipo: TipoAula;
   equipamiento: string | null;
 }
+
 export type AulaInput = Omit<Aula, 'id'>;
+
 export const TIPOS_AULA: { value: TipoAula; label: string }[] = [
   { value: 'AULA', label: 'Aula' },
   { value: 'LABORATORIO', label: 'Laboratorio' },
