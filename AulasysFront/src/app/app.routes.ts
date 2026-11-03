@@ -1,13 +1,16 @@
 import { Routes } from '@angular/router';
-import { adminGuard, authGuard, guestGuard, staffGuard } from './auth/data-access/auth.guards';
-import Shell from './shared/ui/shell/shell';
+import { ROUTE_SEGMENTS } from './app.route.segments';
+import { authGuard } from './auth/data-access/auth-guard';
+import { adminGuard } from './auth/data-access/admin-guard';
+import { guestGuard } from './auth/data-access/guest-guard';
+import { staffGuard } from './auth/data-access/staff-guard';
+import { Shell } from './shared/shell/shell';
 
-export const routes: Routes = [
+export const appRoutes: Routes = [
   {
-    path: 'login',
+    path: ROUTE_SEGMENTS.login,
     canActivate: [guestGuard],
-    title: 'Ingresar · AulaSys',
-    loadComponent: () => import('./auth/features/login/login').then((m) => m.default),
+    loadChildren: () => import('./auth/auth.routes'),
   },
   {
     path: '',
@@ -16,71 +19,66 @@ export const routes: Routes = [
     canActivateChild: [authGuard],
     children: [
       {
-        path: 'perfil',
+        path: ROUTE_SEGMENTS.perfil,
         title: 'Mi perfil · AulaSys',
-        loadComponent: () => import('./usuarios/features/perfil/perfil').then((m) => m.default),
+        loadComponent: () => import('./usuarios/features/perfil/perfil'),
       },
       {
-        path: 'profesores',
+        path: ROUTE_SEGMENTS.profesores,
         canActivate: [adminGuard],
-        title: 'Profesores · AulaSys',
-        loadComponent: () =>
-          import('./profesores/features/profesor-list/profesores').then((m) => m.default),
+        loadChildren: () => import('./profesores/profesor.routes'),
       },
       {
-        path: 'comisiones',
+        path: ROUTE_SEGMENTS.comisiones,
         canActivate: [staffGuard],
-        title: 'Comisiones · AulaSys',
-        loadComponent: () =>
-          import('./comisiones/features/comision-list/comisiones').then((m) => m.default),
+        loadChildren: () => import('./comisiones/comision.routes'),
       },
       {
-        path: 'reservas',
+        path: ROUTE_SEGMENTS.reservas,
         canActivate: [staffGuard],
-        title: 'Reservas · AulaSys',
-        loadComponent: () =>
-          import('./reservas/features/reserva-list/reservas').then((m) => m.default),
+        loadChildren: () => import('./reservas/reserva.routes'),
       },
       {
-        path: 'avisos',
+        path: ROUTE_SEGMENTS.avisos,
         canActivate: [staffGuard],
-        title: 'Avisos · AulaSys',
-        loadComponent: () => import('./avisos/features/aviso-list/avisos').then((m) => m.default),
+        loadChildren: () => import('./avisos/aviso.routes'),
       },
       {
-        path: 'clases',
-        title: 'Clases · AulaSys',
-        loadComponent: () => import('./clases/features/clase-list/clases').then((m) => m.default),
-      },
-      { path: '', pathMatch: 'full', redirectTo: 'aulas' },
-      { path: 'inicio', pathMatch: 'full', redirectTo: 'aulas' },
-      {
-        path: 'aulas',
-        title: 'Aulas · AulaSys',
-        loadComponent: () => import('./aulas/features/aula-list/aulas').then((m) => m.default),
+        path: ROUTE_SEGMENTS.clases,
+        loadChildren: () => import('./clases/clase.routes'),
       },
       {
-        path: 'materias',
-        title: 'Materias · AulaSys',
-        loadComponent: () =>
-          import('./materias/features/materia-list/materias').then((m) => m.default),
+        path: '',
+        pathMatch: 'full',
+        redirectTo: ROUTE_SEGMENTS.aulas,
       },
       {
-        path: 'usuarios',
+        path: ROUTE_SEGMENTS.inicio,
+        pathMatch: 'full',
+        redirectTo: ROUTE_SEGMENTS.aulas,
+      },
+      {
+        path: ROUTE_SEGMENTS.aulas,
+        loadChildren: () => import('./aulas/aula.routes'),
+      },
+      {
+        path: ROUTE_SEGMENTS.materias,
+        loadChildren: () => import('./materias/materia.routes'),
+      },
+      {
+        path: ROUTE_SEGMENTS.usuarios,
         canActivate: [adminGuard],
-        title: 'Usuarios · AulaSys',
-        loadComponent: () =>
-          import('./usuarios/features/usuario-list/usuarios').then((m) => m.default),
+        loadChildren: () => import('./usuarios/usuario.routes'),
       },
       {
-        path: 'sin-acceso',
+        path: ROUTE_SEGMENTS.accessDenied,
         title: 'Acceso restringido · AulaSys',
-        loadComponent: () => import('./home/features/access-denied').then((m) => m.default),
+        loadComponent: () => import('./errors/features/access-denied/access-denied'),
       },
       {
         path: '**',
         title: 'Página no encontrada · AulaSys',
-        loadComponent: () => import('./home/features/not-found').then((m) => m.default),
+        loadComponent: () => import('./errors/features/not-found/not-found'),
       },
     ],
   },
