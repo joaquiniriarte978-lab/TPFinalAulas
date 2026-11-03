@@ -4,28 +4,31 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../data-access/auth.service';
-import { safeReturnUrl } from '../../data-access/auth.guards';
-import FieldError from '../../../shared/ui/field-error/field-error';
+import { safeReturnUrl } from '../../data-access/auth-guard';
+import { FieldError } from '../../../shared/field-error/field-error';
+
 @Component({
-  selector: 'app-login',
   imports: [FormField, FieldError],
-  templateUrl: './login.html',
+  selector: 'app-login',
   styleUrl: './login.css',
+  templateUrl: './login.html',
 })
 export default class Login {
-  readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
-  readonly formModel = signal({ username: '', password: '' });
-  readonly form = form(this.formModel, (path) => {
+
+  protected readonly formModel = signal({ username: '', password: '' });
+  protected readonly form = form(this.formModel, (path) => {
     validate(path.username, ({ value }) =>
       value().trim() ? undefined : { kind: 'required', message: 'Completá este campo.' },
     );
     required(path.password);
   });
-  readonly error = signal('');
-  readonly busy = signal(false);
+  protected readonly error = signal('');
+  protected readonly busy = signal(false);
+
   submit() {
     if (this.busy()) return;
     this.form().markAsTouched();

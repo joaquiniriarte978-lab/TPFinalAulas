@@ -1,0 +1,35 @@
+import { Component, computed, input } from '@angular/core';
+import { FieldTree } from '@angular/forms/signals';
+
+@Component({
+  imports: [],
+  selector: 'app-field-error',
+  styleUrl: './field-error.css',
+  templateUrl: './field-error.html',
+})
+export class FieldError {
+  public readonly field = input.required<FieldTree<unknown>>();
+  protected readonly state = computed(() => this.field()());
+  protected readonly visible = computed(
+    () => this.state().touched() && this.state().errors().length > 0,
+  );
+  protected readonly message = computed(() => {
+    const error = this.state().errors()[0];
+    if (!error) return '';
+    if (error.message) return error.message;
+    switch (error.kind) {
+      case 'required':
+        return 'Completá este campo.';
+      case 'maxLength':
+        return 'El valor supera la longitud permitida.';
+      case 'email':
+        return 'Ingresá un correo válido.';
+      case 'min':
+      case 'max':
+      case 'integer':
+        return 'Ingresá un número entero entre 1 y 100.';
+      default:
+        return 'Revisá el formato indicado para este campo.';
+    }
+  });
+}
