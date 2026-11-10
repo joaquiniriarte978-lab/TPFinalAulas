@@ -95,4 +95,6 @@ export default class AulaList {
     if (aula && this.auth.isAdmin())
       this.state.run(this.client.deleteAula(aula.id), 'Aula eliminada correctamente.');
   }
+
+  // .
 }
