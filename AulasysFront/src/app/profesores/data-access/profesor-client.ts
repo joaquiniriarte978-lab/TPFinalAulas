@@ -11,7 +11,7 @@ export class ProfesorClient {
     return this.http.get<Profesor[]>(this.baseUrl);
   }
 
-  editMaterias(materiasIds: number[], id: number) {
+  editMaterias(materiasIds: number[], id: number | string) {
     return this.http.put<Profesor>(`${this.baseUrl}/${id}/materias`, { materiasIds });
   }
 }

@@ -1,0 +1,6 @@
+@if (notificationService.current(); as notification) {
+  <section class="notification" role="status">
+    <p>{{ notification }}</p>
+    <button type="button" (click)="notificationService.dismiss()">Cerrar</button>
+  </section>
+}

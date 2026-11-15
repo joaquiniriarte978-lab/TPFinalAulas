@@ -11,19 +11,23 @@ export class ReservaClient {
     return this.http.get<Reserva[]>(this.baseUrl);
   }
 
+  getReservaById(id: number | string) {
+    return this.http.get<Reserva>(`${this.baseUrl}/${id}`);
+  }
+
   addReserva(newReserva: ReservaInput) {
     return this.http.post<Reserva>(this.baseUrl, newReserva);
   }
 
-  editReserva(edittedReserva: ReservaInput, id: number) {
+  editReserva(edittedReserva: ReservaInput, id: number | string) {
     return this.http.put<Reserva>(`${this.baseUrl}/${id}`, edittedReserva);
   }
 
-  cancelReserva(id: number) {
+  cancelReserva(id: number | string) {
     return this.http.put<void>(`${this.baseUrl}/cancelar/${id}`, {});
   }
 
-  deleteReserva(id: number) {
+  deleteReserva(id: number | string) {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

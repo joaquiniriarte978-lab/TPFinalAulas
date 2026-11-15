@@ -26,88 +26,41 @@
     </button>
   </div>
 </div>
+
+@if (error()) {
+  <p class="alert" role="alert">{{ error() }}</p>
+}
+
 <section class="panel" aria-label="Consulta de clases">
   <form class="filters" (submit)="$event.preventDefault(); buscar()">
-    <label
-      >{{ vista() === 'semana' ? 'Semana que incluye' : 'Fecha'
-      }}<input type="date" [formField]="filters.fecha"
-    /></label>
-    <label
-      >Materia<select [formField]="filters.materia">
+    <label>
+      {{ vista() === 'semana' ? 'Semana que incluye' : 'Fecha' }}
+      <input #fechaInput type="date" [value]="fecha()" (input)="fecha.set(fechaInput.value)" />
+    </label>
+    <label>
+      Materia
+      <select #materiaSelect [value]="materia()" (change)="materia.set(materiaSelect.value)">
         <option value="">Todas</option>
-        @for (m of materias.items(); track m.id) {
+        @for (m of materias(); track m.id) {
           <option [value]="m.id">{{ m.nombre }}</option>
         }
-      </select></label
-    >
-    <label
-      >Aula<select [formField]="filters.aula">
+      </select>
+    </label>
+    <label>
+      Aula
+      <select #aulaSelect [value]="aula()" (change)="aula.set(aulaSelect.value)">
         <option value="">Todas</option>
-        @for (a of aulas.items(); track a.id) {
+        @for (a of aulas(); track a.id) {
           <option [value]="a.id">{{ a.nombre }}</option>
         }
-      </select></label
-    >
-    <button
-      type="submit"
-      class="button primary"
-      [disabled]="data.loading() || semana.loading() || !filterModel().fecha"
-    >
+      </select>
+    </label>
+    <button type="submit" class="button primary" [disabled]="loading() || !fecha()">
       Consultar
     </button>
   </form>
-  @if (materias.error() || aulas.error()) {
-    <p class="alert" role="alert">
-      No se pudieron cargar los filtros.
-      <button class="button subtle" (click)="materias.load(); aulas.load()">Reintentar</button>
-    </p>
-  }
 
-  @if (vista() === 'lista') {
-    <app-list-status
-      [loading]="data.loading()"
-      [error]="data.error()"
-      [count]="data.items().length"
-      (retry)="buscar()"
-    />
-    @if (!data.loading() && !data.error() && data.items().length) {
-      <div class="table-scroll">
-        <table class="responsive-table">
-          <caption class="visually-hidden">Clases del {{ filterModel().fecha }}</caption>
-          <thead>
-            <tr>
-              <th scope="col">Materia</th>
-              <th scope="col">Horario</th>
-              <th scope="col">Aula efectiva</th>
-              <th scope="col">Tipo</th>
-              <th scope="col">Detalle</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (c of data.items(); track $index) {
-              <tr>
-                <td data-label="Materia">{{ c.materiaNombre }} · #{{ c.comisionId }}</td>
-                <td data-label="Horario">{{ franjaDe(c) }}</td>
-                <td data-label="Aula"><strong>{{ c.aulaNombre }}</strong></td>
-                <td data-label="Tipo">
-                  {{ c.origen === 'RESERVA' ? 'Reserva puntual' : 'Clase semanal' }}
-                </td>
-                <td data-label="Detalle">
-                  <button
-                    class="button subtle"
-                    [attr.aria-label]="'Ver detalle de ' + c.materiaNombre + ' ' + franjaDe(c)"
-                    (click)="detail.set(c)"
-                  >
-                    Ver detalle
-                  </button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    }
-  } @else {
+  @if (vista() === 'semana') {
     <div class="week-nav">
       <button
         type="button"
@@ -127,79 +80,133 @@
         Siguiente →
       </button>
     </div>
-    <app-list-status
-      [loading]="semana.loading()"
-      [error]="semana.error()"
-      [count]="semana.items().length"
-      (retry)="semana.load()"
-    />
-    @if (!semana.loading() && !semana.error() && semana.items().length) {
-      <!-- Escritorio: grilla -->
-      <div class="table-scroll week-table">
-        <table aria-labelledby="semana-titulo">
-          <thead>
+  }
+
+  @if (loading()) {
+    <div class="empty-state" role="status">
+      <p>Cargando clases…</p>
+    </div>
+  } @else if (!clases().length) {
+    <div class="empty-state">
+      <p>No hay clases registradas para los filtros seleccionados.</p>
+    </div>
+  } @else if (vista() === 'lista') {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Materia</th>
+            <th scope="col">Horario</th>
+            <th scope="col">Aula efectiva</th>
+            <th scope="col">Tipo</th>
+            <th scope="col" class="align-right">Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of clases(); track $index) {
             <tr>
-              <th scope="col">Horario</th>
+              <td>{{ c.materiaNombre }} · #{{ c.comisionId }}</td>
+              <td>{{ franjaDe(c) }}</td>
+              <td>
+                <strong>{{ c.aulaNombre }}</strong>
+              </td>
+              <td>{{ c.origen === 'RESERVA' ? 'Reserva puntual' : 'Clase semanal' }}</td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    class="button subtle"
+                    [attr.aria-label]="'Ver detalle de ' + c.materiaNombre + ' ' + franjaDe(c)"
+                    (click)="detail.set(c)"
+                  >
+                    Ver detalle
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <div class="table-scroll week-table">
+      <table aria-labelledby="semana-titulo">
+        <thead>
+          <tr>
+            <th scope="col">Horario</th>
+            @for (d of dias(); track d.fecha) {
+              <th scope="col">
+                {{ d.nombre }} <small>{{ d.corta }}</small>
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of franjas(); track f) {
+            <tr>
+              <th scope="row">{{ f }}</th>
               @for (d of dias(); track d.fecha) {
-                <th scope="col">{{ d.nombre }} <small>{{ d.corta }}</small></th>
+                <td>
+                  @for (c of celda(d.fecha, f); track $index) {
+                    <button
+                      type="button"
+                      class="clase-chip"
+                      [class.reserva]="c.origen === 'RESERVA'"
+                      [attr.aria-label]="
+                        c.materiaNombre + ', ' + d.nombre + ' ' + f + ', ' + c.aulaNombre
+                      "
+                      (click)="detail.set(c)"
+                    >
+                      <strong>{{ c.materiaNombre }}</strong>
+                      <span>{{ c.aulaNombre }}</span>
+                    </button>
+                  }
+                </td>
               }
             </tr>
-          </thead>
-          <tbody>
-            @for (f of franjas(); track f) {
-              <tr>
-                <th scope="row">{{ f }}</th>
-                @for (d of dias(); track d.fecha) {
-                  <td>
-                    @for (c of celda(d.fecha, f); track $index) {
-                      <button
-                        type="button"
-                        class="clase-chip"
-                        [class.reserva]="c.origen === 'RESERVA'"
-                        [attr.aria-label]="c.materiaNombre + ', ' + d.nombre + ' ' + f + ', ' + c.aulaNombre"
-                        (click)="detail.set(c)"
-                      >
-                        <strong>{{ c.materiaNombre }}</strong><span>{{ c.aulaNombre }}</span>
-                      </button>
-                    }
-                  </td>
-                }
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-      <!-- Móvil: lista por día -->
-      <div class="week-list">
-        @for (d of dias(); track d.fecha) {
-          <section class="week-day" [attr.aria-label]="d.nombre + ' ' + d.corta">
-            <h3>{{ d.nombre }} <small>{{ d.corta }}</small></h3>
-            @for (c of delDia(d.fecha); track $index) {
-              <button
-                type="button"
-                class="clase-chip"
-                [class.reserva]="c.origen === 'RESERVA'"
-                [attr.aria-label]="c.materiaNombre + ', ' + d.nombre + ' ' + franjaDe(c) + ', ' + c.aulaNombre"
-                (click)="detail.set(c)"
-              >
-                <strong>{{ franjaDe(c) }} · {{ c.materiaNombre }}</strong><span>{{ c.aulaNombre }}</span>
-              </button>
-            } @empty {
-              <p class="muted">Sin clases.</p>
-            }
-          </section>
-        }
-      </div>
-      <p class="legend">
-        <span class="legend-dot"></span> Clase semanal
-        <span class="legend-dot reserva"></span> Reserva puntual
-      </p>
-    }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="week-list">
+      @for (d of dias(); track d.fecha) {
+        <section class="week-day" [attr.aria-label]="d.nombre + ' ' + d.corta">
+          <h3>
+            {{ d.nombre }} <small>{{ d.corta }}</small>
+          </h3>
+          @for (c of delDia(d.fecha); track $index) {
+            <button
+              type="button"
+              class="clase-chip"
+              [class.reserva]="c.origen === 'RESERVA'"
+              [attr.aria-label]="
+                c.materiaNombre + ', ' + d.nombre + ' ' + franjaDe(c) + ', ' + c.aulaNombre
+              "
+              (click)="detail.set(c)"
+            >
+              <strong>{{ franjaDe(c) }} · {{ c.materiaNombre }}</strong>
+              <span>{{ c.aulaNombre }}</span>
+            </button>
+          } @empty {
+            <p class="muted">Sin clases.</p>
+          }
+        </section>
+      }
+    </div>
+    <p class="legend">
+      <span class="legend-dot"></span> Clase semanal
+      <span class="legend-dot reserva"></span> Reserva puntual
+    </p>
   }
 </section>
+
 @if (detail(); as c) {
-  <app-modal title="Detalle de clase" (closed)="detail.set(null)"
-    ><dl class="details">
+  <section class="panel detail-panel" aria-label="Detalle de clase">
+    <div class="page-heading">
+      <h2>Detalle de clase</h2>
+      <button class="button secondary" type="button" (click)="detail.set(null)">Cerrar</button>
+    </div>
+    <dl class="details">
       <dt>Materia</dt>
       <dd>{{ c.materiaNombre }}</dd>
       <dt>Comisión</dt>
@@ -214,6 +221,6 @@
       <dd>{{ c.aulaNombre }}</dd>
       <dt>Tipo</dt>
       <dd>{{ c.origen === 'RESERVA' ? 'Reserva puntual' : 'Clase semanal' }}</dd>
-    </dl></app-modal
-  >
+    </dl>
+  </section>
 }

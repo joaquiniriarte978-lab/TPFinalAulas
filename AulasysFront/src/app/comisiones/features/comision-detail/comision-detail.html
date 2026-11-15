@@ -1,0 +1,63 @@
+<div class="page-heading">
+  <div>
+    <h1>Detalle de comisión</h1>
+    @if (comision(); as c) {
+      <p>Comisión #{{ c.id }} · {{ c.materiaNombre }}</p>
+    }
+  </div>
+  <button class="button secondary" type="button" (click)="volver()">Volver al listado</button>
+</div>
+
+@if (error()) {
+  <p class="alert" role="alert">{{ error() }}</p>
+}
+
+@if (comision(); as c) {
+  @if (mode() === 'view') {
+    <section class="panel form-panel">
+      <dl class="details">
+        <dt>Comisión</dt>
+        <dd>#{{ c.id }} · {{ c.materiaNombre }}</dd>
+        <dt>Profesor</dt>
+        <dd>{{ c.profesorNombre }}</dd>
+        <dt>Alumnos</dt>
+        <dd>{{ c.cantAlumnos }}</dd>
+        <dt>Turno</dt>
+        <dd>{{ c.horario }}</dd>
+        <dt>Cursada</dt>
+        <dd>{{ c.fechaInicio }} al {{ c.fechaFin }}</dd>
+        <dt>Clase fija</dt>
+        <dd>
+          @if (c.claseFija; as f) {
+            {{ f.aulaNombre }} · {{ f.diaSemana }} · {{ f.horaInicio.slice(0, 5) }}–{{
+              f.horaFin.slice(0, 5)
+            }}
+          } @else {
+            Sin asignar
+          }
+        </dd>
+      </dl>
+
+      @if (auth.isAdmin()) {
+        <div class="dialog-actions">
+          <button class="button secondary" (click)="mode.set('edit')">Editar comisión</button>
+          <button class="button primary" (click)="mode.set('clase')">
+            {{ c.claseFija ? 'Editar clase fija' : 'Asignar clase fija' }}
+          </button>
+          @if (c.claseFija) {
+            <button class="button text-danger" (click)="quitarClaseFija(c)">
+              Quitar clase fija
+            </button>
+          }
+          <button class="button text-danger" (click)="eliminarComision(c)">
+            Eliminar comisión
+          </button>
+        </div>
+      }
+    </section>
+  } @else if (mode() === 'edit') {
+    <app-comision-form [editingComision]="c" (saved)="onSaved()" (cancelled)="mode.set('view')" />
+  } @else if (mode() === 'clase') {
+    <app-clase-fija-form [comision]="c" (saved)="onSaved()" (cancelled)="mode.set('view')" />
+  }
+}

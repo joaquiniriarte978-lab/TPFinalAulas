@@ -1,9 +1,8 @@
 import { Routes } from '@angular/router';
 import { ROUTE_SEGMENTS } from './app.route.segments';
 import { authGuard } from './auth/data-access/auth-guard';
-import { adminGuard } from './auth/data-access/admin-guard';
 import { guestGuard } from './auth/data-access/guest-guard';
-import { staffGuard } from './auth/data-access/staff-guard';
+import { roleGuard } from './auth/data-access/role-guard';
 import { Shell } from './shared/shell/shell';
 
 export const appRoutes: Routes = [
@@ -16,37 +15,7 @@ export const appRoutes: Routes = [
     path: '',
     component: Shell,
     canActivate: [authGuard],
-    canActivateChild: [authGuard],
     children: [
-      {
-        path: ROUTE_SEGMENTS.perfil,
-        title: 'Mi perfil · AulaSys',
-        loadComponent: () => import('./usuarios/features/perfil/perfil'),
-      },
-      {
-        path: ROUTE_SEGMENTS.profesores,
-        canActivate: [adminGuard],
-        loadChildren: () => import('./profesores/profesor.routes'),
-      },
-      {
-        path: ROUTE_SEGMENTS.comisiones,
-        canActivate: [staffGuard],
-        loadChildren: () => import('./comisiones/comision.routes'),
-      },
-      {
-        path: ROUTE_SEGMENTS.reservas,
-        canActivate: [staffGuard],
-        loadChildren: () => import('./reservas/reserva.routes'),
-      },
-      {
-        path: ROUTE_SEGMENTS.avisos,
-        canActivate: [staffGuard],
-        loadChildren: () => import('./avisos/aviso.routes'),
-      },
-      {
-        path: ROUTE_SEGMENTS.clases,
-        loadChildren: () => import('./clases/clase.routes'),
-      },
       {
         path: '',
         pathMatch: 'full',
@@ -58,6 +27,34 @@ export const appRoutes: Routes = [
         redirectTo: ROUTE_SEGMENTS.aulas,
       },
       {
+        path: ROUTE_SEGMENTS.perfil,
+        loadComponent: () => import('./usuarios/features/perfil/perfil'),
+      },
+      {
+        path: ROUTE_SEGMENTS.profesores,
+        canActivate: [roleGuard('ADMIN')],
+        loadChildren: () => import('./profesores/profesor.routes'),
+      },
+      {
+        path: ROUTE_SEGMENTS.comisiones,
+        canActivate: [roleGuard('ADMIN', 'PROFESOR')],
+        loadChildren: () => import('./comisiones/comision.routes'),
+      },
+      {
+        path: ROUTE_SEGMENTS.reservas,
+        canActivate: [roleGuard('ADMIN', 'PROFESOR')],
+        loadChildren: () => import('./reservas/reserva.routes'),
+      },
+      {
+        path: ROUTE_SEGMENTS.avisos,
+        canActivate: [roleGuard('ADMIN', 'PROFESOR')],
+        loadChildren: () => import('./avisos/aviso.routes'),
+      },
+      {
+        path: ROUTE_SEGMENTS.clases,
+        loadChildren: () => import('./clases/clase.routes'),
+      },
+      {
         path: ROUTE_SEGMENTS.aulas,
         loadChildren: () => import('./aulas/aula.routes'),
       },
@@ -67,17 +64,15 @@ export const appRoutes: Routes = [
       },
       {
         path: ROUTE_SEGMENTS.usuarios,
-        canActivate: [adminGuard],
+        canActivate: [roleGuard('ADMIN')],
         loadChildren: () => import('./usuarios/usuario.routes'),
       },
       {
         path: ROUTE_SEGMENTS.accessDenied,
-        title: 'Acceso restringido · AulaSys',
         loadComponent: () => import('./errors/features/access-denied/access-denied'),
       },
       {
         path: '**',
-        title: 'Página no encontrada · AulaSys',
         loadComponent: () => import('./errors/features/not-found/not-found'),
       },
     ],

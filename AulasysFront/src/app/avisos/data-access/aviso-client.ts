@@ -12,6 +12,10 @@ export class AvisoClient {
     return this.http.get<Aviso[]>(this.baseUrl);
   }
 
+  getAvisoById(id: number | string) {
+    return this.http.get<Aviso>(`${this.baseUrl}/${id}`);
+  }
+
   getAulasHabilitadas() {
     return this.http.get<Aula[]>(`${this.baseUrl}/aulas-habilitadas`);
   }
@@ -20,15 +24,15 @@ export class AvisoClient {
     return this.http.post<Aviso>(this.baseUrl, newAviso);
   }
 
-  editAviso(edittedAviso: AvisoInput, id: number) {
+  editAviso(edittedAviso: AvisoInput, id: number | string) {
     return this.http.put<Aviso>(`${this.baseUrl}/${id}`, edittedAviso);
   }
 
-  cambiarEstado(id: number, estado: EstadoAviso) {
+  cambiarEstado(id: number | string, estado: EstadoAviso) {
     return this.http.put<Aviso>(`${this.baseUrl}/${id}/estado`, { estado });
   }
 
-  deleteAviso(id: number) {
+  deleteAviso(id: number | string) {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

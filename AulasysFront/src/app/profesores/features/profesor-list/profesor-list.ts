@@ -1,57 +1,67 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { ProfesorClient } from '../../data-access/profesor-client';
 import { MateriaClient } from '../../../materias/data-access/materia-client';
 import { Profesor } from '../../data-access/profesor';
-import { normalize } from '../../../shared/utils/text';
-import { collection } from '../../../shared/utils/collection';
-import { crudState } from '../../../shared/utils/crud-state';
-import { Modal } from '../../../shared/modal/modal';
-import { ListStatus } from '../../../shared/list-status/list-status';
+import { ROUTE_COMMANDS } from '../../../app.route.segments';
+import { mensajeError } from '../../../shared/error-message';
 
 @Component({
-  imports: [FormsModule, Modal, ListStatus],
+  imports: [],
   selector: 'app-profesor-list',
   styleUrl: './profesor-list.css',
   templateUrl: './profesor-list.html',
 })
-export default class ProfesorList {
+export default class ProfesorList implements OnInit {
   private readonly client = inject(ProfesorClient);
   private readonly materiaClient = inject(MateriaClient);
+  private readonly router = inject(Router);
 
-  protected readonly data = collection(() => this.client.getAllProfesores());
-  protected readonly materias = collection(() => this.materiaClient.getAllMaterias());
-  protected readonly state = crudState<Profesor>(this.data.load);
+  protected readonly profesores = signal<Profesor[]>([]);
+  protected readonly loading = signal(false);
+  protected readonly error = signal('');
+
+  protected readonly materias = toSignal(this.materiaClient.getAllMaterias(), {
+    initialValue: [],
+  });
   protected readonly query = signal('');
-  protected readonly selected = signal<number[]>([]);
+
   protected readonly filtered = computed(() =>
-    this.data
-      .items()
-      .filter((p) => normalize(p.nombre + ' ' + p.email).includes(normalize(this.query()))),
+    this.profesores().filter((p) =>
+      `${p.nombre} ${p.email}`.toLowerCase().includes(this.query().toLowerCase()),
+    ),
   );
+
+  ngOnInit() {
+    this.load();
+  }
+
+  load() {
+    this.loading.set(true);
+    this.error.set('');
+    this.client.getAllProfesores().subscribe({
+      next: (data) => {
+        this.profesores.set(data);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.error.set(mensajeError(err));
+        this.loading.set(false);
+      },
+    });
+  }
 
   names(p: Profesor) {
     return (
-      this.materias
-        .items()
+      this.materias()
         .filter((m) => p.materiasIds.includes(m.id))
         .map((m) => m.nombre)
         .join(', ') || 'Sin materias asignadas'
     );
   }
 
-  open(p: Profesor) {
-    this.selected.set([...p.materiasIds]);
-    this.state.open(p);
-  }
-
-  toggle(id: number) {
-    this.selected.update((v) => (v.includes(id) ? v.filter((i) => i !== id) : [...v, id]));
-  }
-
-  save() {
-    const p = this.state.editing();
-    if (p)
-      this.state.run(this.client.editMaterias(this.selected(), p.id), 'Asignaciones actualizadas.');
+  irAAsignar(p: Profesor) {
+    this.router.navigate(ROUTE_COMMANDS.editarProfesor(p.id));
   }
 }
