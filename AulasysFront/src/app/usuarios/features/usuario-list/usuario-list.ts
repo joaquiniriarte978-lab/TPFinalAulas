@@ -12,13 +12,13 @@ import {
   validate,
 } from '@angular/forms/signals';
 import { UsuarioClient } from '../../data-access/usuario-client';
-import { AuthService } from '../../../auth/data-access/auth.service';
-import { normalize } from '../../../shared/utils/text';
+import { AuthService } from '../../../../../auth/data-access/auth.service';
+import { normalize } from '../../../../../shared/utils/text';
 import { Rol, ROLES, Usuario } from '../../data-access/usuario';
-import { collection } from '../../../shared/utils/collection';
-import { crudState } from '../../../shared/utils/crud-state';
-import { FieldError } from '../../../shared/field-error/field-error';
-import { Modal } from '../../../shared/modal/modal';
+import { collection } from '../../../../../shared/utils/collection';
+import { crudState } from '../../../../../shared/utils/crud-state';
+import { FieldError } from '../../../../../shared/field-error/field-error';
+import { Modal } from '../../../../../shared/modal/modal';
 
 @Component({
   imports: [FormsModule, FormField, Modal, FieldError],

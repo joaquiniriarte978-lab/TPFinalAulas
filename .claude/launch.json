@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd Aulas && .\\mvnw.cmd spring-boot:run"],
+      "port": 8080
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd AulasysFront && npx ng serve --proxy-config proxy.conf.json --port 4200"],
+      "port": 4200
+    }
+  ]
+}
