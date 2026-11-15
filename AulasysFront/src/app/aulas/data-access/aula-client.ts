@@ -11,15 +11,19 @@ export class AulaClient {
     return this.http.get<Aula[]>(this.baseUrl);
   }
 
+  getAulaById(id: number | string) {
+    return this.http.get<Aula>(`${this.baseUrl}/${id}`);
+  }
+
   addAula(newAula: AulaInput) {
     return this.http.post<Aula>(this.baseUrl, newAula);
   }
 
-  editAula(edittedAula: AulaInput, id: number) {
+  editAula(edittedAula: AulaInput, id: number | string) {
     return this.http.put<Aula>(`${this.baseUrl}/${id}`, edittedAula);
   }
 
-  deleteAula(id: number) {
+  deleteAula(id: number | string) {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

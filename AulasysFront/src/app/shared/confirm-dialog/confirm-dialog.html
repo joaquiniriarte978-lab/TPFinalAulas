@@ -1,0 +1,7 @@
+<dialog #dialogRef (cancel)="closed.emit(false)">
+  <p>{{ message() }}</p>
+  <div class="actions">
+    <button class="button secondary" (click)="closed.emit(false)">Cancelar</button>
+    <button class="button danger" (click)="closed.emit(true)">Confirmar</button>
+  </div>
+</dialog>

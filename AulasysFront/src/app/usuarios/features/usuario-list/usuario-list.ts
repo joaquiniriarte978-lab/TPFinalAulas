@@ -1,78 +1,67 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { tap } from 'rxjs';
-import { FormsModule } from '@angular/forms';
-import {
-  disabled,
-  email,
-  form,
-  FormField,
-  maxLength,
-  pattern,
-  required,
-  validate,
-} from '@angular/forms/signals';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { UsuarioClient } from '../../data-access/usuario-client';
 import { AuthService } from '../../../auth/data-access/auth.service';
-import { normalize } from '../../../shared/utils/text';
 import { Rol, ROLES, Usuario } from '../../data-access/usuario';
-import { collection } from '../../../shared/utils/collection';
-import { crudState } from '../../../shared/utils/crud-state';
-import { FieldError } from '../../../shared/field-error/field-error';
-import { Modal } from '../../../shared/modal/modal';
+import { ROUTE_COMMANDS } from '../../../app.route.segments';
+import { ConfirmationService } from '../../../shared/confirmation.service';
+import { NotificationService } from '../../../shared/notification.service';
+import { mensajeError } from '../../../shared/error-message';
 
 @Component({
-  imports: [FormsModule, FormField, Modal, FieldError],
+  imports: [],
   selector: 'app-usuario-list',
   styleUrl: './usuario-list.css',
   templateUrl: './usuario-list.html',
 })
-export default class UsuarioList {
+export default class UsuarioList implements OnInit {
   protected readonly auth = inject(AuthService);
   private readonly client = inject(UsuarioClient);
+  private readonly router = inject(Router);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly notificationService = inject(NotificationService);
 
-  protected readonly data = collection(() => this.client.getAllUsuarios());
-  protected readonly state = crudState<Usuario>(this.data.load);
+  protected readonly usuarios = signal<Usuario[]>([]);
+  protected readonly loading = signal(false);
+  protected readonly error = signal('');
+
   protected readonly roles = ROLES;
   protected readonly roleKeys: Rol[] = ['ADMIN', 'PROFESOR', 'ALUMNO'];
-   protected readonly formRoleKeys = computed<Rol[]>(() =>
-    this.state.editing()?.rol === 'ADMIN' ? ['ADMIN'] : ['PROFESOR', 'ALUMNO'],
-  );
   protected readonly query = signal('');
   protected readonly rol = signal('');
+
   protected readonly filtered = computed(() =>
-    this.data
-      .items()
-      .filter(
-        (u) =>
-          normalize(`${u.nombre} ${u.email}`).includes(normalize(this.query())) &&
-          (!this.rol() || u.rol === this.rol()),
-      ),
+    this.usuarios().filter(
+      (u) =>
+        `${u.nombre} ${u.email}`.toLowerCase().includes(this.query().toLowerCase()) &&
+        (!this.rol() || u.rol === this.rol()),
+    ),
   );
-  protected readonly formModel = signal({ nombre: '', email: '', password: '', rol: 'ALUMNO' as Rol });
-  protected readonly form = form(this.formModel, (path) => {
-    validate(path.nombre, ({ value }) =>
-      value().trim() ? undefined : { kind: 'required', message: 'Completá este campo.' },
-    );
-    maxLength(path.nombre, 20);
-    required(path.email);
-    email(path.email);
-    pattern(path.email, /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/);
-    required(path.password, { when: () => !this.state.editing() });
-    pattern(path.password, /^$|^(?=.*[A-Z]).{8,}$/);
-    required(path.rol);
-     validate(path.rol, ({ value }) =>
-      value() === 'ADMIN' && this.state.editing()?.rol !== 'ADMIN'
-        ? { kind: 'adminNoPermitido', message: 'No se pueden crear ni asignar administradores.' }
-        : undefined,
-    );
-    disabled(path.rol, () => this.isSelf(this.state.editing()));
-  });
+
+  ngOnInit() {
+    this.load();
+  }
+
+  load() {
+    this.loading.set(true);
+    this.error.set('');
+    this.client.getAllUsuarios().subscribe({
+      next: (data) => {
+        this.usuarios.set(data);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.error.set(mensajeError(err));
+        this.loading.set(false);
+      },
+    });
+  }
 
   isSelf(user: Usuario | null) {
     return user?.id != null && user.id === this.auth.user()?.id;
   }
 
-   isOtherAdmin(user: Usuario | null) {
+  isOtherAdmin(user: Usuario | null) {
     return user?.rol === 'ADMIN' && !this.isSelf(user);
   }
 
@@ -81,44 +70,30 @@ export default class UsuarioList {
     this.rol.set('');
   }
 
-  open(user: Usuario | null = null) {
-    this.form().reset(
-      user
-        ? { nombre: user.nombre, email: user.email, password: '', rol: user.rol }
-        : { nombre: '', email: '', password: '', rol: 'ALUMNO' },
-    );
-    this.state.open(user);
+  irANuevo() {
+    this.router.navigate(ROUTE_COMMANDS.nuevoUsuario);
   }
 
-  save() {
-    this.form().markAsTouched();
-    if (this.form().invalid() || !this.auth.isAdmin()) return;
-    const value = this.formModel();
-    const current = this.state.editing();
-     if (this.isOtherAdmin(current)) return;
-    const payload = {
-      nombre: value.nombre.trim(),
-      email: value.email.trim(),
-      rol: value.rol,
-      ...(value.password ? { password: value.password } : {}),
-    };
-    const reauthenticate =
-      this.isSelf(current) && (payload.email !== this.auth.user()?.email || !!value.password);
-    const id = current?.id ?? undefined;
-    this.state.run(
-      (id == null ? this.client.addUsuario(payload) : this.client.editUsuario(payload, id)).pipe(
-        tap((user) => this.auth.updateCurrentUser(user)),
-      ),
-      current ? 'Usuario actualizado correctamente.' : 'Usuario creado correctamente.',
-      reauthenticate
-        ? () => this.auth.logout('Actualizaste tus credenciales. Ingresá con los nuevos datos.')
-        : undefined,
-    );
+  irAEditar(user: Usuario) {
+    if (user.id != null && !this.isOtherAdmin(user)) {
+      this.router.navigate(ROUTE_COMMANDS.editarUsuario(user.id));
+    }
   }
 
-  remove() {
-    const user = this.state.deleting();
-    if (user?.id != null && !this.isSelf(user) && !this.isOtherAdmin(user) && this.auth.isAdmin())
-      this.state.run(this.client.deleteUsuario(user.id), 'Usuario eliminado correctamente.');
+  async eliminar(user: Usuario) {
+    if (user.id == null || this.isSelf(user) || this.isOtherAdmin(user)) return;
+
+    const confirmed = await this.confirmationService.requestConfirmation(
+      `¿Seguro que deseás eliminar la cuenta de "${user.nombre}" (${user.email})?`,
+    );
+    if (!confirmed) return;
+
+    this.client.deleteUsuario(user.id).subscribe({
+      next: () => {
+        this.notificationService.show('Usuario eliminado correctamente.');
+        this.load();
+      },
+      error: (err) => this.error.set(mensajeError(err)),
+    });
   }
 }

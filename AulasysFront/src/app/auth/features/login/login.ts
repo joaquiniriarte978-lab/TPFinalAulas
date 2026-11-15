@@ -1,14 +1,13 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
-import { FormField, form, required, validate } from '@angular/forms/signals';
-import { ActivatedRoute, Router } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { finalize } from 'rxjs';
+import { Component, inject, signal } from '@angular/core';
+import { FormField, FormRoot, form, required } from '@angular/forms/signals';
+import { Router } from '@angular/router';
 import { AuthService } from '../../data-access/auth.service';
-import { safeReturnUrl } from '../../data-access/auth-guard';
+import { ROUTE_COMMANDS } from '../../../app.route.segments';
 import { FieldError } from '../../../shared/field-error/field-error';
+import { mensajeError } from '../../../shared/error-message';
 
 @Component({
-  imports: [FormField, FieldError],
+  imports: [FormRoot, FormField, FieldError],
   selector: 'app-login',
   styleUrl: './login.css',
   templateUrl: './login.html',
@@ -16,40 +15,29 @@ import { FieldError } from '../../../shared/field-error/field-error';
 export default class Login {
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
-  private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly formModel = signal({ username: '', password: '' });
-  protected readonly form = form(this.formModel, (path) => {
-    validate(path.username, ({ value }) =>
-      value().trim() ? undefined : { kind: 'required', message: 'Completá este campo.' },
-    );
-    required(path.password);
-  });
   protected readonly error = signal('');
-  protected readonly busy = signal(false);
+  protected readonly formModel = signal({ username: '', password: '' });
 
-  submit() {
-    if (this.busy()) return;
-    this.form().markAsTouched();
-    if (this.form().invalid()) return;
-    this.busy.set(true);
-    this.error.set('');
-    const { username, password } = this.formModel();
-    this.auth
-      .login(username, password)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.busy.set(false)),
-      )
-      .subscribe({
-        next: () => {
-          this.form.password().reset('');
-          void this.router.navigateByUrl(
-            safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')),
-          );
+  protected readonly loginForm = form(
+    this.formModel,
+    (path) => {
+      required(path.username, { message: 'Completá este campo.' });
+      required(path.password, { message: 'Completá este campo.' });
+    },
+    {
+      submission: {
+        action: async () => {
+          this.error.set('');
+          const { username, password } = this.formModel();
+          this.auth.login(username, password).subscribe({
+            next: () => {
+              this.router.navigate(ROUTE_COMMANDS.aulas);
+            },
+            error: (err) => this.error.set(mensajeError(err)),
+          });
         },
-        error: (err: Error) => this.error.set(err.message),
-      });
-  }
+      },
+    },
+  );
 }

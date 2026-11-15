@@ -1,9 +1,8 @@
-<a class="skip-link" href="#contenido" (click)="$event.preventDefault(); content.focus()"
-  >Saltar al contenido</a
->
 <div class="app-layout">
   <aside class="sidebar" [class.open]="menuOpen()">
-    <div class="sidebar-logo"><a [routerLink]="commands.aulas">AulasSys</a><small>v1.0.0</small></div>
+    <div class="sidebar-logo">
+      <a [routerLink]="commands.aulas">AulasSys</a><small>v1.0.0</small>
+    </div>
     <div class="sidebar-user">
       <span class="user-avatar">{{ auth.user()?.nombre?.charAt(0)?.toUpperCase() }}</span>
       <div>
@@ -13,69 +12,23 @@
     </div>
     <nav class="sidebar-nav" aria-label="Navegación principal" (click)="menuOpen.set(false)">
       <div class="nav-section-label">Principal</div>
-      <a
-        class="nav-item"
-        [routerLink]="commands.clases"
-        routerLinkActive="active"
-        ariaCurrentWhenActive="page"
-        >Clases</a
-      >
-      <a
-        class="nav-item"
-        [routerLink]="commands.perfil"
-        routerLinkActive="active"
-        ariaCurrentWhenActive="page"
-        >Mi perfil</a
-      >
+      <a class="nav-item" [routerLink]="commands.clases" routerLinkActive="active">Clases</a>
+      <a class="nav-item" [routerLink]="commands.perfil" routerLinkActive="active">Mi perfil</a>
       @if (auth.user()?.rol !== 'ALUMNO') {
-        <a
-          class="nav-item"
-          [routerLink]="commands.comisiones"
-          routerLinkActive="active"
-          ariaCurrentWhenActive="page"
-          >{{ auth.isAdmin() ? 'Comisiones' : 'Mis comisiones' }}</a
-        >
-        <a
-          class="nav-item"
-          [routerLink]="commands.reservas"
-          routerLinkActive="active"
-          ariaCurrentWhenActive="page"
-          >Reservas</a
-        >
-        <a
-          class="nav-item"
-          [routerLink]="commands.avisos"
-          routerLinkActive="active"
-          ariaCurrentWhenActive="page"
-          >Avisos</a
-        >
+        <a class="nav-item" [routerLink]="commands.comisiones" routerLinkActive="active">{{
+          auth.isAdmin() ? 'Comisiones' : 'Mis comisiones'
+        }}</a>
+        <a class="nav-item" [routerLink]="commands.reservas" routerLinkActive="active">Reservas</a>
+        <a class="nav-item" [routerLink]="commands.avisos" routerLinkActive="active">Avisos</a>
       }
-      <a class="nav-item" [routerLink]="commands.aulas" routerLinkActive="active" ariaCurrentWhenActive="page"
-        >Aulas</a
-      >
-      <a
-        class="nav-item"
-        [routerLink]="commands.materias"
-        routerLinkActive="active"
-        ariaCurrentWhenActive="page"
-        >Materias</a
-      >
+      <a class="nav-item" [routerLink]="commands.aulas" routerLinkActive="active">Aulas</a>
+      <a class="nav-item" [routerLink]="commands.materias" routerLinkActive="active">Materias</a>
       @if (auth.isAdmin()) {
         <div class="nav-section-label">Gestión</div>
-        <a
-          class="nav-item"
-          [routerLink]="commands.profesores"
-          routerLinkActive="active"
-          ariaCurrentWhenActive="page"
+        <a class="nav-item" [routerLink]="commands.profesores" routerLinkActive="active"
           >Profesores y materias</a
         >
-        <a
-          class="nav-item"
-          [routerLink]="commands.usuarios"
-          routerLinkActive="active"
-          ariaCurrentWhenActive="page"
-          >Usuarios</a
-        >
+        <a class="nav-item" [routerLink]="commands.usuarios" routerLinkActive="active">Usuarios</a>
       }
     </nav>
     <div class="sidebar-footer">
@@ -87,16 +40,11 @@
   }
   <div class="workspace">
     <header class="topbar">
-      <button
-        class="hamburger"
-        aria-label="Abrir menú"
-        [attr.aria-expanded]="menuOpen()"
-        (click)="menuOpen.set(!menuOpen())"
-      >
+      <button class="hamburger" aria-label="Abrir menú" (click)="menuOpen.set(!menuOpen())">
         ☰
       </button>
-      <strong>{{ sectionTitle() }}</strong>
+      <strong>Gestión de Aulas</strong>
     </header>
-    <main #content id="contenido" tabindex="-1"><router-outlet /></main>
+    <main id="contenido"><router-outlet /></main>
   </div>
 </div>

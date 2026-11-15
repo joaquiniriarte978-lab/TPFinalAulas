@@ -1,0 +1,81 @@
+@if (!editingComision()) {
+  <div class="page-heading">
+    <div>
+      <h1>Nueva comisión</h1>
+      <p>Materia, profesor y planificación de la cursada.</p>
+    </div>
+    <button class="button secondary" type="button" (click)="cancelar()">Volver al listado</button>
+  </div>
+}
+
+<section class="panel form-panel">
+  @if (editingComision()) {
+    <h2>Editar comisión</h2>
+  }
+  @if (error()) {
+    <p class="alert" role="alert">{{ error() }}</p>
+  }
+  <form [formRoot]="comisionForm">
+    <div class="form-grid">
+      <div>
+        <label for="comision-materia">Materia</label>
+        <select
+          id="comision-materia"
+          [formField]="comisionForm.id_materia"
+          (change)="onMateriaChange()"
+        >
+          <option value="">Seleccioná una materia</option>
+          @for (m of materias(); track m.id) {
+            <option [value]="m.id">{{ m.nombre }}</option>
+          }
+        </select>
+        <app-field-error [field]="comisionForm.id_materia" />
+      </div>
+      <div>
+        <label for="comision-profesor">Profesor</label>
+        <select id="comision-profesor" [formField]="comisionForm.id_profesor">
+          <option value="">Seleccioná un profesor</option>
+          @for (p of opcionesProfesor(); track p.id) {
+            <option [value]="p.id">{{ p.nombre }}</option>
+          }
+        </select>
+        <app-field-error [field]="comisionForm.id_profesor" />
+      </div>
+      <div>
+        <label for="comision-alumnos">Alumnos</label>
+        <input
+          id="comision-alumnos"
+          type="number"
+          [formField]="comisionForm.cantAlumnos"
+          step="1"
+        />
+        <app-field-error [field]="comisionForm.cantAlumnos" />
+      </div>
+      <div>
+        <label for="comision-turno">Turno</label>
+        <select id="comision-turno" [formField]="comisionForm.horario">
+          @for (t of turnos; track t) {
+            <option [value]="t">{{ t }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label for="comision-inicio">Inicio de cursada</label>
+        <input id="comision-inicio" type="date" [formField]="comisionForm.fechaInicio" />
+        <app-field-error [field]="comisionForm.fechaInicio" />
+      </div>
+      <div>
+        <label for="comision-fin">Fin de cursada</label>
+        <input id="comision-fin" type="date" [formField]="comisionForm.fechaFin" />
+        <app-field-error [field]="comisionForm.fechaFin" />
+      </div>
+    </div>
+    <p class="field-hint">
+      La cursada dura entre 2 y 6 meses. Los profesores se muestran según la materia asignada.
+    </p>
+    <div class="dialog-actions">
+      <button type="button" class="button secondary" (click)="cancelar()">Cancelar</button>
+      <button class="button primary" type="submit">Guardar comisión</button>
+    </div>
+  </form>
+</section>

@@ -4,37 +4,41 @@
     <p>Actualizá tus datos de acceso.</p>
   </div>
 </div>
+
 <section class="panel form-panel">
   @if (auth.user()?.id == null) {
     <p class="alert">
       Las cuentas de prueba no permiten editar el perfil. Usá una cuenta registrada.
     </p>
   }
-  @if (state.error()) {
-    <p class="alert" role="alert">{{ state.error() }}</p>
+  @if (error()) {
+    <p class="alert" role="alert">{{ error() }}</p>
   }
-  @if (state.success()) {
-    <p class="success" role="status">{{ state.success() }}</p>
-  }
-  <form (submit)="$event.preventDefault(); save()">
-    <fieldset [disabled]="state.busy() || auth.user()?.id == null">
-      <label>Nombre<input [formField]="form.nombre" /></label
-      ><app-field-error [field]="form.nombre" />
-      <label>Correo<input [formField]="form.email" type="email" /></label
-      ><app-field-error [field]="form.email" />
-      <label
-        >Nueva contraseña<input
-          [formField]="form.password"
-          type="password"
-          autocomplete="new-password" /></label
-      ><app-field-error [field]="form.password" />
-      <p class="muted">
+  <form [formRoot]="perfilForm">
+    <fieldset [disabled]="auth.user()?.id == null">
+      <label for="perfil-nombre">Nombre</label>
+      <input id="perfil-nombre" [formField]="perfilForm.nombre" />
+      <app-field-error [field]="perfilForm.nombre" />
+
+      <label for="perfil-email">Correo</label>
+      <input id="perfil-email" [formField]="perfilForm.email" type="email" />
+      <app-field-error [field]="perfilForm.email" />
+
+      <label for="perfil-password">Nueva contraseña</label>
+      <input
+        id="perfil-password"
+        [formField]="perfilForm.password"
+        type="password"
+        autocomplete="new-password"
+      />
+      <app-field-error [field]="perfilForm.password" />
+      <small class="field-hint">
         Dejala vacía para conservar la actual. Usá al menos 8 caracteres y una mayúscula.
-      </p>
-      <p>Rol: {{ auth.user()?.rol }}</p>
-      <button class="button primary" type="submit">
-        {{ state.busy() ? 'Guardando…' : 'Guardar cambios' }}
-      </button>
+      </small>
+
+      <div class="dialog-actions">
+        <button class="button primary" type="submit">Guardar cambios</button>
+      </div>
     </fieldset>
   </form>
 </section>

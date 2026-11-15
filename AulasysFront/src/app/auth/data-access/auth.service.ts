@@ -5,33 +5,33 @@ import { tap } from 'rxjs';
 import { Usuario } from '../../usuarios/data-access/usuario';
 import { ROUTE_COMMANDS } from '../../app.route.segments';
 
+// Patrón Singleton: @Service() crea una única instancia compartida por toda la app
+// (guards, interceptor y componentes ven al mismo usuario logueado).
 @Service()
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+
   private readonly currentUser = signal<Usuario | null>(null);
-  private credentials: string | null = null;
   readonly user = this.currentUser.asReadonly();
   readonly isAdmin = computed(() => this.user()?.rol === 'ADMIN');
+
+  // Credenciales HTTP Basic: solo en memoria, nunca en localStorage.
+  private readonly credentials = signal<string | null>(null);
+  readonly authorization = this.credentials.asReadonly();
+
+  // Mensaje que se muestra en el login (por ejemplo, al expirar la sesión).
   readonly notice = signal('');
 
-  get authorization(): string | null {
-    return this.credentials;
-  }
-
   login(username: string, password: string) {
-    const bytes = new TextEncoder().encode(`${username.trim()}:${password}`);
-    const authorization = `Basic ${btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join(''))}`;
+    const authorization = `Basic ${btoa(`${username.trim()}:${password}`)}`;
     return this.http
       .get<Usuario>('/api/usuarios/me', {
         headers: new HttpHeaders({ Authorization: authorization }),
       })
       .pipe(
         tap((user) => {
-          if (!['ADMIN', 'PROFESOR', 'ALUMNO'].includes(user.rol)) {
-            throw new Error('La cuenta no tiene un rol habilitado. Consultá al administrador.');
-          }
-          this.credentials = authorization;
+          this.credentials.set(authorization);
           this.currentUser.set(user);
           this.notice.set('');
         }),
@@ -39,13 +39,13 @@ export class AuthService {
   }
 
   updateCurrentUser(user: Usuario) {
-    if (user.id != null && user.id === this.user()?.id) this.currentUser.set(user);
+    if (user.id === this.user()?.id) this.currentUser.set(user);
   }
 
   logout(message = '') {
-    this.credentials = null;
+    this.credentials.set(null);
     this.currentUser.set(null);
     this.notice.set(message);
-    void this.router.navigate(ROUTE_COMMANDS.login);
+    this.router.navigate(ROUTE_COMMANDS.login);
   }
 }

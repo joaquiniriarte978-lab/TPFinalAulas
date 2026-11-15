@@ -1,0 +1,43 @@
+<section class="panel form-panel">
+  <h2>{{ comision().claseFija ? 'Editar clase fija' : 'Asignar clase fija' }}</h2>
+  <p class="muted">{{ comision().materiaNombre }} · {{ comision().horario }}</p>
+  @if (error()) {
+    <p class="alert" role="alert">{{ error() }}</p>
+  }
+  <form [formRoot]="claseForm">
+    <label for="clase-aula">Aula</label>
+    <select id="clase-aula" [formField]="claseForm.id_aula">
+      <option value="">Seleccioná un aula</option>
+      @for (a of aulas(); track a.id) {
+        <option [value]="a.id">{{ a.nombre }} · {{ a.capacidad }} lugares</option>
+      }
+    </select>
+    <app-field-error [field]="claseForm.id_aula" />
+
+    <label for="clase-dia">Día</label>
+    <select id="clase-dia" [formField]="claseForm.diaSemana">
+      @for (d of dias; track d) {
+        <option [value]="d">{{ d }}</option>
+      }
+    </select>
+
+    <div class="form-grid">
+      <div>
+        <label for="clase-inicio">Hora de inicio</label>
+        <input id="clase-inicio" type="time" [formField]="claseForm.horaInicio" />
+        <app-field-error [field]="claseForm.horaInicio" />
+      </div>
+      <div>
+        <label for="clase-fin">Hora de fin</label>
+        <input id="clase-fin" type="time" [formField]="claseForm.horaFin" />
+        <app-field-error [field]="claseForm.horaFin" />
+      </div>
+    </div>
+    <p class="field-hint">Mañana 06–13 · Tarde 13–19 · Noche 19–23:59.</p>
+
+    <div class="dialog-actions">
+      <button type="button" class="button secondary" (click)="cancelled.emit()">Cancelar</button>
+      <button type="submit" class="button primary">Guardar clase fija</button>
+    </div>
+  </form>
+</section>

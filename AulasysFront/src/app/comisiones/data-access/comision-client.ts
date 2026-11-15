@@ -16,15 +16,19 @@ export class ComisionClient {
     return this.http.get<Comision[]>(`${this.baseUrl}/mis-comisiones`);
   }
 
+  getComisionById(id: number | string) {
+    return this.http.get<Comision>(`${this.baseUrl}/${id}`);
+  }
+
   addComision(newComision: ComisionInput) {
     return this.http.post<Comision>(this.baseUrl, newComision);
   }
 
-  editComision(edittedComision: ComisionInput, id: number) {
+  editComision(edittedComision: ComisionInput, id: number | string) {
     return this.http.put<Comision>(`${this.baseUrl}/${id}`, edittedComision);
   }
 
-  deleteComision(id: number) {
+  deleteComision(id: number | string) {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 
@@ -32,7 +36,7 @@ export class ComisionClient {
     return this.http.post<ClaseFija>(this.claseFijaUrl, newClaseFija);
   }
 
-  deleteClaseFija(id: number) {
+  deleteClaseFija(id: number | string) {
     return this.http.delete<void>(`${this.claseFijaUrl}/comision/${id}`);
   }
 }

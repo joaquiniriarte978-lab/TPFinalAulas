@@ -1,62 +1,64 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { form, FormField, max, maxLength, min, required, validate } from '@angular/forms/signals';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { AulaClient } from '../../data-access/aula-client';
 import { AuthService } from '../../../auth/data-access/auth.service';
 import { Aula, TIPOS_AULA, TipoAula } from '../../data-access/aula';
-import { normalize } from '../../../shared/utils/text';
-import { collection } from '../../../shared/utils/collection';
-import { crudState } from '../../../shared/utils/crud-state';
-import { FieldError } from '../../../shared/field-error/field-error';
-import { Modal } from '../../../shared/modal/modal';
+import { ROUTE_COMMANDS } from '../../../app.route.segments';
+import { ConfirmationService } from '../../../shared/confirmation.service';
+import { NotificationService } from '../../../shared/notification.service';
+import { mensajeError } from '../../../shared/error-message';
 
 @Component({
-  imports: [FormsModule, FormField, Modal, FieldError],
+  imports: [],
   selector: 'app-aula-list',
   styleUrl: './aula-list.css',
   templateUrl: './aula-list.html',
 })
-export default class AulaList {
+export default class AulaList implements OnInit {
   protected readonly auth = inject(AuthService);
   private readonly client = inject(AulaClient);
+  private readonly router = inject(Router);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly notificationService = inject(NotificationService);
 
-  protected readonly data = collection(() => this.client.getAllAulas());
-  protected readonly state = crudState<Aula>(this.data.load);
+  protected readonly aulas = signal<Aula[]>([]);
+  protected readonly loading = signal(false);
+  protected readonly error = signal('');
+
   protected readonly tipos = TIPOS_AULA;
   protected readonly query = signal('');
   protected readonly tipo = signal('');
   protected readonly capacidad = signal<number | null>(null);
   protected readonly equipamiento = signal('');
+
   protected readonly filtered = computed(() =>
-    this.data
-      .items()
-      .filter(
-        (a) =>
-          normalize(a.nombre).includes(normalize(this.query())) &&
-          (!this.tipo() || a.tipo === this.tipo()) &&
-          a.capacidad >= (this.capacidad() ?? 0) &&
-          normalize(a.equipamiento ?? '').includes(normalize(this.equipamiento())),
-      ),
+    this.aulas().filter(
+      (a) =>
+        a.nombre.toLowerCase().includes(this.query().toLowerCase()) &&
+        (!this.tipo() || a.tipo === this.tipo()) &&
+        a.capacidad >= (this.capacidad() ?? 0) &&
+        (a.equipamiento ?? '').toLowerCase().includes(this.equipamiento().toLowerCase()),
+    ),
   );
-  protected readonly formModel = signal({
-    nombre: '',
-    capacidad: 30,
-    tipo: 'AULA' as TipoAula,
-    equipamiento: '',
-  });
-  protected readonly form = form(this.formModel, (path) => {
-    validate(path.nombre, ({ value }) =>
-      value().trim() ? undefined : { kind: 'required', message: 'Completá este campo.' },
-    );
-    maxLength(path.nombre, 20);
-    min(path.capacidad, 1);
-    max(path.capacidad, 100);
-    validate(path.capacidad, ({ value }) =>
-      Number.isInteger(value()) ? undefined : { kind: 'integer' },
-    );
-    required(path.tipo);
-    maxLength(path.equipamiento, 255);
-  });
+
+  ngOnInit() {
+    this.load();
+  }
+
+  load() {
+    this.loading.set(true);
+    this.error.set('');
+    this.client.getAllAulas().subscribe({
+      next: (data) => {
+        this.aulas.set(data);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.error.set(mensajeError(err));
+        this.loading.set(false);
+      },
+    });
+  }
 
   label(tipo: TipoAula) {
     return this.tipos.find((t) => t.value === tipo)?.label ?? tipo;
@@ -69,32 +71,26 @@ export default class AulaList {
     this.equipamiento.set('');
   }
 
-  open(aula: Aula | null = null) {
-    this.form().reset(
-      aula
-        ? { ...aula, equipamiento: aula.equipamiento ?? '' }
-        : { nombre: '', capacidad: 30, tipo: 'AULA', equipamiento: '' },
+  irANueva() {
+    this.router.navigate(ROUTE_COMMANDS.nuevaAula);
+  }
+
+  irAEditar(aula: Aula) {
+    this.router.navigate(ROUTE_COMMANDS.editarAula(aula.id));
+  }
+
+  async eliminar(aula: Aula) {
+    const confirmed = await this.confirmationService.requestConfirmation(
+      `¿Seguro que deseás eliminar el aula "${aula.nombre}"?`,
     );
-    this.state.open(aula);
-  }
+    if (!confirmed) return;
 
-  save() {
-    this.form().markAsTouched();
-    if (this.form().invalid() || !this.auth.isAdmin()) return;
-    const value = this.formModel();
-    const aula = { ...value, nombre: value.nombre.trim(), equipamiento: value.equipamiento.trim() };
-    const id = this.state.editing()?.id;
-    this.state.run(
-      id == null ? this.client.addAula(aula) : this.client.editAula(aula, id),
-      this.state.editing() ? 'Aula actualizada correctamente.' : 'Aula creada correctamente.',
-    );
+    this.client.deleteAula(aula.id).subscribe({
+      next: () => {
+        this.notificationService.show('Aula eliminada correctamente.');
+        this.load();
+      },
+      error: (err) => this.error.set(mensajeError(err)),
+    });
   }
-
-  remove() {
-    const aula = this.state.deleting();
-    if (aula && this.auth.isAdmin())
-      this.state.run(this.client.deleteAula(aula.id), 'Aula eliminada correctamente.');
-  }
-
-  // .
 }
