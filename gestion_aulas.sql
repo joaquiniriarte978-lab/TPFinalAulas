@@ -92,6 +92,7 @@ CREATE TABLE IF NOT EXISTS aviso (
     mensaje     VARCHAR(255),
     estado      VARCHAR(15),  -- 'PENDIENTE' | 'RESUELTO' | 'EN_REVISION'
     fecha       DATE,
-    CONSTRAINT fk_aviso_aula    FOREIGN KEY (id_aula)    REFERENCES aula(id) ON DELETE CASCADE,
+    fecha_actualizacion DATE,
+    CONSTRAINT fk_aviso_aula   FOREIGN KEY (id_aula)    REFERENCES aula(id) ON DELETE CASCADE,
     CONSTRAINT fk_aviso_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON DELETE CASCADE
 );

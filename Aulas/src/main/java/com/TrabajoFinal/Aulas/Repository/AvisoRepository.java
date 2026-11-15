@@ -12,4 +12,6 @@ public interface AvisoRepository extends JpaRepository<Aviso,Integer> {
     boolean existsByUsuarioId(Integer usuarioId);
 
     List<Aviso> findByEstado(Estado estado);
+
+    List<Aviso> findAllByOrderByFechaDescIdDesc();
 }

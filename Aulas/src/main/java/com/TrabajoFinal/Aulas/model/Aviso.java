@@ -28,5 +28,7 @@ public class Aviso {
     private Estado estado;
     private LocalDate fecha;
 
+    @Column(name = "fecha_actualizacion")
+    private LocalDate fechaActualizacion;
 
 }
