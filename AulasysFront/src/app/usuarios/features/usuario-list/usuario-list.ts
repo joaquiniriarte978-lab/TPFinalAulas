@@ -34,6 +34,9 @@ export default class UsuarioList {
   protected readonly state = crudState<Usuario>(this.data.load);
   protected readonly roles = ROLES;
   protected readonly roleKeys: Rol[] = ['ADMIN', 'PROFESOR', 'ALUMNO'];
+   protected readonly formRoleKeys = computed<Rol[]>(() =>
+    this.state.editing()?.rol === 'ADMIN' ? ['ADMIN'] : ['PROFESOR', 'ALUMNO'],
+  );
   protected readonly query = signal('');
   protected readonly rol = signal('');
   protected readonly filtered = computed(() =>
@@ -57,11 +60,20 @@ export default class UsuarioList {
     required(path.password, { when: () => !this.state.editing() });
     pattern(path.password, /^$|^(?=.*[A-Z]).{8,}$/);
     required(path.rol);
+     validate(path.rol, ({ value }) =>
+      value() === 'ADMIN' && this.state.editing()?.rol !== 'ADMIN'
+        ? { kind: 'adminNoPermitido', message: 'No se pueden crear ni asignar administradores.' }
+        : undefined,
+    );
     disabled(path.rol, () => this.isSelf(this.state.editing()));
   });
 
   isSelf(user: Usuario | null) {
     return user?.id != null && user.id === this.auth.user()?.id;
+  }
+
+   isOtherAdmin(user: Usuario | null) {
+    return user?.rol === 'ADMIN' && !this.isSelf(user);
   }
 
   clear() {
@@ -83,6 +95,7 @@ export default class UsuarioList {
     if (this.form().invalid() || !this.auth.isAdmin()) return;
     const value = this.formModel();
     const current = this.state.editing();
+     if (this.isOtherAdmin(current)) return;
     const payload = {
       nombre: value.nombre.trim(),
       email: value.email.trim(),
@@ -105,7 +118,7 @@ export default class UsuarioList {
 
   remove() {
     const user = this.state.deleting();
-    if (user?.id != null && !this.isSelf(user) && this.auth.isAdmin())
+    if (user?.id != null && !this.isSelf(user) && !this.isOtherAdmin(user) && this.auth.isAdmin())
       this.state.run(this.client.deleteUsuario(user.id), 'Usuario eliminado correctamente.');
   }
 }

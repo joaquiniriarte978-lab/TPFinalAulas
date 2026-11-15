@@ -34,7 +34,10 @@ public class UsuarioService {
 
     @Transactional
     public Usuario subirUsuario(UsuarioRequestDTO dto) {
-
+         Rol rol = Rol.valueOf(dto.getRol());
+        if (rol == Rol.ADMIN) {
+            throw new IllegalArgumentException("No se pueden crear cuentas de administrador.");
+        }
         if (usuarioRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("El email ya está registrado");
         }
@@ -46,7 +49,7 @@ public class UsuarioService {
         usuario.setNombre(dto.getNombre());
         usuario.setEmail(dto.getEmail());
         usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
-        usuario.setRol(Rol.valueOf(dto.getRol()));
+        usuario.setRol(rol);
 
         Usuario usuarioGuardado = usuarioRepository.save(usuario);
 
@@ -91,6 +94,10 @@ public class UsuarioService {
         }
 
         Rol rolNuevo = Rol.valueOf(dto.getRol());
+         if (rolNuevo == Rol.ADMIN && viejo.getRol() != Rol.ADMIN) {
+            throw new IllegalArgumentException("No se puede asignar el rol de administrador.");
+        }
+
         if (viejo.getRol() == Rol.PROFESOR && rolNuevo != Rol.PROFESOR) {
             profesorRepository
                     .findByUsuarioId(id)

@@ -34,6 +34,18 @@ class SprintOneSecurityTest {
         mvc.perform(get("/api/aulas")).andExpect(status().isUnauthorized());
     }
 
+  @Test void administradorNoPuedeModificarNiBorrarOtroAdmin() throws Exception {
+        Usuario yo = new Usuario(1, "Yo", "yo@test.com", "hash", Rol.ADMIN);
+        Usuario otro = new Usuario(8, "Otro", "otro@test.com", "hash", Rol.ADMIN);
+        when(usuarios.buscarPorId(8)).thenReturn(otro);
+        mvc.perform(delete("/api/usuarios/8").with(user(yo))).andExpect(status().isBadRequest());
+        mvc.perform(put("/api/usuarios/8").with(user(yo)).contentType("application/json")
+                .content("{\"nombre\":\"Otro\",\"email\":\"otro@test.com\",\"rol\":\"ADMIN\"}"))
+                .andExpect(status().isBadRequest());
+        verify(usuarios, never()).eliminarUsuario(anyInt());
+        verify(usuarios, never()).modificar(anyInt(), any());
+    }
+
     @ParameterizedTest @ValueSource(strings = {"ADMIN", "PROFESOR", "ALUMNO"})
     void losTresRolesPuedenConsultarAulasMateriasYSuIdentidad(String rol) throws Exception {
         mvc.perform(get("/api/aulas").with(user("test").roles(rol))).andExpect(status().isOk());
