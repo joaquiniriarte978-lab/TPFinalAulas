@@ -1,7 +1,13 @@
 <div class="page-heading">
   <div>
     <h1>Avisos</h1>
-    <p>Reportá problemas en las aulas que utilizás.</p>
+    <p>
+      {{
+        auth.isAdmin()
+          ? 'Revisá las incidencias reportadas y actualizá su estado.'
+          : 'Consultá las incidencias pendientes y seguí el estado de tus avisos.'
+      }}
+    </p>
   </div>
   @if (auth.user()?.rol === 'PROFESOR') {
     <button class="button primary" (click)="open()">Nuevo aviso</button>
@@ -10,12 +16,39 @@
 @if (state.success()) {
   <p class="success" role="status">{{ state.success() }}</p>
 }
-<section class="panel">
+@if (state.error() && !state.opened() && !state.deleting()) {
+  <p class="alert" role="alert">{{ state.error() }}</p>
+}
+@if (!data.loading() && !data.error()) {
+  <ul class="summary" aria-label="Resumen de avisos">
+    <li><strong>{{ resumen().pendientes }}</strong> pendientes</li>
+    @if (auth.isAdmin()) {
+      <li><strong>{{ resumen().enRevision }}</strong> en revisión</li>
+      <li><strong>{{ resumen().resueltos }}</strong> resueltos</li>
+    } @else {
+      <li><strong>{{ resumen().misPendientes }}</strong> míos pendientes</li>
+      <li><strong>{{ resumen().misEnRevision }}</strong> míos en revisión</li>
+      <li><strong>{{ resumen().misResueltos }}</strong> míos resueltos</li>
+    }
+  </ul>
+}
+<section class="panel" aria-label="Listado de avisos">
   <div class="filters">
     <label
       >Mostrar<select [ngModel]="scope()" (ngModelChange)="scope.set($event)">
-        <option value="">Disponibles</option>
-        <option value="mios">Mis avisos</option>
+        <option value="pendientes">Pendientes</option>
+        @if (!auth.isAdmin()) {
+          <option value="mios">Mis avisos</option>
+        }
+        <option value="todos">Todos</option>
+      </select></label
+    >
+    <label
+      >Estado<select [ngModel]="estado()" (ngModelChange)="estado.set($event)">
+        <option value="">Todos los estados</option>
+        @for (e of estadoKeys; track e) {
+          <option [value]="e">{{ estados[e] }}</option>
+        }
       </select></label
     >
   </div>
@@ -28,14 +61,17 @@
   @if (!data.loading() && !data.error() && filtered().length) {
     <div class="table-scroll">
       <table>
+        <caption class="visually-hidden">
+          Avisos de aulas
+        </caption>
         <thead>
           <tr>
-            <th>Aula</th>
-            <th>Mensaje</th>
-            <th>Autor</th>
-            <th>Fecha</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th scope="col">Aula</th>
+            <th scope="col">Mensaje</th>
+            <th scope="col">Autor</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -43,13 +79,55 @@
             <tr>
               <td>{{ a.aulaNombre }}</td>
               <td class="message-cell">{{ a.mensaje }}</td>
-              <td>{{ a.autorNombre }}</td>
-              <td>{{ a.fecha }}</td>
-              <td>{{ a.estado }}</td>
               <td>
-                @if (a.propio && auth.user()?.rol === 'PROFESOR') {
-                  <button class="button subtle" (click)="open(a)">Editar</button>
+                {{ a.autorNombre }}
+                @if (a.propio) {
+                  <span class="self-label">Vos</span>
                 }
+              </td>
+              <td>{{ a.fecha }}</td>
+              <td>
+                <span [class]="'badge estado-' + a.estado">{{ estados[a.estado] }}</span>
+                @if (a.fechaActualizacion && a.fechaActualizacion !== a.fecha) {
+                  <small class="muted updated">Actualizado {{ a.fechaActualizacion }}</small>
+                }
+              </td>
+              <td>
+                <div class="row-actions">
+                  @if (auth.isAdmin()) {
+                    <select
+                      class="estado-select"
+                      [attr.aria-label]="'Estado del aviso de ' + a.aulaNombre"
+                      [disabled]="state.busy()"
+                      (change)="cambiarEstado(a, $any($event.target).value)"
+                    >
+                      @for (e of estadoKeys; track e) {
+                        <option [value]="e" [selected]="e === a.estado">{{ estados[e] }}</option>
+                      }
+                    </select>
+                    <button
+                      class="button text-danger"
+                      [disabled]="a.estado !== 'RESUELTO' || state.busy()"
+                      [attr.aria-label]="'Eliminar aviso de ' + a.aulaNombre"
+                      [title]="
+                        a.estado === 'RESUELTO'
+                          ? 'Eliminar aviso'
+                          : 'Solo se eliminan avisos resueltos'
+                      "
+                      (click)="state.confirmDelete(a)"
+                    >
+                      Eliminar
+                    </button>
+                  } @else if (a.propio && a.estado === 'PENDIENTE') {
+                    <button
+                      class="button subtle"
+                      [attr.aria-label]="'Editar aviso de ' + a.aulaNombre"
+                      (click)="open(a)"
+                    >
+                      Editar
+                    </button>
+                  }
+                </div>
               </td>
             </tr>
           }
@@ -107,4 +185,23 @@
       </div>
     </form></app-modal
   >
+}
+@if (state.deleting(); as a) {
+  <app-modal title="Eliminar aviso" [busy]="state.busy()" (closed)="state.close()">
+    <p>
+      Vas a eliminar el aviso de <strong>{{ a.aulaNombre }}</strong
+      >: “{{ a.mensaje }}”.
+    </p>
+    <p class="muted">Solo se eliminan avisos resueltos. Esta acción no se puede deshacer.</p>
+    @if (state.error()) {
+      <div class="alert" role="alert">{{ state.error() }}</div>
+    }
+    <div class="dialog-actions">
+      <button class="button secondary" [disabled]="state.busy()" (click)="state.close()">
+        Cancelar</button
+      ><button class="button danger" [disabled]="state.busy()" (click)="remove()">
+        {{ state.busy() ? 'Eliminando…' : 'Eliminar aviso' }}
+      </button>
+    </div>
+  </app-modal>
 }
