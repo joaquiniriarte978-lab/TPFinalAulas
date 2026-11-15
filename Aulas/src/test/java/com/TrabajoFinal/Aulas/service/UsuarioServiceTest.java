@@ -40,9 +40,22 @@ class UsuarioServiceTest {
         profesor.setId(11);
         profesor.setUsuario(usuario);
         profesor.setMaterias(List.of(new Materia(2, "Programación", true)));
-        when(usuarios.findById(7)).thenReturn(Optional.of(usuario));
+        lenient().when(usuarios.findById(7)).thenReturn(Optional.of(usuario));
     }
-
+ @Test
+    void noSePuedeCrearUnAdministrador() {
+        UsuarioRequestDTO dto = request("ADMIN");
+        dto.setEmail("nuevo@test.com");
+        dto.setPassword("Usuario1");
+        assertThrows(IllegalArgumentException.class, () -> service.subirUsuario(dto));
+        verify(usuarios, never()).save(any());
+    }
+     @Test
+    void noSePuedePromoverAAdministrador() {
+        assertThrows(IllegalArgumentException.class, () -> service.modificar(7, request("ADMIN")));
+        verify(usuarios, never()).save(any());
+    }
+    
     UsuarioRequestDTO request(String rol) {
         UsuarioRequestDTO dto = new UsuarioRequestDTO();
         dto.setNombre("Ana");
