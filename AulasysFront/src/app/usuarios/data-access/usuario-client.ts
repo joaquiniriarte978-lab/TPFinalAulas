@@ -19,16 +19,19 @@ export class UsuarioClient {
     return this.http.get<Usuario[]>(this.baseUrl);
   }
 
-  // No enviar materiasIds: editar una cuenta debe conservar sus asignaciones académicas.
+  getUsuarioById(id: number | string) {
+    return this.http.get<Usuario>(`${this.baseUrl}/${id}`);
+  }
+
   addUsuario(newUsuario: UsuarioInput) {
     return this.http.post<Usuario>(this.baseUrl, newUsuario);
   }
 
-  editUsuario(edittedUsuario: UsuarioInput, id: number) {
+  editUsuario(edittedUsuario: UsuarioInput, id: number | string) {
     return this.http.put<Usuario>(`${this.baseUrl}/${id}`, edittedUsuario);
   }
 
-  deleteUsuario(id: number) {
+  deleteUsuario(id: number | string) {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

@@ -1,90 +1,120 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { form, FormField, required } from '@angular/forms/signals';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ClaseClient } from '../../data-access/clase-client';
 import { MateriaClient } from '../../../materias/data-access/materia-client';
 import { AulaClient } from '../../../aulas/data-access/aula-client';
 import { Clase } from '../../data-access/clase';
-import { fechaHoy, inicioSemana, sumarDias } from '../../../shared/utils/date';
-import { collection } from '../../../shared/utils/collection';
-import { ListStatus } from '../../../shared/list-status/list-status';
-import { Modal } from '../../../shared/modal/modal';
+import { mensajeError } from '../../../shared/error-message';
+
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-const franjaDe = (c: Clase) => `${c.horaInicio.slice(0, 5)}–${c.horaFin.slice(0, 5)}`;
-const corta = (fecha: string) => `${fecha.slice(8, 10)}/${fecha.slice(5, 7)}`;
+
+function aIso(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function inicioSemana(fecha: string): string {
+  const d = new Date(`${fecha}T12:00:00`);
+  const dia = d.getDay();
+  d.setDate(d.getDate() - (dia === 0 ? 6 : dia - 1));
+  return aIso(d);
+}
+
+function sumarDias(fecha: string, dias: number): string {
+  const d = new Date(`${fecha}T12:00:00`);
+  d.setDate(d.getDate() + dias);
+  return aIso(d);
+}
 
 @Component({
-  imports: [FormField, ListStatus, Modal],
+  imports: [],
   selector: 'app-clase-list',
   styleUrl: './clase-list.css',
   templateUrl: './clase-list.html',
 })
-export default class ClaseList {
+export default class ClaseList implements OnInit {
   private readonly client = inject(ClaseClient);
   private readonly materiaClient = inject(MateriaClient);
   private readonly aulaClient = inject(AulaClient);
 
-  protected readonly filterModel = signal({ fecha: fechaHoy(), materia: '', aula: '' });
-  protected readonly filters = form(this.filterModel, (path) => required(path.fecha));
-  protected readonly materias = collection(() => this.materiaClient.getAllMaterias());
-  protected readonly aulas = collection(() => this.aulaClient.getAllAulas());
-  protected readonly data = collection(() =>
-    this.client.getClases(
-      this.filterModel().fecha,
-      this.filterModel().materia,
-      this.filterModel().aula,
-    ),
-  );
+  protected readonly materias = toSignal(this.materiaClient.getAllMaterias(), {
+    initialValue: [],
+  });
+  protected readonly aulas = toSignal(this.aulaClient.getAllAulas(), {
+    initialValue: [],
+  });
+
+  protected readonly fecha = signal(new Date().toLocaleDateString('en-CA'));
+  protected readonly materia = signal('');
+  protected readonly aula = signal('');
+  protected readonly vista = signal<'lista' | 'semana'>('lista');
+
+  protected readonly clases = signal<Clase[]>([]);
+  protected readonly loading = signal(false);
+  protected readonly error = signal('');
   protected readonly detail = signal<Clase | null>(null);
 
-   protected readonly vista = signal<'lista' | 'semana'>('lista');
   protected readonly semanaDesde = computed(() =>
-    inicioSemana(this.filterModel().fecha || fechaHoy()),
+    inicioSemana(this.fecha() || new Date().toLocaleDateString('en-CA')),
   );
-  protected readonly semana = collection(() =>
-    this.client.getSemana(this.semanaDesde(), this.filterModel().materia, this.filterModel().aula),
-  );
+
   protected readonly dias = computed(() =>
     DIAS.map((nombre, i) => {
-      const fecha = sumarDias(this.semanaDesde(), i);
-      return { nombre, fecha, corta: corta(fecha) };
+      const f = sumarDias(this.semanaDesde(), i);
+      return { nombre, fecha: f, corta: `${f.slice(8, 10)}/${f.slice(5, 7)}` };
     }),
   );
+
   protected readonly franjas = computed(() =>
-    [...new Set(this.semana.items().map(franjaDe))].sort(),
+    [...new Set(this.clases().map((c) => this.franjaDe(c)))].sort(),
   );
-  private readonly grilla = computed(() => {
-    const mapa = new Map<string, Clase[]>();
-    for (const c of this.semana.items()) {
-      const key = `${c.fecha}|${franjaDe(c)}`;
-      mapa.set(key, [...(mapa.get(key) ?? []), c]);
-    }
-    return mapa;
-  });
-  protected readonly franjaDe = franjaDe;
 
-  celda(fecha: string, franja: string): Clase[] {
-    return this.grilla().get(`${fecha}|${franja}`) ?? [];
+  ngOnInit() {
+    this.buscar();
   }
 
-  delDia(fecha: string): Clase[] {
-    return this.semana.items().filter((c) => c.fecha === fecha);
+  franjaDe(c: Clase) {
+    return `${c.horaInicio.slice(0, 5)}–${c.horaFin.slice(0, 5)}`;
   }
 
-  cambiarVista(vista: 'lista' | 'semana') {
-    if (this.vista() === vista) return;
-    this.vista.set(vista);
+  celda(fechaDia: string, franja: string): Clase[] {
+    return this.clases().filter((c) => c.fecha === fechaDia && this.franjaDe(c) === franja);
+  }
+
+  delDia(fechaDia: string): Clase[] {
+    return this.clases().filter((c) => c.fecha === fechaDia);
+  }
+
+  cambiarVista(nuevaVista: 'lista' | 'semana') {
+    if (this.vista() === nuevaVista) return;
+    this.vista.set(nuevaVista);
     this.buscar();
   }
 
   moverSemana(semanas: number) {
-    this.filterModel.update((m) => ({ ...m, fecha: sumarDias(this.semanaDesde(), semanas * 7) }));
-    this.semana.load();
+    this.fecha.set(sumarDias(this.semanaDesde(), semanas * 7));
+    this.buscar();
   }
 
   buscar() {
-    this.filters().markAsTouched();
-    if (!this.filters().valid()) return;
-    if (this.vista() === 'semana') this.semana.load();
-    else this.data.load();
+    if (!this.fecha()) return;
+    this.loading.set(true);
+    this.error.set('');
+    this.detail.set(null);
+
+    const request$ =
+      this.vista() === 'semana'
+        ? this.client.getSemana(this.semanaDesde(), this.materia(), this.aula())
+        : this.client.getClases(this.fecha(), this.materia(), this.aula());
+
+    request$.subscribe({
+      next: (data) => {
+        this.clases.set(data);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.error.set(mensajeError(err));
+        this.loading.set(false);
+      },
+    });
   }
 }
