@@ -1,13 +1,16 @@
 package com.TrabajoFinal.Aulas.Controller;
 
 import com.TrabajoFinal.Aulas.Repository.*;
+import com.TrabajoFinal.Aulas.model.ClaseFija;
 import com.TrabajoFinal.Aulas.service.AgendaRules;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.*;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 @RestController
@@ -29,15 +32,35 @@ public class ClasesController {
             LocalTime horaInicio,
             LocalTime horaFin,
             String origen) {}
-
-    @GetMapping
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+   @GetMapping
+    @Transactional(readOnly = true)
     public List<Clase> listar(
             @RequestParam LocalDate fecha,
             @RequestParam(required = false) Integer materiaId,
             @RequestParam(required = false) Integer aulaId) {
+        return clasesDelDia(clases.findAll(), fecha, materiaId, aulaId);
+    }
+
+    
+    @GetMapping("/semana")
+    @Transactional(readOnly = true)
+    public List<Clase> semana(
+            @RequestParam LocalDate desde,
+            @RequestParam(required = false) Integer materiaId,
+            @RequestParam(required = false) Integer aulaId) {
+        LocalDate lunes = desde.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        List<ClaseFija> fijas = clases.findAll();
         List<Clase> result = new ArrayList<>();
-        for (var cf : clases.findAll())
+        for (int i = 0; i < 6; i++) {
+            result.addAll(clasesDelDia(fijas, lunes.plusDays(i), materiaId, aulaId));
+        }
+        return result;
+    }
+
+    private List<Clase> clasesDelDia(
+            List<ClaseFija> fijas, LocalDate fecha, Integer materiaId, Integer aulaId) {
+        List<Clase> result = new ArrayList<>();
+        for (var cf : fijas)
             if (agenda.ocurre(cf, fecha) && !agenda.liberada(cf, fecha)) {
                 var c = cf.getComision();
                 result.add(
