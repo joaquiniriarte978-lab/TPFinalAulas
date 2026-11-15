@@ -2,6 +2,7 @@ package com.TrabajoFinal.Aulas.Controller;
 
 import com.TrabajoFinal.Aulas.Dtos.avisoDTO.*;
 import com.TrabajoFinal.Aulas.model.Aula;
+import com.TrabajoFinal.Aulas.model.Aviso;
 import com.TrabajoFinal.Aulas.model.enums.Estado;
 import com.TrabajoFinal.Aulas.service.AvisoService;
 
@@ -25,14 +26,19 @@ public class AvisoController {
         return a.getAuthorities().stream().anyMatch(r -> r.getAuthority().equals("ROLE_ADMIN"));
     }
 
+    private boolean propio(Aviso v, Authentication a) {
+        return v.getUsuario().getEmail().equals(a.getName());
+    }
+
     @GetMapping
-    public List<AvisoResponseDTO> listar(Authentication a) {
+    public List<AvisoResponseDTO> listar(
+            @RequestParam(required = false) Estado estado,
+            @RequestParam(defaultValue = "false") boolean propios,
+            Authentication a) {
         return service.listarAvisos().stream()
-                .filter(
-                        v ->
-                                admin(a)
-                                        || v.getUsuario().getEmail().equals(a.getName())
-                                        || v.getEstado() == Estado.PENDIENTE)
+                .filter(v -> admin(a) || propio(v, a) || v.getEstado() == Estado.PENDIENTE)
+                .filter(v -> !propios || propio(v, a))
+                .filter(v -> estado == null || v.getEstado() == estado)
                 .map(v -> service.dto(v, a.getName()))
                 .toList();
     }

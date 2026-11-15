@@ -16,5 +16,6 @@ public class AvisoResponseDTO {
     private Integer idUsuario;
     private String mensaje;
     private LocalDate fecha;
+    private LocalDate fechaActualizacion;
     private Estado estado;
 }

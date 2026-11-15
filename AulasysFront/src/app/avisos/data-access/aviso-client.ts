@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
-import { Aviso, AvisoInput } from './aviso';
+import { Aviso, AvisoInput, EstadoAviso } from './aviso';
 import { Aula } from '../../aulas/data-access/aula';
 
 @Service()
@@ -22,5 +22,13 @@ export class AvisoClient {
 
   editAviso(edittedAviso: AvisoInput, id: number) {
     return this.http.put<Aviso>(`${this.baseUrl}/${id}`, edittedAviso);
+  }
+
+  cambiarEstado(id: number, estado: EstadoAviso) {
+    return this.http.put<Aviso>(`${this.baseUrl}/${id}/estado`, { estado });
+  }
+
+  deleteAviso(id: number) {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }
