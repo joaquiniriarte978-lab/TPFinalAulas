@@ -12,4 +12,10 @@ export class ClaseClient {
       params: { fecha, ...(materiaId ? { materiaId } : {}), ...(aulaId ? { aulaId } : {}) },
     });
   }
+
+  getSemana(desde: string, materiaId = '', aulaId = '') {
+    return this.http.get<Clase[]>(`${this.baseUrl}/semana`, {
+      params: { desde, ...(materiaId ? { materiaId } : {}), ...(aulaId ? { aulaId } : {}) },
+    });
+  }
 }
