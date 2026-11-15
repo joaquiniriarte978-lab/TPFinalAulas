@@ -38,7 +38,7 @@ public class SecurityConfig {
                                         .authenticated()
                                         .requestMatchers("/api/profesores/**")
                                         .hasRole("ADMIN")
-                                        .requestMatchers(HttpMethod.GET, "/api/clases")
+                                        .requestMatchers(HttpMethod.GET, "/api/clases", "/api/clases/**")
                                         .authenticated()
                                         .requestMatchers("/api/clase-fija/**")
                                         .hasRole("ADMIN")
