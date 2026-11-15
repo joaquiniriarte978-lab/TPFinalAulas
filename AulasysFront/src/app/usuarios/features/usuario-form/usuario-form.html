@@ -1,0 +1,78 @@
+<div class="page-heading">
+  <div>
+    <h1>{{ id ? 'Editar usuario' : 'Nuevo usuario' }}</h1>
+    <p>Completá los datos de la cuenta y su nivel de acceso.</p>
+  </div>
+  <button class="button secondary" type="button" (click)="cancelar()">Volver al listado</button>
+</div>
+
+<section class="panel form-panel">
+  @if (error()) {
+    <div class="alert" role="alert">{{ error() }}</div>
+  }
+  <form [formRoot]="usuarioForm">
+    <label for="usuario-nombre">Nombre</label>
+    <input
+      id="usuario-nombre"
+      [formField]="usuarioForm.nombre"
+      autocomplete="off"
+      placeholder="Ej. Ana Pérez"
+    />
+    <app-field-error [field]="usuarioForm.nombre" />
+
+    <label for="usuario-email">Correo electrónico</label>
+    <input
+      id="usuario-email"
+      type="email"
+      [formField]="usuarioForm.email"
+      autocomplete="off"
+      placeholder="nombre@universidad.edu"
+    />
+    <app-field-error [field]="usuarioForm.email" />
+
+    <label for="usuario-password">
+      {{ id ? 'Nueva contraseña (opcional)' : 'Contraseña' }}
+    </label>
+    <input
+      id="usuario-password"
+      type="password"
+      [formField]="usuarioForm.password"
+      autocomplete="new-password"
+      aria-describedby="password-hint"
+    />
+    <small id="password-hint" class="field-hint">
+      Al menos 8 caracteres y una mayúscula.
+      @if (id) {
+        Dejá vacío para conservar la contraseña actual.
+      }
+    </small>
+    <app-field-error [field]="usuarioForm.password" />
+
+    <label for="usuario-rol">Rol</label>
+    <select id="usuario-rol" [formField]="usuarioForm.rol">
+      @for (role of formRoleKeys(); track role) {
+        <option [value]="role">{{ roles[role] }}</option>
+      }
+    </select>
+    <app-field-error [field]="usuarioForm.rol" />
+    <small class="field-hint">
+      {{
+        isSelf()
+          ? 'Tu propio rol no se puede cambiar desde esta cuenta.'
+          : 'Profesor: reserva aulas y reporta avisos. Alumno: consulta clases.'
+      }}
+    </small>
+
+    @if (editingUser()?.materiasIds?.length) {
+      <div class="notice">
+        Esta cuenta tiene {{ editingUser()!.materiasIds!.length }} materia(s) vinculada(s). Se
+        conservarán al guardar o cambiar el rol.
+      </div>
+    }
+
+    <div class="dialog-actions">
+      <button class="button secondary" type="button" (click)="cancelar()">Cancelar</button>
+      <button class="button primary" type="submit">Guardar usuario</button>
+    </div>
+  </form>
+</section>

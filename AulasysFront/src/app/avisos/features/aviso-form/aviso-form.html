@@ -1,0 +1,32 @@
+<div class="page-heading">
+  <div>
+    <h1>{{ id ? 'Editar aviso' : 'Nuevo aviso' }}</h1>
+    <p>Podés reportar aulas con clase fija asignada o donde ya terminó una reserva tuya.</p>
+  </div>
+  <button class="button secondary" type="button" (click)="cancelar()">Volver al listado</button>
+</div>
+
+<section class="panel form-panel">
+  @if (error()) {
+    <div class="alert" role="alert">{{ error() }}</div>
+  }
+  <form [formRoot]="avisoForm">
+    <label for="aviso-aula">Aula</label>
+    <select id="aviso-aula" [formField]="avisoForm.id_aula">
+      <option value="">Seleccioná un aula</option>
+      @for (a of aulas(); track a.id) {
+        <option [value]="a.id">{{ a.nombre }}</option>
+      }
+    </select>
+    <app-field-error [field]="avisoForm.id_aula" />
+
+    <label for="aviso-mensaje">Mensaje</label>
+    <textarea id="aviso-mensaje" [formField]="avisoForm.mensaje" rows="4"></textarea>
+    <app-field-error [field]="avisoForm.mensaje" />
+
+    <div class="dialog-actions">
+      <button type="button" class="button secondary" (click)="cancelar()">Cancelar</button>
+      <button class="button primary" type="submit">Guardar</button>
+    </div>
+  </form>
+</section>

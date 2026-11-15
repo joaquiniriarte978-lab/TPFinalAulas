@@ -1,0 +1,35 @@
+<div class="page-heading">
+  <div>
+    <h1>{{ id ? 'Editar materia' : 'Nueva materia' }}</h1>
+    <p>Definí el nombre y el requisito de laboratorio.</p>
+  </div>
+  <button class="button secondary" type="button" (click)="cancelar()">Volver al listado</button>
+</div>
+
+<section class="panel form-panel">
+  @if (error()) {
+    <div class="alert" role="alert">{{ error() }}</div>
+  }
+  <form [formRoot]="materiaForm">
+    <label for="materia-nombre">Nombre</label>
+    <input
+      id="materia-nombre"
+      [formField]="materiaForm.nombre"
+      placeholder="Ej. Programación III"
+    />
+    <app-field-error [field]="materiaForm.nombre" />
+
+    <label class="checkbox-field">
+      <input type="checkbox" [formField]="materiaForm.requiereLaboratorio" />
+      <span>
+        Requiere laboratorio
+        <small>La materia necesita un espacio con equipamiento específico.</small>
+      </span>
+    </label>
+
+    <div class="dialog-actions">
+      <button class="button secondary" type="button" (click)="cancelar()">Cancelar</button>
+      <button class="button primary" type="submit">Guardar materia</button>
+    </div>
+  </form>
+</section>

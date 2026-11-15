@@ -1,0 +1,50 @@
+<div class="page-heading">
+  <div>
+    <h1>Detalle de reserva</h1>
+    @if (reserva(); as r) {
+      <p>{{ r.materiaNombre }} · {{ r.aulaNombre }}</p>
+    }
+  </div>
+  <button class="button secondary" type="button" (click)="volver()">Volver al listado</button>
+</div>
+
+@if (error()) {
+  <p class="alert" role="alert">{{ error() }}</p>
+}
+
+@if (reserva(); as r) {
+  @if (!editing()) {
+    <section class="panel form-panel">
+      <dl class="details">
+        <dt>Materia y comisión</dt>
+        <dd>{{ r.materiaNombre }} · #{{ r.id_comision }}</dd>
+        <dt>Profesor</dt>
+        <dd>{{ r.profesorNombre }}</dd>
+        <dt>Aula</dt>
+        <dd>{{ r.aulaNombre }}</dd>
+        <dt>Fecha</dt>
+        <dd>{{ r.fecha }}</dd>
+        <dt>Horario</dt>
+        <dd>{{ r.horaInicio.slice(0, 5) }}–{{ r.horaFin.slice(0, 5) }}</dd>
+        <dt>Estado</dt>
+        <dd>{{ r.estadoReserva === 'FINALIZADA' ? 'Finalizada' : 'Activa' }}</dd>
+      </dl>
+
+      <div class="dialog-actions">
+        @if (r.editable) {
+          <button class="button primary" (click)="editing.set(true)">Editar</button>
+          <button class="button text-danger" (click)="cancelarOEliminar(r)">
+            Cancelar reserva
+          </button>
+        }
+        @if (r.estadoReserva === 'FINALIZADA' && (r.propia || auth.isAdmin())) {
+          <button class="button text-danger" (click)="cancelarOEliminar(r)">
+            Eliminar del historial
+          </button>
+        }
+      </div>
+    </section>
+  } @else {
+    <app-reserva-form [editingReserva]="r" (saved)="onSaved()" (cancelled)="editing.set(false)" />
+  }
+}

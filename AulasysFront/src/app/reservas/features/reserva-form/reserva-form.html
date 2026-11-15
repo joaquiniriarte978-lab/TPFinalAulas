@@ -1,0 +1,62 @@
+@if (!editingReserva()) {
+  <div class="page-heading">
+    <div>
+      <h1>Nueva reserva</h1>
+      <p>Completá los datos para reservar un espacio.</p>
+    </div>
+    <button class="button secondary" type="button" (click)="cancelar()">Volver al listado</button>
+  </div>
+}
+
+<section class="panel form-panel">
+  @if (editingReserva()) {
+    <h2>Editar reserva</h2>
+  }
+  @if (error()) {
+    <p class="alert" role="alert">{{ error() }}</p>
+  }
+  <form [formRoot]="reservaForm">
+    <label for="reserva-comision">Comisión</label>
+    <select id="reserva-comision" [formField]="reservaForm.id_comision">
+      <option value="">Seleccioná una comisión</option>
+      @for (c of comisiones(); track c.id) {
+        <option [value]="c.id">#{{ c.id }} · {{ c.materiaNombre }} · {{ c.horario }}</option>
+      }
+    </select>
+    <app-field-error [field]="reservaForm.id_comision" />
+
+    <label for="reserva-aula">Aula</label>
+    <select id="reserva-aula" [formField]="reservaForm.id_aula">
+      <option value="">Seleccioná un aula</option>
+      @for (a of aulas(); track a.id) {
+        <option [value]="a.id">{{ a.nombre }} · {{ a.capacidad }} lugares · {{ a.tipo }}</option>
+      }
+    </select>
+    <app-field-error [field]="reservaForm.id_aula" />
+
+    <label for="reserva-fecha">Fecha</label>
+    <input id="reserva-fecha" type="date" [formField]="reservaForm.fecha" />
+    <app-field-error [field]="reservaForm.fecha" />
+
+    <div class="form-grid">
+      <div>
+        <label for="reserva-inicio">Hora de inicio</label>
+        <input id="reserva-inicio" type="time" [formField]="reservaForm.horaInicio" />
+        <app-field-error [field]="reservaForm.horaInicio" />
+      </div>
+      <div>
+        <label for="reserva-fin">Hora de fin</label>
+        <input id="reserva-fin" type="time" [formField]="reservaForm.horaFin" />
+        <app-field-error [field]="reservaForm.horaFin" />
+      </div>
+    </div>
+    <p class="field-hint">
+      Mañana 06–13 · Tarde 13–19 · Noche 19–23:59. No se reserva los domingos.
+    </p>
+
+    <div class="dialog-actions">
+      <button type="button" class="button secondary" (click)="cancelar()">Cancelar</button>
+      <button class="button primary" type="submit">Guardar reserva</button>
+    </div>
+  </form>
+</section>

@@ -1,0 +1,48 @@
+<div class="page-heading">
+  <div>
+    <h1>{{ id ? 'Editar aula' : 'Nueva aula' }}</h1>
+    <p>Completá los datos del espacio. La capacidad máxima es de 100 personas.</p>
+  </div>
+  <button class="button secondary" type="button" (click)="cancelar()">Volver al listado</button>
+</div>
+
+<section class="panel form-panel">
+  @if (error()) {
+    <div class="alert" role="alert">{{ error() }}</div>
+  }
+  <form [formRoot]="aulaForm">
+    <label for="aula-nombre">Nombre</label>
+    <input id="aula-nombre" [formField]="aulaForm.nombre" placeholder="Ej. Aula 101" />
+    <app-field-error [field]="aulaForm.nombre" />
+
+    <div class="form-grid">
+      <div>
+        <label for="aula-tipo">Tipo</label>
+        <select id="aula-tipo" [formField]="aulaForm.tipo">
+          @for (t of tipos; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label for="aula-capacidad">Capacidad</label>
+        <input id="aula-capacidad" type="number" step="1" [formField]="aulaForm.capacidad" />
+        <app-field-error [field]="aulaForm.capacidad" />
+      </div>
+    </div>
+
+    <label for="aula-equipo">Equipamiento <span class="muted">(opcional)</span></label>
+    <textarea
+      id="aula-equipo"
+      [formField]="aulaForm.equipamiento"
+      rows="3"
+      placeholder="Ej. Proyector, pizarrón, 20 computadoras"
+    ></textarea>
+    <app-field-error [field]="aulaForm.equipamiento" />
+
+    <div class="dialog-actions">
+      <button class="button secondary" type="button" (click)="cancelar()">Cancelar</button>
+      <button class="button primary" type="submit">Guardar aula</button>
+    </div>
+  </form>
+</section>

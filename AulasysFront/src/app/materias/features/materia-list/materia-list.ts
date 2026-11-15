@@ -1,71 +1,85 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { form, FormField, maxLength, validate } from '@angular/forms/signals';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { MateriaClient } from '../../data-access/materia-client';
 import { AuthService } from '../../../auth/data-access/auth.service';
 import { Materia } from '../../data-access/materia';
-import { normalize } from '../../../shared/utils/text';
-import { collection } from '../../../shared/utils/collection';
-import { crudState } from '../../../shared/utils/crud-state';
-import { FieldError } from '../../../shared/field-error/field-error';
-import { Modal } from '../../../shared/modal/modal';
+import { ROUTE_COMMANDS } from '../../../app.route.segments';
+import { ConfirmationService } from '../../../shared/confirmation.service';
+import { NotificationService } from '../../../shared/notification.service';
+import { mensajeError } from '../../../shared/error-message';
 
 @Component({
-  imports: [FormsModule, FormField, Modal, FieldError],
+  imports: [],
   selector: 'app-materia-list',
   styleUrl: './materia-list.css',
   templateUrl: './materia-list.html',
 })
-export default class MateriaList {
+export default class MateriaList implements OnInit {
   protected readonly auth = inject(AuthService);
   private readonly client = inject(MateriaClient);
+  private readonly router = inject(Router);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly notificationService = inject(NotificationService);
 
-  protected readonly data = collection(() => this.client.getAllMaterias());
-  protected readonly state = crudState<Materia>(this.data.load);
+  protected readonly materias = signal<Materia[]>([]);
+  protected readonly loading = signal(false);
+  protected readonly error = signal('');
+
   protected readonly query = signal('');
   protected readonly laboratorio = signal('');
+
   protected readonly filtered = computed(() =>
-    this.data
-      .items()
-      .filter(
-        (m) =>
-          normalize(m.nombre).includes(normalize(this.query())) &&
-          (!this.laboratorio() || String(m.requiereLaboratorio) === this.laboratorio()),
-      ),
+    this.materias().filter(
+      (m) =>
+        m.nombre.toLowerCase().includes(this.query().toLowerCase()) &&
+        (!this.laboratorio() || String(m.requiereLaboratorio) === this.laboratorio()),
+    ),
   );
-  protected readonly formModel = signal({ nombre: '', requiereLaboratorio: false });
-  protected readonly form = form(this.formModel, (path) => {
-    validate(path.nombre, ({ value }) =>
-      value().trim() ? undefined : { kind: 'required', message: 'Completá este campo.' },
-    );
-    maxLength(path.nombre, 20);
-  });
+
+  ngOnInit() {
+    this.load();
+  }
+
+  load() {
+    this.loading.set(true);
+    this.error.set('');
+    this.client.getAllMaterias().subscribe({
+      next: (data) => {
+        this.materias.set(data);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.error.set(mensajeError(err));
+        this.loading.set(false);
+      },
+    });
+  }
 
   clear() {
     this.query.set('');
     this.laboratorio.set('');
   }
 
-  open(materia: Materia | null = null) {
-    this.form().reset(materia ?? { nombre: '', requiereLaboratorio: false });
-    this.state.open(materia);
+  irANueva() {
+    this.router.navigate(ROUTE_COMMANDS.nuevaMateria);
   }
 
-  save() {
-    this.form().markAsTouched();
-    if (this.form().invalid() || !this.auth.isAdmin()) return;
-    const value = this.formModel();
-    const materia = { ...value, nombre: value.nombre.trim() };
-    const id = this.state.editing()?.id;
-    this.state.run(
-      id == null ? this.client.addMateria(materia) : this.client.editMateria(materia, id),
-      this.state.editing() ? 'Materia actualizada correctamente.' : 'Materia creada correctamente.',
+  irAEditar(materia: Materia) {
+    this.router.navigate(ROUTE_COMMANDS.editarMateria(materia.id));
+  }
+
+  async eliminar(materia: Materia) {
+    const confirmed = await this.confirmationService.requestConfirmation(
+      `¿Seguro que deseás eliminar la materia "${materia.nombre}"?`,
     );
-  }
+    if (!confirmed) return;
 
-  remove() {
-    const materia = this.state.deleting();
-    if (materia && this.auth.isAdmin())
-      this.state.run(this.client.deleteMateria(materia.id), 'Materia eliminada correctamente.');
+    this.client.deleteMateria(materia.id).subscribe({
+      next: () => {
+        this.notificationService.show('Materia eliminada correctamente.');
+        this.load();
+      },
+      error: (err) => this.error.set(mensajeError(err)),
+    });
   }
 }
