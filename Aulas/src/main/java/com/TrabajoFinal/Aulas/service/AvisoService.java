@@ -35,7 +35,7 @@ public class AvisoService {
     private final ClaseFijaRepository claseFijaRepository;
 
     public List<Aviso> listarAvisos() {
-        return avisoRepository.findAll();
+        return avisoRepository.findAllByOrderByFechaDescIdDesc();
     }
 
     public List<Aviso> listarAvisosPendientes() {
@@ -72,23 +72,30 @@ public class AvisoService {
         aviso.setMensaje(avisoDto.getMensaje());
         aviso.setFecha(agenda.hoy());
         aviso.setEstado(Estado.PENDIENTE);
+        aviso.setFechaActualizacion(agenda.hoy());
 
         return avisoRepository.save(aviso);
     }
 
+    @Transactional
     public void borrarAviso(Integer id) {
         Aviso borrado = avisoXid(id);
 
-        if (!borrado.getEstado().equals(Estado.RESUELTO)) {
-            throw new RuntimeException("Solo se pueden eliminar avisos resueltos.");
+        if (borrado.getEstado() != Estado.RESUELTO) {
+            throw new IllegalArgumentException("Solo se pueden eliminar avisos resueltos.");
         }
 
         avisoRepository.delete(borrado);
     }
 
+    @Transactional
     public Aviso cambiarEstado(Integer id, Estado estado) {
         Aviso aviso = avisoXid(id);
+        if (aviso.getEstado() == estado) {
+            throw new IllegalArgumentException("El aviso ya se encuentra en ese estado.");
+        }
         aviso.setEstado(estado);
+        aviso.setFechaActualizacion(agenda.hoy());
         return avisoRepository.save(aviso);
     }
 
@@ -98,6 +105,10 @@ public class AvisoService {
 
         if (!aviso.getUsuario().getEmail().equals(emailUsuario)) {
             throw new AccessDeniedException("Solo podés modificar tus propios avisos.");
+        }
+
+        if (aviso.getEstado() != Estado.PENDIENTE) {
+            throw new IllegalArgumentException("Solo podés editar avisos pendientes.");
         }
 
         if (aviso.getUsuario().getRol() == Rol.PROFESOR) {
@@ -155,6 +166,7 @@ public class AvisoService {
         d.setMensaje(a.getMensaje());
         d.setFecha(a.getFecha());
         d.setEstado(a.getEstado());
+        d.setFechaActualizacion(a.getFechaActualizacion());
         return d;
     }
 }
