@@ -10,9 +10,9 @@ import {
 } from '@angular/forms/signals';
 import { tap } from 'rxjs';
 import { UsuarioClient } from '../../data-access/usuario-client';
-import { AuthService } from '../../../auth/data-access/auth.service';
-import { FieldError } from '../../../shared/field-error/field-error';
-import { crudState } from '../../../shared/utils/crud-state';
+import { AuthService } from '../../../../../auth/data-access/auth.service';
+import { FieldError } from '../../../../../shared/field-error/field-error';
+import { crudState } from '../../../../../shared/utils/crud-state';
 
 @Component({
   imports: [FormField, FieldError],

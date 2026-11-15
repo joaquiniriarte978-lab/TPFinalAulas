@@ -20,7 +20,6 @@ export class AuthService {
   }
 
   login(username: string, password: string) {
-    // HTTP Basic del backend. Sólo se conserva en memoria; nunca en Web Storage.
     const bytes = new TextEncoder().encode(`${username.trim()}:${password}`);
     const authorization = `Basic ${btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join(''))}`;
     return this.http
