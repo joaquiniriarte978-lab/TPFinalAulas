@@ -5,6 +5,7 @@ import com.TrabajoFinal.Aulas.Dtos.usuarioDTO.UsuarioResponseDTO;
 import com.TrabajoFinal.Aulas.Repository.ProfesorRepository;
 import com.TrabajoFinal.Aulas.model.Usuario;
 import com.TrabajoFinal.Aulas.service.UsuarioService;
+import com.TrabajoFinal.Aulas.model.enums.Rol;
 
 import jakarta.validation.Valid;
 
@@ -43,8 +44,12 @@ public class UsuarioController {
 
     @DeleteMapping("/{id_usuario}")
     public void eliminar(@PathVariable Integer id_usuario, Authentication authentication) {
-        if (usuarioService.buscarPorId(id_usuario).getEmail().equals(authentication.getName())) {
+        Usuario actual = usuarioService.buscarPorId(id_usuario);
+        if (actual.getEmail().equals(authentication.getName())) {
             throw new IllegalArgumentException("No podés eliminar tu propia cuenta.");
+        }
+        if (actual.getRol() == Rol.ADMIN) {
+            throw new IllegalArgumentException("No podés eliminar a otro administrador.");
         }
         usuarioService.eliminarUsuario(id_usuario);
     }
@@ -55,8 +60,11 @@ public class UsuarioController {
             @Valid @RequestBody UsuarioRequestDTO usuarioNuevo,
             Authentication authentication) {
         Usuario actual = usuarioService.buscarPorId(id_usuario);
-        if (actual.getEmail().equals(authentication.getName())
-                && !actual.getRol().name().equals(usuarioNuevo.getRol())) {
+        boolean esPropio = actual.getEmail().equals(authentication.getName());
+        if (!esPropio && actual.getRol() == Rol.ADMIN) {
+            throw new IllegalArgumentException("No podés modificar a otro administrador.");
+        }
+        if (esPropio && !actual.getRol().name().equals(usuarioNuevo.getRol())) {
             throw new IllegalArgumentException("No podés cambiar tu propio rol.");
         }
         Usuario updated = usuarioService.modificar(id_usuario, usuarioNuevo);

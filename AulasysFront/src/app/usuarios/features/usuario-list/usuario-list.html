@@ -96,23 +96,30 @@
               </td>
               <td>
                 <div class="row-actions">
-                  <button
+                   <button
                     class="button subtle"
+                    [disabled]="isOtherAdmin(user)"
                     [attr.aria-label]="'Editar ' + user.nombre"
+                    [title]="isOtherAdmin(user) ? 'No podés modificar a otro administrador' : 'Editar usuario'"
                     (click)="open(user)"
                   >
                     Editar</button
                   ><button
                     class="button text-danger"
-                    [disabled]="isSelf(user)"
+                    [disabled]="isSelf(user) || isOtherAdmin(user)"
                     [attr.aria-label]="'Eliminar ' + user.nombre"
                     [title]="
-                      isSelf(user) ? 'No podés eliminar tu propia cuenta' : 'Eliminar usuario'
+                      isSelf(user)
+                        ? 'No podés eliminar tu propia cuenta'
+                        : isOtherAdmin(user)
+                          ? 'No podés eliminar a otro administrador'
+                          : 'Eliminar usuario'
                     "
                     (click)="state.confirmDelete(user)"
                   >
                     Eliminar
                   </button>
+
                 </div>
               </td>
             </tr>
@@ -165,14 +172,15 @@
           }</small
         ><app-field-error [field]="form.password" /> <label for="usuario-rol">Rol</label
         ><select id="usuario-rol" [formField]="form.rol">
-          @for (role of roleKeys; track role) {
+          @for (role of formRoleKeys(); track role) {
             <option [value]="role">{{ roles[role] }}</option>
           }
         </select>
+        <app-field-error [field]="form.rol" />
         <small class="field-hint">{{
           isSelf(state.editing())
             ? 'Tu propio rol no se puede cambiar desde esta cuenta.'
-            : 'Administrador: gestiona datos y usuarios. Profesor y alumno: consultan aulas y materias.'
+            : 'Profesor: reserva aulas y reporta avisos. Alumno: consulta clases. Las cuentas de administrador no se crean desde aquí.'
         }}</small>
         @if (state.editing()?.materiasIds?.length) {
           <div class="notice">
