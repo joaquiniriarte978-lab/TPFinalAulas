@@ -70,6 +70,30 @@ class AvisoServiceTest {
     }
 
     @Test
+    void cambiarEstadoDeEnRevisionAResueltoFunciona() {
+        aviso.setEstado(Estado.EN_REVISION);
+
+        Aviso result = service.cambiarEstado(9, Estado.RESUELTO);
+
+        assertEquals(Estado.RESUELTO, result.getEstado());
+        assertEquals(LocalDate.of(2026, 5, 10), result.getFechaActualizacion());
+    }
+
+    @Test
+    void noSePuedeSaltearEstadoNiVolverAtras() {
+        assertThrows(IllegalArgumentException.class, () -> service.cambiarEstado(9, Estado.RESUELTO));
+
+        aviso.setEstado(Estado.EN_REVISION);
+        assertThrows(IllegalArgumentException.class, () -> service.cambiarEstado(9, Estado.PENDIENTE));
+
+        aviso.setEstado(Estado.RESUELTO);
+        assertThrows(IllegalArgumentException.class, () -> service.cambiarEstado(9, Estado.EN_REVISION));
+        assertThrows(IllegalArgumentException.class, () -> service.cambiarEstado(9, Estado.PENDIENTE));
+
+        verify(avisos, never()).save(any());
+    }
+
+    @Test
     void noSePuedeBorrarUnAvisoNoResuelto() {
         assertThrows(IllegalArgumentException.class, () -> service.borrarAviso(9));
         verify(avisos, never()).delete(any());

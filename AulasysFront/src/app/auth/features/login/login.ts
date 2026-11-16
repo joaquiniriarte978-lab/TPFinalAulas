@@ -17,6 +17,7 @@ export default class Login {
   private readonly router = inject(Router);
 
   protected readonly error = signal('');
+  protected readonly submitting = signal(false);
   protected readonly formModel = signal({ username: '', password: '' });
 
   protected readonly loginForm = form(
@@ -28,13 +29,19 @@ export default class Login {
     {
       submission: {
         action: async () => {
+          if (this.submitting()) return;
+          this.submitting.set(true);
           this.error.set('');
           const { username, password } = this.formModel();
           this.auth.login(username, password).subscribe({
             next: () => {
+              this.submitting.set(false);
               this.router.navigate(ROUTE_COMMANDS.aulas);
             },
-            error: (err) => this.error.set(mensajeError(err)),
+            error: (err) => {
+              this.submitting.set(false);
+              this.error.set(mensajeError(err));
+            },
           });
         },
       },

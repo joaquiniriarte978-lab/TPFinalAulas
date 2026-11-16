@@ -33,6 +33,7 @@ export default class ReservaForm {
   readonly cancelled = output<void>();
 
   protected readonly error = signal('');
+  protected readonly submitting = signal(false);
   protected readonly aulas = toSignal(this.aulaClient.getAllAulas(), { initialValue: [] });
   protected readonly comisiones = toSignal(
     this.auth.isAdmin()
@@ -83,6 +84,7 @@ export default class ReservaForm {
   );
 
   enviar(liberar: boolean) {
+    if (this.submitting()) return;
     this.error.set('');
     const raw = this.formModel();
     if (raw.horaFin <= raw.horaInicio) {
@@ -90,6 +92,7 @@ export default class ReservaForm {
       return;
     }
 
+    this.submitting.set(true);
     const payload = {
       ...raw,
       id_comision: Number(raw.id_comision),
@@ -104,6 +107,7 @@ export default class ReservaForm {
 
     request$.subscribe({
       next: (res) => {
+        this.submitting.set(false);
         this.notificationService.show('Reserva guardada.');
         if (current) {
           this.saved.emit(res);
@@ -112,6 +116,7 @@ export default class ReservaForm {
         }
       },
       error: async (err) => {
+        this.submitting.set(false);
         const msg = mensajeError(err);
         if (msg.startsWith('CONFIRMACION_LIBERAR_AULA:')) {
           const texto = msg.slice('CONFIRMACION_LIBERAR_AULA:'.length).trim();

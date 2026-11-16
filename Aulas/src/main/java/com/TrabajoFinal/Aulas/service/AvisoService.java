@@ -94,6 +94,10 @@ public class AvisoService {
         if (aviso.getEstado() == estado) {
             throw new IllegalArgumentException("El aviso ya se encuentra en ese estado.");
         }
+        if (!aviso.getEstado().puedePasarA(estado)) {
+            throw new IllegalArgumentException(
+                    "No se puede pasar el aviso de " + aviso.getEstado() + " a " + estado + ".");
+        }
         aviso.setEstado(estado);
         aviso.setFechaActualizacion(agenda.hoy());
         return avisoRepository.save(aviso);

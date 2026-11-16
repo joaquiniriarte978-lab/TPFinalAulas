@@ -37,7 +37,9 @@
 
     <div class="dialog-actions">
       <button type="button" class="button secondary" (click)="cancelled.emit()">Cancelar</button>
-      <button type="submit" class="button primary">Guardar clase fija</button>
+      <button type="submit" class="button primary" [disabled]="submitting()">
+        Guardar clase fija
+      </button>
     </div>
   </form>
 </section>

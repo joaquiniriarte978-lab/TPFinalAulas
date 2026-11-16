@@ -56,7 +56,7 @@
 
     <div class="dialog-actions">
       <button type="button" class="button secondary" (click)="cancelar()">Cancelar</button>
-      <button class="button primary" type="submit">Guardar reserva</button>
+      <button class="button primary" type="submit" [disabled]="submitting()">Guardar reserva</button>
     </div>
   </form>
 </section>

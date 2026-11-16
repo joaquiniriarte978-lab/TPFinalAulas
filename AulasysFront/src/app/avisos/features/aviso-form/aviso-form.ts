@@ -23,6 +23,7 @@ export default class AvisoForm implements OnInit {
   protected readonly id = this.route.snapshot.paramMap.get('id');
   protected readonly aulas = toSignal(this.client.getAulasHabilitadas(), { initialValue: [] });
   protected readonly error = signal('');
+  protected readonly submitting = signal(false);
 
   protected readonly formModel = signal({ id_aula: '', mensaje: '' });
 
@@ -40,6 +41,8 @@ export default class AvisoForm implements OnInit {
     {
       submission: {
         action: async () => {
+          if (this.submitting()) return;
+          this.submitting.set(true);
           this.error.set('');
           const raw = this.formModel();
           const payload = { id_aula: Number(raw.id_aula), mensaje: raw.mensaje.trim() };
@@ -50,10 +53,14 @@ export default class AvisoForm implements OnInit {
 
           request$.subscribe({
             next: () => {
+              this.submitting.set(false);
               this.notificationService.show('Aviso guardado.');
               this.router.navigate(ROUTE_COMMANDS.avisos);
             },
-            error: (err) => this.error.set(mensajeError(err)),
+            error: (err) => {
+              this.submitting.set(false);
+              this.error.set(mensajeError(err));
+            },
           });
         },
       },

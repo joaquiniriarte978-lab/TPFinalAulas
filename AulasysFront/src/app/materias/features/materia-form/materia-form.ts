@@ -21,6 +21,7 @@ export default class MateriaForm implements OnInit {
 
   protected readonly id = this.route.snapshot.paramMap.get('id');
   protected readonly error = signal('');
+  protected readonly submitting = signal(false);
 
   protected readonly formModel = signal({
     nombre: '',
@@ -38,6 +39,8 @@ export default class MateriaForm implements OnInit {
     {
       submission: {
         action: async () => {
+          if (this.submitting()) return;
+          this.submitting.set(true);
           this.error.set('');
           const value = this.formModel();
           const payload = {
@@ -51,12 +54,16 @@ export default class MateriaForm implements OnInit {
 
           request$.subscribe({
             next: () => {
+              this.submitting.set(false);
               this.notificationService.show(
                 this.id ? 'Materia actualizada correctamente.' : 'Materia creada correctamente.',
               );
               this.router.navigate(ROUTE_COMMANDS.materias);
             },
-            error: (err) => this.error.set(mensajeError(err)),
+            error: (err) => {
+              this.submitting.set(false);
+              this.error.set(mensajeError(err));
+            },
           });
         },
       },
