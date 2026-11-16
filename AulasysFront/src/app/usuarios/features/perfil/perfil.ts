@@ -27,6 +27,7 @@ export default class Perfil {
   private readonly notificationService = inject(NotificationService);
 
   protected readonly error = signal('');
+  protected readonly submitting = signal(false);
   protected readonly formModel = signal({
     nombre: this.auth.user()?.nombre ?? '',
     email: this.auth.user()?.email ?? '',
@@ -49,7 +50,8 @@ export default class Perfil {
     {
       submission: {
         action: async () => {
-          if (this.auth.user()?.id == null) return;
+          if (this.auth.user()?.id == null || this.submitting()) return;
+          this.submitting.set(true);
           this.error.set('');
           const v = this.formModel();
           const reauth = v.email.trim() !== this.auth.user()?.email || !!v.password;
@@ -58,6 +60,7 @@ export default class Perfil {
             .editPerfil({ ...v, nombre: v.nombre.trim(), email: v.email.trim() })
             .subscribe({
               next: (u) => {
+                this.submitting.set(false);
                 this.auth.updateCurrentUser(u);
                 this.perfilForm.password().reset('');
                 if (reauth) {
@@ -66,7 +69,10 @@ export default class Perfil {
                   this.notificationService.show('Perfil actualizado.');
                 }
               },
-              error: (err) => this.error.set(mensajeError(err)),
+              error: (err) => {
+                this.submitting.set(false);
+                this.error.set(mensajeError(err));
+              },
             });
         },
       },

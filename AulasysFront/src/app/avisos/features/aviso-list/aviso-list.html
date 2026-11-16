@@ -116,11 +116,18 @@
                       #rowEstadoSelect
                       class="estado-select"
                       [attr.aria-label]="'Estado del aviso de ' + a.aulaNombre"
+                      [disabled]="a.estado === 'RESUELTO'"
                       [value]="a.estado"
                       (change)="cambiarEstado(a, rowEstadoSelect.value)"
                     >
                       @for (e of estadoKeys; track e) {
-                        <option [value]="e" [selected]="e === a.estado">{{ estados[e] }}</option>
+                        <option
+                          [value]="e"
+                          [selected]="e === a.estado"
+                          [disabled]="!puedeCambiarA(a.estado, e)"
+                        >
+                          {{ estados[e] }}
+                        </option>
                       }
                     </select>
                     <button

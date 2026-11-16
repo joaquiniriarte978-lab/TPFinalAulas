@@ -28,6 +28,7 @@ export default class ProfesorForm implements OnInit {
   });
   protected readonly selected = signal<number[]>([]);
   protected readonly error = signal('');
+  protected readonly submitting = signal(false);
 
   ngOnInit() {
     if (this.id) {
@@ -51,14 +52,19 @@ export default class ProfesorForm implements OnInit {
   }
 
   guardar() {
-    if (!this.id) return;
+    if (!this.id || this.submitting()) return;
+    this.submitting.set(true);
     this.error.set('');
     this.client.editMaterias(this.selected(), this.id).subscribe({
       next: () => {
+        this.submitting.set(false);
         this.notificationService.show('Asignaciones actualizadas.');
         this.router.navigate(ROUTE_COMMANDS.profesores);
       },
-      error: (err) => this.error.set(mensajeError(err)),
+      error: (err) => {
+        this.submitting.set(false);
+        this.error.set(mensajeError(err));
+      },
     });
   }
 

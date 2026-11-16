@@ -35,6 +35,7 @@ export default class UsuarioForm implements OnInit {
   protected readonly id = this.route.snapshot.paramMap.get('id');
   protected readonly editingUser = signal<Usuario | null>(null);
   protected readonly error = signal('');
+  protected readonly submitting = signal(false);
   protected readonly roles = ROLES;
 
   protected readonly isSelf = computed(
@@ -85,6 +86,8 @@ export default class UsuarioForm implements OnInit {
           this.error.set('');
           const current = this.editingUser();
           if (current?.rol === 'ADMIN' && !this.isSelf()) return;
+          if (this.submitting()) return;
+          this.submitting.set(true);
 
           const value = this.formModel();
           const payload = {
@@ -103,6 +106,7 @@ export default class UsuarioForm implements OnInit {
 
           request$.subscribe({
             next: (user) => {
+              this.submitting.set(false);
               this.auth.updateCurrentUser(user);
               if (reauthenticate) {
                 this.auth.logout('Actualizaste tus credenciales. Ingresá con los nuevos datos.');
@@ -113,7 +117,10 @@ export default class UsuarioForm implements OnInit {
                 this.router.navigate(ROUTE_COMMANDS.usuarios);
               }
             },
-            error: (err) => this.error.set(mensajeError(err)),
+            error: (err) => {
+              this.submitting.set(false);
+              this.error.set(mensajeError(err));
+            },
           });
         },
       },

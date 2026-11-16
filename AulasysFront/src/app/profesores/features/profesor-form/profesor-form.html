@@ -24,7 +24,9 @@
     <p class="field-hint">No se pueden quitar materias con comisiones vigentes.</p>
     <div class="dialog-actions">
       <button class="button secondary" type="button" (click)="cancelar()">Cancelar</button>
-      <button class="button primary" type="button" (click)="guardar()">Guardar</button>
+      <button class="button primary" type="button" [disabled]="submitting()" (click)="guardar()">
+        Guardar
+      </button>
     </div>
   }
 </section>

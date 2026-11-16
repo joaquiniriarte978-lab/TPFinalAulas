@@ -29,7 +29,7 @@
 
     <div class="dialog-actions">
       <button class="button secondary" type="button" (click)="cancelar()">Cancelar</button>
-      <button class="button primary" type="submit">Guardar materia</button>
+      <button class="button primary" type="submit" [disabled]="submitting()">Guardar materia</button>
     </div>
   </form>
 </section>
