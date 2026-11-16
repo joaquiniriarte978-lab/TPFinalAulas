@@ -84,9 +84,17 @@ export default class AvisoList implements OnInit {
     }
   }
 
+  puedeCambiarA(actual: EstadoAviso, destino: EstadoAviso) {
+    return (
+      actual === destino ||
+      (actual === 'PENDIENTE' && destino === 'EN_REVISION') ||
+      (actual === 'EN_REVISION' && destino === 'RESUELTO')
+    );
+  }
+
   cambiarEstado(a: Aviso, estado: string) {
     const nuevoEstado = estado as EstadoAviso;
-    if (!this.auth.isAdmin() || nuevoEstado === a.estado) return;
+    if (!this.auth.isAdmin() || nuevoEstado === a.estado || !this.puedeCambiarA(a.estado, nuevoEstado)) return;
     this.error.set('');
     this.client.cambiarEstado(a.id, nuevoEstado).subscribe({
       next: () => {

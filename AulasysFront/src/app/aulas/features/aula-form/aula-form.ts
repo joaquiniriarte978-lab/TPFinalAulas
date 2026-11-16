@@ -32,6 +32,7 @@ export default class AulaForm implements OnInit {
   protected readonly id = this.route.snapshot.paramMap.get('id');
   protected readonly tipos = TIPOS_AULA;
   protected readonly error = signal('');
+  protected readonly submitting = signal(false);
 
   protected readonly formModel = signal({
     nombre: '',
@@ -60,6 +61,8 @@ export default class AulaForm implements OnInit {
     {
       submission: {
         action: async () => {
+          if (this.submitting()) return;
+          this.submitting.set(true);
           this.error.set('');
           const value = this.formModel();
           const payload = {
@@ -74,12 +77,16 @@ export default class AulaForm implements OnInit {
 
           request$.subscribe({
             next: () => {
+              this.submitting.set(false);
               this.notificationService.show(
                 this.id ? 'Aula actualizada correctamente.' : 'Aula creada correctamente.',
               );
               this.router.navigate(ROUTE_COMMANDS.aulas);
             },
-            error: (err) => this.error.set(mensajeError(err)),
+            error: (err) => {
+              this.submitting.set(false);
+              this.error.set(mensajeError(err));
+            },
           });
         },
       },

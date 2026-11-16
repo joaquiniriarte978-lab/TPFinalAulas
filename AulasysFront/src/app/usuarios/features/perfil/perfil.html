@@ -37,7 +37,9 @@
       </small>
 
       <div class="dialog-actions">
-        <button class="button primary" type="submit">Guardar cambios</button>
+        <button class="button primary" type="submit" [disabled]="submitting()">
+          Guardar cambios
+        </button>
       </div>
     </fieldset>
   </form>

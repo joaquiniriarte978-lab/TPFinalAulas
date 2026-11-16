@@ -25,6 +25,7 @@ export default class ClaseFijaForm {
 
   protected readonly dias = DIAS;
   protected readonly error = signal('');
+  protected readonly submitting = signal(false);
   protected readonly aulas = toSignal(this.aulaClient.getAllAulas(), { initialValue: [] });
 
   protected readonly claseModel = linkedSignal(() => {
@@ -57,12 +58,14 @@ export default class ClaseFijaForm {
     {
       submission: {
         action: async () => {
+          if (this.submitting()) return;
           this.error.set('');
           const raw = this.claseModel();
           if (raw.horaFin <= raw.horaInicio) {
             this.error.set('La hora de fin debe ser posterior al inicio.');
             return;
           }
+          this.submitting.set(true);
           const payload = {
             ...raw,
             id_aula: Number(raw.id_aula),
@@ -71,10 +74,14 @@ export default class ClaseFijaForm {
 
           this.client.addClaseFija(payload).subscribe({
             next: () => {
+              this.submitting.set(false);
               this.notificationService.show('Clase fija guardada.');
               this.saved.emit();
             },
-            error: (err) => this.error.set(mensajeError(err)),
+            error: (err) => {
+              this.submitting.set(false);
+              this.error.set(mensajeError(err));
+            },
           });
         },
       },

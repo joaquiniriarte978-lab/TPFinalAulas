@@ -26,7 +26,7 @@
 
     <div class="dialog-actions">
       <button type="button" class="button secondary" (click)="cancelar()">Cancelar</button>
-      <button class="button primary" type="submit">Guardar</button>
+      <button class="button primary" type="submit" [disabled]="submitting()">Guardar</button>
     </div>
   </form>
 </section>

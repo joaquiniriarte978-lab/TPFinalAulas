@@ -30,7 +30,9 @@
       />
       <app-field-error [field]="loginForm.password" />
 
-      <button class="button primary login-submit" type="submit">Iniciar sesión</button>
+      <button class="button primary login-submit" type="submit" [disabled]="submitting()">
+        Iniciar sesión
+      </button>
     </form>
   </div>
 </main>

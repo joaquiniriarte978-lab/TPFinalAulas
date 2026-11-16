@@ -30,6 +30,7 @@ export default class ComisionForm {
 
   protected readonly turnos = TURNOS;
   protected readonly error = signal('');
+  protected readonly submitting = signal(false);
   protected readonly materias = toSignal(this.materiaClient.getAllMaterias(), {
     initialValue: [],
   });
@@ -85,6 +86,8 @@ export default class ComisionForm {
     {
       submission: {
         action: async () => {
+          if (this.submitting()) return;
+          this.submitting.set(true);
           this.error.set('');
           const value = this.formModel();
           const payload = {
@@ -99,6 +102,7 @@ export default class ComisionForm {
 
           request$.subscribe({
             next: (res) => {
+              this.submitting.set(false);
               this.notificationService.show('Comisión guardada.');
               if (current) {
                 this.saved.emit(res);
@@ -106,7 +110,10 @@ export default class ComisionForm {
                 this.router.navigate(ROUTE_COMMANDS.comisiones);
               }
             },
-            error: (err) => this.error.set(mensajeError(err)),
+            error: (err) => {
+              this.submitting.set(false);
+              this.error.set(mensajeError(err));
+            },
           });
         },
       },
