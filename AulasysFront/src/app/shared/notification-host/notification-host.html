@@ -1,6 +1,11 @@
-@if (notificationService.current(); as notification) {
-  <section class="notification" role="status">
-    <p>{{ notification }}</p>
-    <button type="button" (click)="notificationService.dismiss()">Cerrar</button>
-  </section>
-}
+<!-- La región en vivo existe siempre: los lectores de pantalla solo anuncian cambios en una región ya presente. -->
+<div role="status" aria-live="polite" aria-atomic="true">
+  @if (notificationService.current(); as notification) {
+    <section class="notification">
+      <p>{{ notification }}</p>
+      <button type="button" aria-label="Cerrar notificación" (click)="notificationService.dismiss()">
+        Cerrar
+      </button>
+    </section>
+  }
+</div>
