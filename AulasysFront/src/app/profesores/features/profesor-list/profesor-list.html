@@ -33,26 +33,35 @@
     </div>
   } @else {
     <div class="table-scroll">
-      <table>
+      <table class="responsive-table">
+        <caption class="visually-hidden">
+          Profesores y materias asignadas
+        </caption>
         <thead>
           <tr>
-            <th>Profesor</th>
-            <th>Materias</th>
-            <th class="align-right">Acciones</th>
+            <th scope="col">Profesor</th>
+            <th scope="col">Materias</th>
+            <th scope="col" class="align-right">Acciones</th>
           </tr>
         </thead>
         <tbody>
           @for (p of filtered(); track p.id) {
             <tr>
-              <td>
+              <td data-label="Profesor">
                 <strong>{{ p.nombre }}</strong>
                 <br />
                 <span class="muted">{{ p.email }}</span>
               </td>
-              <td>{{ names(p) }}</td>
-              <td>
+              <td data-label="Materias">{{ names(p) }}</td>
+              <td data-label="Acciones">
                 <div class="row-actions">
-                  <button class="button secondary" (click)="irAAsignar(p)">Asignar materias</button>
+                  <button
+                    class="button secondary"
+                    [attr.aria-label]="'Asignar materias a ' + p.nombre"
+                    (click)="irAAsignar(p)"
+                  >
+                    Asignar materias
+                  </button>
                 </div>
               </td>
             </tr>

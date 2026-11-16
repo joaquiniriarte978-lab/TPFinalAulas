@@ -1,5 +1,8 @@
 import { Service, signal } from '@angular/core';
 
+// Tiempo suficiente para leer el mensaje; también se puede cerrar con el botón.
+const NOTIFICATION_DURATION_MS = 8000;
+
 @Service()
 export class NotificationService {
   private readonly currentNotificationState = signal<string | null>(null);
@@ -9,7 +12,7 @@ export class NotificationService {
   show(message: string) {
     clearTimeout(this.timeoutId);
     this.currentNotificationState.set(message);
-    this.timeoutId = setTimeout(() => this.dismiss(), 4000);
+    this.timeoutId = setTimeout(() => this.dismiss(), NOTIFICATION_DURATION_MS);
   }
 
   dismiss() {

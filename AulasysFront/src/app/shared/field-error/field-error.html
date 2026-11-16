@@ -1,3 +1,3 @@
-@if (field()().touched() && field()().invalid()) {
-  <small class="field-error" role="alert">{{ field()().errors()[0].message }}</small>
+@if (visible()) {
+  <small class="field-error" role="alert" [id]="id">{{ field()().errors()[0].message }}</small>
 }

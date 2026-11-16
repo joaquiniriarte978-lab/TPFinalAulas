@@ -92,7 +92,10 @@
     </div>
   } @else if (vista() === 'lista') {
     <div class="table-scroll">
-      <table>
+      <table class="responsive-table">
+        <caption class="visually-hidden">
+          Clases del día seleccionado
+        </caption>
         <thead>
           <tr>
             <th scope="col">Materia</th>
@@ -105,13 +108,15 @@
         <tbody>
           @for (c of clases(); track $index) {
             <tr>
-              <td>{{ c.materiaNombre }} · #{{ c.comisionId }}</td>
-              <td>{{ franjaDe(c) }}</td>
-              <td>
+              <td data-label="Materia">{{ c.materiaNombre }} · #{{ c.comisionId }}</td>
+              <td data-label="Horario">{{ franjaDe(c) }}</td>
+              <td data-label="Aula efectiva">
                 <strong>{{ c.aulaNombre }}</strong>
               </td>
-              <td>{{ c.origen === 'RESERVA' ? 'Reserva puntual' : 'Clase semanal' }}</td>
-              <td>
+              <td data-label="Tipo">
+                {{ c.origen === 'RESERVA' ? 'Reserva puntual' : 'Clase semanal' }}
+              </td>
+              <td data-label="Detalle">
                 <div class="row-actions">
                   <button
                     class="button subtle"
