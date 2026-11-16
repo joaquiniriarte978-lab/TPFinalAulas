@@ -141,8 +141,14 @@ main#contenido {
   padding: 28px;
 }
 
+main#contenido:focus {
+  outline: 0;
+}
+
 .hamburger {
   display: none;
+  min-width: 44px;
+  min-height: 44px;
   border: 0;
   background: none;
   color: var(--clr-text);
@@ -216,6 +222,10 @@ main#contenido {
   }
   main#contenido {
     padding: 16px;
+  }
+  .nav-item {
+    padding-top: 12px;
+    padding-bottom: 12px;
   }
 }
 
