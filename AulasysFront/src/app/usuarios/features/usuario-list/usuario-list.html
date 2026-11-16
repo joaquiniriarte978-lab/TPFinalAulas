@@ -64,7 +64,10 @@
     </div>
   } @else {
     <div class="table-scroll">
-      <table>
+      <table class="responsive-table">
+        <caption class="visually-hidden">
+          Usuarios registrados
+        </caption>
         <thead>
           <tr>
             <th scope="col">ID</th>
@@ -77,17 +80,17 @@
         <tbody>
           @for (user of filtered(); track user.id) {
             <tr>
-              <td>
+              <td data-label="ID">
                 <code>#{{ user.id }}</code>
               </td>
-              <td>
+              <td data-label="Nombre">
                 <strong>{{ user.nombre }}</strong>
                 @if (isSelf(user)) {
                   <span class="self-label">Vos</span>
                 }
               </td>
-              <td>{{ user.email }}</td>
-              <td>
+              <td data-label="Correo">{{ user.email }}</td>
+              <td data-label="Rol">
                 <span
                   class="badge"
                   [class.lab]="user.rol === 'PROFESOR'"
@@ -95,7 +98,7 @@
                   >{{ roles[user.rol] }}</span
                 >
               </td>
-              <td>
+              <td data-label="Acciones">
                 <div class="row-actions">
                   <button
                     class="button subtle"

@@ -56,31 +56,46 @@
     </div>
   } @else {
     <div class="table-scroll">
-      <table>
+      <table class="responsive-table">
+        <caption class="visually-hidden">
+          Reservas de aulas
+        </caption>
         <thead>
           <tr>
-            <th>Materia</th>
-            <th>Aula</th>
-            <th>Fecha y horario</th>
-            <th>Profesor</th>
-            <th>Estado</th>
-            <th class="align-right">Acciones</th>
+            <th scope="col">Materia</th>
+            <th scope="col">Aula</th>
+            <th scope="col">Fecha y horario</th>
+            <th scope="col">Profesor</th>
+            <th scope="col">Estado</th>
+            <th scope="col" class="align-right">Acciones</th>
           </tr>
         </thead>
         <tbody>
           @for (r of filtered(); track r.id) {
             <tr>
-              <td>{{ r.materiaNombre }} · #{{ r.id_comision }}</td>
-              <td>{{ r.aulaNombre }}</td>
-              <td>{{ r.fecha }}<br />{{ r.horaInicio.slice(0, 5) }}–{{ r.horaFin.slice(0, 5) }}</td>
-              <td>
+              <td data-label="Materia">{{ r.materiaNombre }} · #{{ r.id_comision }}</td>
+              <td data-label="Aula">{{ r.aulaNombre }}</td>
+              <td data-label="Fecha y horario">
+                {{ r.fecha }}<br />{{ r.horaInicio.slice(0, 5) }}–{{ r.horaFin.slice(0, 5) }}
+              </td>
+              <td data-label="Profesor">
                 {{ r.profesorNombre }}<br />
                 <small class="muted">{{ r.propia ? 'Propia' : 'Otro profesor' }}</small>
               </td>
-              <td>{{ r.estadoReserva === 'FINALIZADA' ? 'Finalizada' : 'Activa' }}</td>
-              <td>
+              <td data-label="Estado">
+                {{ r.estadoReserva === 'FINALIZADA' ? 'Finalizada' : 'Activa' }}
+              </td>
+              <td data-label="Acciones">
                 <div class="row-actions">
-                  <button class="button subtle" (click)="irADetalle(r)">Ver detalle</button>
+                  <button
+                    class="button subtle"
+                    [attr.aria-label]="
+                      'Ver detalle de la reserva de ' + r.materiaNombre + ' en ' + r.aulaNombre
+                    "
+                    (click)="irADetalle(r)"
+                  >
+                    Ver detalle
+                  </button>
                 </div>
               </td>
             </tr>

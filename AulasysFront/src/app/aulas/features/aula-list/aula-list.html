@@ -84,7 +84,10 @@
     </div>
   } @else {
     <div class="table-scroll">
-      <table>
+      <table class="responsive-table">
+        <caption class="visually-hidden">
+          Aulas registradas
+        </caption>
         <thead>
           <tr>
             <th scope="col">ID</th>
@@ -100,19 +103,21 @@
         <tbody>
           @for (aula of filtered(); track aula.id) {
             <tr>
-              <td>
+              <td data-label="ID">
                 <code>#{{ aula.id }}</code>
               </td>
-              <td>
+              <td data-label="Nombre">
                 <strong>{{ aula.nombre }}</strong>
               </td>
-              <td>
+              <td data-label="Tipo">
                 <span class="badge" [class.lab]="aula.tipo !== 'AULA'">{{ label(aula.tipo) }}</span>
               </td>
-              <td>{{ aula.capacidad }} <span class="muted">personas</span></td>
-              <td class="equipment">{{ aula.equipamiento || 'Sin equipamiento indicado' }}</td>
+              <td data-label="Capacidad">{{ aula.capacidad }} <span class="muted">personas</span></td>
+              <td data-label="Equipamiento" class="equipment">
+                {{ aula.equipamiento || 'Sin equipamiento indicado' }}
+              </td>
               @if (auth.isAdmin()) {
-                <td>
+                <td data-label="Acciones">
                   <div class="row-actions">
                     <button
                       class="button subtle"
