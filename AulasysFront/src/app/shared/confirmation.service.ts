@@ -5,21 +5,25 @@ export class ConfirmationService {
   private readonly confirmationRequestState = signal<string | null>(null);
   readonly confirmationRequest = this.confirmationRequestState.asReadonly();
 
-  private resolveConfirmation: ((confirmed: boolean) => void) | null = null;
+  private readonly extraState = signal<string | null>(null);
+  readonly extra = this.extraState.asReadonly();
 
-  requestConfirmation(message: string) {
-    return new Promise<boolean>((resolve) => {
+  private resolveConfirmation: ((respuesta: boolean | 'extra') => void) | null = null;
+
+  requestConfirmation(message: string, extra: string | null = null) {
+    return new Promise<boolean | 'extra'>((resolve) => {
       this.resolveConfirmation = resolve;
+      this.extraState.set(extra);
       this.confirmationRequestState.set(message);
     });
   }
 
-  onConfirmationClosed(confirm: boolean) {
+  onConfirmationClosed(respuesta: boolean | 'extra') {
     const resolve = this.resolveConfirmation;
     if (!resolve) return;
 
     this.resolveConfirmation = null;
     this.confirmationRequestState.set(null);
-    resolve(confirm);
+    resolve(respuesta);
   }
 }

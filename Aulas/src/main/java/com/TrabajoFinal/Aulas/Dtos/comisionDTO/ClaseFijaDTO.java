@@ -10,6 +10,7 @@ import java.time.LocalTime;
 public class ClaseFijaDTO {
     private Integer id;
 
+
     @jakarta.validation.constraints.NotNull(message = "La comisión es obligatoria")
     private Integer id_comision;
 
@@ -26,4 +27,8 @@ public class ClaseFijaDTO {
 
     @jakarta.validation.constraints.NotNull(message = "La hora de fin es obligatoria")
     private LocalTime horaFin;
+
+
+
+    
 }

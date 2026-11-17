@@ -16,8 +16,8 @@ import {
   templateUrl: './confirm-dialog.html',
 })
 export class ConfirmDialog {
-  readonly closed = output<boolean>();
-  readonly message = input.required<string>();
+  readonly closed = output<boolean | 'extra'>();
+  readonly extra = input<string | null>(null);  readonly message = input.required<string>();
   private readonly dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('dialogRef');
   // Elemento que tenía el foco al abrir el diálogo, para devolvérselo al cerrarlo.
   private readonly previousFocus = document.activeElement as HTMLElement | null;

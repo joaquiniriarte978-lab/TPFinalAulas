@@ -37,6 +37,12 @@ public class CustomUserDetailsService implements UserDetailsService {
                     .roles("ALUMNO")
                     .build();
         }
+         if ("invitado".equals(username)) {
+            return User.withUsername("invitado")
+                    .password(passwordEncoder.encode("invitado"))
+                    .roles("ALUMNO")
+                    .build();
+        }
 
 
         return usuarioRepository.findByEmail(username)
