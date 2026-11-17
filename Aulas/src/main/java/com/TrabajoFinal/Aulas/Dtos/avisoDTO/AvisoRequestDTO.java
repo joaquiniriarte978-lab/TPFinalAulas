@@ -16,4 +16,7 @@ public class AvisoRequestDTO {
             max = 255,
             message = "El mensaje admite hasta 255 caracteres")
     private String mensaje;
+
+
+    
 }

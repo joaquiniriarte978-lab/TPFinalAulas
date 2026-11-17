@@ -37,4 +37,9 @@ public class Aula {
 
     @Size(max = 255, message = "El equipamiento debe tener un máximo de 255 caracteres")
     private String equipamiento;
+
+
+
+
+    
 }

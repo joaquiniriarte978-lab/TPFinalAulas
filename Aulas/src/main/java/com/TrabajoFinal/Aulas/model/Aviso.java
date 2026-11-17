@@ -30,5 +30,10 @@ public class Aviso {
 
     @Column(name = "fecha_actualizacion")
     private LocalDate fechaActualizacion;
+    
 
+
+
+
+    
 }

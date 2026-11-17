@@ -19,4 +19,9 @@ public class ReservaResponseDTO {
     private com.TrabajoFinal.Aulas.model.enums.EstadoReserva estadoReserva;
     private boolean propia;
     private boolean editable;
+
+
+
+
+    
 }

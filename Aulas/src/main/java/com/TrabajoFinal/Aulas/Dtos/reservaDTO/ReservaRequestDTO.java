@@ -24,5 +24,18 @@ public class ReservaRequestDTO {
     @NotNull(message = "La hora de fin es obligatoria")
     private LocalTime horaFin;
 
+
+
+
     private Boolean liberarClaseFija = false;
+
+     private Boolean mantenerClaseFija = false;
+
+
+
+
+
+
+
+
 }
