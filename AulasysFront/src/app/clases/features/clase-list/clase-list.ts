@@ -43,10 +43,6 @@ export default class ClaseList implements OnInit {
     initialValue: [],
   });
 
-  protected readonly fecha = signal(new Date().toLocaleDateString('en-CA'));
-  protected readonly materia = signal('');
-  protected readonly aula = signal('');
-  protected readonly vista = signal<'lista' | 'semana'>('lista');
 
   protected readonly clases = signal<Clase[]>([]);
   protected readonly loading = signal(false);
