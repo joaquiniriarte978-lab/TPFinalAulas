@@ -118,3 +118,19 @@ textarea::placeholder {
     padding: 32px 24px;
   }
 }
+
+.login-invitado {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--clr-border);
+  text-align: center;
+}
+
+.login-invitado p {
+  font-size: 0.83rem;
+  margin: 0;
+}
+
+.login-invitado .login-submit {
+  margin-top: 10px;
+}
