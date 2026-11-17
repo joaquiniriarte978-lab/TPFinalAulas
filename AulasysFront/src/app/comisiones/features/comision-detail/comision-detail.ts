@@ -62,18 +62,34 @@ export default class ComisionDetail implements OnInit {
     });
   }
 
+  
   async eliminarComision(c: Comision) {
     const confirmed = await this.confirmationService.requestConfirmation(
       `¿Seguro que deseás eliminar la comisión #${c.id} de ${c.materiaNombre}?`,
     );
     if (!confirmed) return;
 
-    this.client.deleteComision(c.id).subscribe({
+    this.borrarComision(c.id, false);
+  }
+
+  private borrarComision(id: number, forzar: boolean) {
+    this.client.deleteComision(id, forzar).subscribe({
       next: () => {
         this.notificationService.show('Comisión eliminada.');
         this.router.navigate(ROUTE_COMMANDS.comisiones);
       },
-      error: (err) => this.error.set(mensajeError(err)),
+      error: async (err) => {
+        const msg = mensajeError(err);
+        if (msg.startsWith('CONFIRMACION_BORRAR_COMISION:')) {
+          const texto = msg.slice('CONFIRMACION_BORRAR_COMISION:'.length).trim();
+          const confirmed = await this.confirmationService.requestConfirmation(texto);
+          if (confirmed) {
+            this.borrarComision(id, true);
+          }
+        } else {
+          this.error.set(msg);
+        }
+      },
     });
   }
 

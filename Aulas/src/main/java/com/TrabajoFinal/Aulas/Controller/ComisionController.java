@@ -58,10 +58,13 @@ public class ComisionController {
         return toDto(service.actualizar(id, profesorMateria));
     }
 
+ 
     @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable Integer id) {
-        service.borrar(id);
+    public void eliminar(
+            @PathVariable Integer id, @RequestParam(defaultValue = "false") boolean forzar) {
+        service.borrar(id, forzar);
     }
+
 
     private ComisionResponseDTO toDto(Comision c) {
         ComisionResponseDTO dto = new ComisionResponseDTO();

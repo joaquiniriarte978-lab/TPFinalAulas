@@ -28,8 +28,8 @@ export class ComisionClient {
     return this.http.put<Comision>(`${this.baseUrl}/${id}`, edittedComision);
   }
 
-  deleteComision(id: number | string) {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  deleteComision(id: number | string, forzar = false) {
+    return this.http.delete<void>(`${this.baseUrl}/${id}?forzar=${forzar}`);
   }
 
   addClaseFija(newClaseFija: ClaseFijaInput) {

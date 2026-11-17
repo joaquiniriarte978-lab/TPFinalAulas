@@ -21,6 +21,7 @@ public class ComisionService {
     private final ProfesorRepository profesores;
     private final ClaseFijaRepository clases;
     private final ReservaRepository reservas;
+    private final ClaseFijaLiberadaRepository liberaciones;
     private final AgendaRules agenda;
 
     public List<Comision> listar() {
@@ -102,12 +103,32 @@ public class ComisionService {
     }
 
     @Transactional
-    public void borrar(Integer id) {
+    public void borrar(Integer id, boolean forzar) {
         agenda.bloquear();
         var c = listarPorId(id);
-        if (reservas.existsByComisionId(id) || clases.findByComisionId(id).isPresent())
+        var reservasDeComision = reservas.findByComisionId(id);
+        var clase = clases.findByComisionId(id).orElse(null);
+
+        if ((clase != null || !reservasDeComision.isEmpty()) && !forzar)
             throw new IllegalArgumentException(
-                    "La comisión tiene clases fijas o reservas vinculadas.");
+                    "CONFIRMACION_BORRAR_COMISION: La comisión #"
+                            + id
+                            + " tiene "
+                            + (clase != null ? "una clase fija" : "ninguna clase fija")
+                            + " y "
+                            + reservasDeComision.size()
+                            + " reserva(s). Si la eliminás, también se van a borrar."
+                            + " ¿Estás seguro?");
+
+        if (clase != null) {
+            liberaciones.deleteAll(liberaciones.findByClaseFijaId(clase.getId()));
+            liberaciones.flush();
+            clases.delete(clase);
+        }
+        reservas.deleteAll(reservasDeComision);
         comisiones.delete(c);
     }
+
+
+    
 }
