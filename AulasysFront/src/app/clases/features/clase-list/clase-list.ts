@@ -53,6 +53,17 @@ export default class ClaseList implements OnInit {
   protected readonly error = signal('');
   protected readonly detail = signal<Clase | null>(null);
 
+ protected readonly initialValues = {
+    fecha: new Date().toLocaleDateString('en-CA'),
+    materia: '',
+    aula: '',
+  };
+
+  protected readonly fecha = signal(this.initialValues.fecha);
+  protected readonly materia = signal(this.initialValues.materia);
+  protected readonly aula = signal(this.initialValues.aula);
+  protected readonly vista = signal<'lista' | 'semana'>('lista');
+
   protected readonly semanaDesde = computed(() =>
     inicioSemana(this.fecha() || new Date().toLocaleDateString('en-CA')),
   );
@@ -116,5 +127,12 @@ export default class ClaseList implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  limpiarFiltros() {
+    this.fecha.set(this.initialValues.fecha);
+    this.materia.set(this.initialValues.materia);
+    this.aula.set(this.initialValues.aula);
+    this.buscar();
   }
 }

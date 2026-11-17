@@ -34,12 +34,21 @@
 <section class="panel" aria-label="Consulta de clases">
   <form class="filters" (submit)="$event.preventDefault(); buscar()">
     <label>
-      {{ vista() === 'semana' ? 'Semana que incluye' : 'Fecha' }}
-      <input #fechaInput type="date" [value]="fecha()" (input)="fecha.set(fechaInput.value)" />
+      {{ vista() === 'semana' ? 'Semana filtrada' : 'Fecha' }}
+      <input
+        #fechaInput
+        type="date"
+        [value]="fecha()"
+        (change)="fecha.set(fechaInput.value); buscar()"
+      />
     </label>
     <label>
       Materia
-      <select #materiaSelect [value]="materia()" (change)="materia.set(materiaSelect.value)">
+      <select
+        #materiaSelect
+        [value]="materia()"
+        (change)="materia.set(materiaSelect.value); buscar()"
+      >
         <option value="">Todas</option>
         @for (m of materias(); track m.id) {
           <option [value]="m.id">{{ m.nombre }}</option>
@@ -48,16 +57,23 @@
     </label>
     <label>
       Aula
-      <select #aulaSelect [value]="aula()" (change)="aula.set(aulaSelect.value)">
+      <select
+        #aulaSelect
+        [value]="aula()"
+        (change)="aula.set(aulaSelect.value); buscar()"
+      >
         <option value="">Todas</option>
         @for (a of aulas(); track a.id) {
           <option [value]="a.id">{{ a.nombre }}</option>
         }
       </select>
     </label>
-    <button type="submit" class="button primary" [disabled]="loading() || !fecha()">
-      Consultar
-    </button>
+
+    @if (materia() || aula() || fecha() !== initialValues.fecha) {
+      <button type="button" class="button subtle" (click)="limpiarFiltros()">
+        Limpiar filtros
+      </button>
+    }
   </form>
 
   @if (vista() === 'semana') {
