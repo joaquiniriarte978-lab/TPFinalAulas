@@ -44,7 +44,23 @@ export default class Login {
             },
           });
         },
-      },
+  },
     },
   );
+
+  entrarComoInvitado() {
+    if (this.submitting()) return;
+    this.submitting.set(true);
+    this.error.set('');
+    this.auth.login('invitado', 'invitado').subscribe({
+      next: () => {
+        this.submitting.set(false);
+        this.router.navigate(ROUTE_COMMANDS.aulas);
+      },
+      error: (err) => {
+        this.submitting.set(false);
+        this.error.set(mensajeError(err));
+      },
+    });
+  }
 }

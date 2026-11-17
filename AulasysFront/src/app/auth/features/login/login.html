@@ -34,5 +34,17 @@
         Iniciar sesión
       </button>
     </form>
+<div class="login-invitado">
+      <p>¿No tenés cuenta?</p>
+      <button
+        class="button secondary login-submit"
+        type="button"
+        [disabled]="submitting()"
+        (click)="entrarComoInvitado()"
+      >
+        Iniciar sesión como invitado
+      </button>
+    </div>
+
   </div>
 </main>
