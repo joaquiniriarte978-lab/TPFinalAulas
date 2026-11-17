@@ -31,4 +31,9 @@ public class Profesor {
     @OneToMany(mappedBy = "profesor")
     private List<Comision> comisiones;
 
+
+
+
+    
+
 }

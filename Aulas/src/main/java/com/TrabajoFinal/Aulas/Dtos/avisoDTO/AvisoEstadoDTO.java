@@ -6,5 +6,9 @@ import lombok.Data;
 
 @Data
 public class AvisoEstadoDTO {
+
+
     @jakarta.validation.constraints.NotNull private Estado estado;
+
+    
 }

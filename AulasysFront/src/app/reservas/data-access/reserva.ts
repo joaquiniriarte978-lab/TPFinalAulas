@@ -1,3 +1,5 @@
+
+
 export interface ReservaInput {
   id_comision: number;
   id_aula: number;
@@ -5,8 +7,9 @@ export interface ReservaInput {
   horaInicio: string;
   horaFin: string;
   liberarClaseFija: boolean;
+  mantenerClaseFija: boolean;
 }
-export interface Reserva extends Omit<ReservaInput, 'liberarClaseFija'> {
+export interface Reserva extends Omit<ReservaInput, 'liberarClaseFija' | 'mantenerClaseFija'> {
   id: number;
   aulaNombre: string;
   materiaNombre: string;
@@ -15,3 +18,8 @@ export interface Reserva extends Omit<ReservaInput, 'liberarClaseFija'> {
   propia: boolean;
   editable: boolean;
 }
+
+
+
+
+

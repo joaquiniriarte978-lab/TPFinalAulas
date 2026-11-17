@@ -70,7 +70,20 @@ public class ReservaService {
                         .orElse(null);
         ClaseFijaLiberada anterior = r.getId() == null ? null : liberacionDe(r);
         ClaseFijaLiberada nueva = null;
-        if (cf != null) {
+        boolean mantener = Boolean.TRUE.equals(dto.getMantenerClaseFija());
+
+                if (cf != null && mantener) {
+
+            if (cf.getAula().getId().equals(a.getId())
+                    && agenda.solapa(
+                            dto.getHoraInicio(),
+                            dto.getHoraFin(),
+                            cf.getHoraInicio(),
+                            cf.getHoraFin()))
+                throw new IllegalArgumentException(
+                        "Para mantener la clase fija tenés que elegir otra aula.");
+        } else if (cf != null) {
+
             if (cf.getAula().getId().equals(a.getId())
                     && cf.getHoraInicio().equals(dto.getHoraInicio())
                     && cf.getHoraFin().equals(dto.getHoraFin()))
@@ -116,7 +129,7 @@ public class ReservaService {
                 && (nueva == null || !Objects.equals(anterior.getId(), nueva.getId()))) {
             restaurar(
                     anterior,
-                    null); // Incluye la reserva recién editada al comprobar la restauración.
+                    mantener ? saved.getId() : null);
             liberaciones.delete(anterior);
             liberaciones.flush();
         }

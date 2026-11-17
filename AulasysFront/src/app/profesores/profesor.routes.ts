@@ -3,6 +3,7 @@ import { ROUTE_SEGMENTS } from '../app.route.segments';
 import ProfesorList from './features/profesor-list/profesor-list';
 import ProfesorForm from './features/profesor-form/profesor-form';
 
+
 const profesorRoutes: Routes = [
   {
     path: '',

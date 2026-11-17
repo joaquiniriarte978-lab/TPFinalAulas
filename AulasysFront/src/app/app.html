@@ -4,6 +4,7 @@
 @if (confirmationService.confirmationRequest(); as message) {
   <app-confirm-dialog
     [message]="message"
+    [extra]="confirmationService.extra()"
     (closed)="confirmationService.onConfirmationClosed($event)"
   ></app-confirm-dialog>
 }

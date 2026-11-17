@@ -7,8 +7,15 @@
 >
   <h2 id="confirm-title">Confirmar acción</h2>
   <p id="confirm-message">{{ message() }}</p>
-  <div class="actions">
+ <div class="actions">
     <button type="button" class="button secondary" (click)="closed.emit(false)">Cancelar</button>
-    <button type="button" class="button danger" (click)="closed.emit(true)">Confirmar</button>
+    @if (extra()) {
+      <button type="button" class="button secondary" (click)="closed.emit('extra')">
+        {{ extra() }}
+      </button>
+    }
+    <button type="button" class="button danger" (click)="closed.emit(true)">
+      {{ extra() ? 'Liberar aula' : 'Confirmar' }}
+    </button>
   </div>
 </dialog>

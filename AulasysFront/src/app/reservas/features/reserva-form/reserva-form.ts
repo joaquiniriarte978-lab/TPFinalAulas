@@ -34,6 +34,7 @@ export default class ReservaForm {
 
   protected readonly error = signal('');
   protected readonly submitting = signal(false);
+  
   protected readonly aulas = toSignal(this.aulaClient.getAllAulas(), { initialValue: [] });
   protected readonly comisiones = toSignal(
     this.auth.isAdmin()
@@ -83,7 +84,7 @@ export default class ReservaForm {
     },
   );
 
-  enviar(liberar: boolean) {
+  enviar(liberar: boolean, mantener = false) {
     if (this.submitting()) return;
     this.error.set('');
     const raw = this.formModel();
@@ -98,6 +99,8 @@ export default class ReservaForm {
       id_comision: Number(raw.id_comision),
       id_aula: Number(raw.id_aula),
       liberarClaseFija: liberar,
+      mantenerClaseFija: mantener,
+
     };
 
     const current = this.editingReserva();
@@ -120,10 +123,16 @@ export default class ReservaForm {
         const msg = mensajeError(err);
         if (msg.startsWith('CONFIRMACION_LIBERAR_AULA:')) {
           const texto = msg.slice('CONFIRMACION_LIBERAR_AULA:'.length).trim();
-          const confirmed = await this.confirmationService.requestConfirmation(texto);
-          if (confirmed) {
-            this.enviar(true);
+          const respuesta = await this.confirmationService.requestConfirmation(
+            texto,
+            'Mantener ambas aulas',
+          );
+          if (respuesta === true) {
+            this.enviar(true); 
+          } else if (respuesta === 'extra') {
+            this.enviar(false, true); 
           }
+
         } else {
           this.error.set(msg);
         }
