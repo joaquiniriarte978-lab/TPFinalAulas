@@ -30,7 +30,6 @@ export class Shell {
   constructor() {
     const destroyRef = inject(DestroyRef);
 
-    // Al pasar a escritorio el menú vuelve a estar siempre visible.
     const onMediaChange = (event: MediaQueryListEvent) => {
       this.isMobile.set(event.matches);
       if (!event.matches) this.menuOpen.set(false);
@@ -38,7 +37,6 @@ export class Shell {
     this.mediaQuery?.addEventListener('change', onMediaChange);
     destroyRef.onDestroy(() => this.mediaQuery?.removeEventListener('change', onMediaChange));
 
-    // En una SPA el foco no se mueve solo: tras navegar lo llevamos al contenido.
     const subscription = this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.content().nativeElement.focus({ preventScroll: true });
@@ -58,7 +56,6 @@ export class Shell {
       return;
     }
     this.menuOpen.set(true);
-    // Espera a que el menú deje de ser inerte antes de enfocar su primer enlace.
     setTimeout(() => this.nav().nativeElement.querySelector<HTMLElement>('a')?.focus());
   }
 

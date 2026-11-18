@@ -1,6 +1,5 @@
 import { Service, signal } from '@angular/core';
 
-// Tiempo suficiente para leer el mensaje; también se puede cerrar con el botón.
 const NOTIFICATION_DURATION_MS = 8000;
 
 @Service()

@@ -5,8 +5,7 @@ import { tap } from 'rxjs';
 import { Usuario } from '../../usuarios/data-access/usuario';
 import { ROUTE_COMMANDS } from '../../app.route.segments';
 
-// Patrón Singleton: @Service() crea una única instancia compartida por toda la app
-// (guards, interceptor y componentes ven al mismo usuario logueado).
+
 @Service()
 export class AuthService {
   private readonly http = inject(HttpClient);

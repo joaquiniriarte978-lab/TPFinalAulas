@@ -15,7 +15,6 @@ export const apiInterceptor: HttpInterceptorFn = (request, next) => {
 
   return next(request).pipe(
     catchError((error) => {
-      // Si el servidor dice 401 con una sesión iniciada, la sesión ya no sirve.
       if (error.status === 401 && authorization) {
         auth.logout('Tu sesión expiró. Iniciá sesión nuevamente.');
       }

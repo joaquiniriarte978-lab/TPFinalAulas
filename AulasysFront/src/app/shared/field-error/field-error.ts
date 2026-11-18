@@ -19,7 +19,6 @@ export class FieldError {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   constructor() {
-    // Conecta el mensaje con su control (aria-invalid y aria-describedby) sin tocar cada formulario.
     afterRenderEffect({
       write: (onCleanup) => {
         const control = this.control();
@@ -36,7 +35,6 @@ export class FieldError {
     });
   }
 
-  /** El control que el mensaje acompaña: el input/select/textarea anterior más cercano. */
   private control(): HTMLElement | null {
     let element = this.host.nativeElement.previousElementSibling;
     for (let steps = 0; element && steps < 4; steps++) {

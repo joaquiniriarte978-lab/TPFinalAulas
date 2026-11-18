@@ -19,7 +19,6 @@ export class ConfirmDialog {
   readonly closed = output<boolean | 'extra'>();
   readonly extra = input<string | null>(null);  readonly message = input.required<string>();
   private readonly dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('dialogRef');
-  // Elemento que tenía el foco al abrir el diálogo, para devolvérselo al cerrarlo.
   private readonly previousFocus = document.activeElement as HTMLElement | null;
 
   constructor() {
@@ -31,7 +30,6 @@ export class ConfirmDialog {
     });
   }
 
-  // Escape dispara "cancel": evitamos que el navegador cierre el diálogo por su cuenta.
   protected cancel(event: Event) {
     event.preventDefault();
     this.closed.emit(false);
