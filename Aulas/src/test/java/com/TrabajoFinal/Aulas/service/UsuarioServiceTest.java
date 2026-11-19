@@ -97,12 +97,15 @@ class UsuarioServiceTest {
     }
 
     @Test
-    void bloquearBorradoConMateriasAunqueYaNoSeaProfesor() {
-        usuario.setRol(Rol.ALUMNO);
+    void eliminarProfesorConMateriasLasDesvinculaYBorra() {
         when(profesores.findByUsuarioId(7)).thenReturn(Optional.of(profesor));
-        assertThrows(IllegalArgumentException.class, () -> service.eliminarUsuario(7));
-        verify(usuarios, never()).delete(any());
-        verify(profesores, never()).delete(any());
+        service.eliminarUsuario(7);
+        assertTrue(profesor.getMaterias().isEmpty());
+        var ordered = inOrder(profesores, usuarios);
+        ordered.verify(profesores).save(profesor);
+        ordered.verify(profesores).delete(profesor);
+        ordered.verify(profesores).flush();
+        ordered.verify(usuarios).delete(usuario);
     }
 
     @Test

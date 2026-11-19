@@ -170,14 +170,14 @@ public class UsuarioService {
                 .findByUsuarioId(id)
                 .ifPresent(
                         profesor -> {
-                            if (comisionRepository.existsByProfesorId(profesor.getId())
-                                    || (profesor.getMaterias() != null
-                                            && !profesor.getMaterias().isEmpty())) {
+                            if (comisionRepository.existsByProfesorId(profesor.getId())) {
                                 throw new IllegalArgumentException(
-                                        "No se puede eliminar el usuario porque tiene materias o"
-                                            + " comisiones vinculadas. Sus datos académicos se"
-                                            + " conservaron.");
+                                        "No se puede eliminar el profesor porque tiene comisiones"
+                                            + " vinculadas. Eliminá primero sus comisiones.");
                             }
+                            // Desvincula las materias (borra las filas de la tabla intermedia)
+                            profesor.setMaterias(new ArrayList<>());
+                            profesorRepository.save(profesor);
                             profesorRepository.delete(profesor);
                             profesorRepository.flush();
                         });
