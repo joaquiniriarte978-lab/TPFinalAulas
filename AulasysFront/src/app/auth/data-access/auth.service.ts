@@ -15,11 +15,9 @@ export class AuthService {
   readonly user = this.currentUser.asReadonly();
   readonly isAdmin = computed(() => this.user()?.rol === 'ADMIN');
 
-  // Credenciales HTTP Basic: solo en memoria, nunca en localStorage.
   private readonly credentials = signal<string | null>(null);
   readonly authorization = this.credentials.asReadonly();
 
-  // Mensaje que se muestra en el login (por ejemplo, al expirar la sesión).
   readonly notice = signal('');
 
   login(username: string, password: string) {
