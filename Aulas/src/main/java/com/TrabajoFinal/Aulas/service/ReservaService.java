@@ -151,7 +151,8 @@ public class ReservaService {
                     cf.getHoraInicio(),
                     cf.getHoraFin(),
                     reservaExcluida,
-                    cf.getId());
+                    cf.getId(),
+                    true);
     }
 
     private ClaseFijaLiberada liberacionDe(Reserva r) {

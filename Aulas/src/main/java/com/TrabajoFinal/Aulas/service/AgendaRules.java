@@ -102,10 +102,26 @@ public class AgendaRules {
             LocalTime fin,
             Integer reservaExcluida,
             Integer claseExcluida) {
+        ocupacion(c, a, fecha, inicio, fin, reservaExcluida, claseExcluida, false);
+    }
+
+    public void ocupacion(
+            Comision c,
+            Aula a,
+            LocalDate fecha,
+            LocalTime inicio,
+            LocalTime fin,
+            Integer reservaExcluida,
+            Integer claseExcluida,
+            boolean validandoClaseFija) {
         for (Reserva r : reservas.findByFecha(fecha)) {
             if (Objects.equals(r.getId(), reservaExcluida)
                     || r.getEstadoReserva() != EstadoReserva.RESERVADA) continue;
-            if ((r.getAula().getId().equals(a.getId()) || r.getComision().getId().equals(c.getId()))
+            boolean mismaAula = r.getAula().getId().equals(a.getId());
+            boolean mismaComision = r.getComision().getId().equals(c.getId());
+            // Una reserva de la propia comisión en otra aula ("mantener clase fija") es válida.
+            if (validandoClaseFija && mismaComision && !mismaAula) continue;
+            if ((mismaAula || mismaComision)
                     && solapa(inicio, fin, r.getHoraInicio(), r.getHoraFin()))
                 throw new IllegalArgumentException(
                         "El aula o la comisión ya tiene una reserva en ese horario.");
@@ -139,7 +155,8 @@ public class AgendaRules {
                         cf.getHoraInicio(),
                         cf.getHoraFin(),
                         null,
-                        cf.getId());
+                        cf.getId(),
+                        true);
         }
     }
 }

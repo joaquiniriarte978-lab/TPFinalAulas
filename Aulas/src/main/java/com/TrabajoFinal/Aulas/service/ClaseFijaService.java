@@ -39,11 +39,8 @@ public class ClaseFijaService {
                 aulas.findById(dto.getId_aula())
                         .orElseThrow(() -> new ResourceNotFoundException("Aula", dto.getId_aula()));
         var cf = clases.findByComisionId(c.getId()).orElse(new ClaseFija());
-        if (cf.getId() != null
-                && (!cf.getAula().getId().equals(a.getId())
-                        || cf.getDiaSemana() != dto.getDiaSemana()
-                        || !cf.getHoraInicio().equals(dto.getHoraInicio())
-                        || !cf.getHoraFin().equals(dto.getHoraFin()))) protegerLiberaciones(cf);
+        // Las liberaciones se atan a una fecha: solo quedan inválidas si cambia el día.
+        if (cf.getId() != null && cf.getDiaSemana() != dto.getDiaSemana()) protegerLiberaciones(cf);
         cf.setComision(c);
         cf.setAula(a);
         cf.setDiaSemana(dto.getDiaSemana());
